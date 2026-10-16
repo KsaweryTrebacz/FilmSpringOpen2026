@@ -70,9 +70,10 @@
 <script>
 "use strict";
 const params = new URLSearchParams(location.search);
-const device = localStorage.getItem("bajka-device") || (() => {
+const device = (() => {  // przeglądarka może zablokować localStorage; wtedy numer telefonu żyje tylko do odświeżenia strony
+  try { const saved = localStorage.getItem("bajka-device"); if (saved) return saved; } catch (_) { /* brak pamięci */ }
   const id = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, "0")).join("");
-  localStorage.setItem("bajka-device", id);
+  try { localStorage.setItem("bajka-device", id); } catch (_) { /* brak pamięci */ }
   return id;
 })();
 const $ = id => document.getElementById(id);

@@ -1,6 +1,9 @@
 import http.client
 import io
 import json
+import re
+import shutil
+import subprocess
 import threading
 import time
 import urllib.error
@@ -382,3 +385,47 @@ def test_module_docstring_does_not_claim_recordings_stay_in_memory():
 
     assert "w pamięci" not in doc and "nie są zapisywane" not in doc
     assert "plik tymczasowy" in doc
+
+
+# Skrypt strony uruchamiamy w node z udawanym DOM-em i zablokowanym localStorage (tak jak w przeglądarce z wyłączonymi
+# ciasteczkami albo w dokumencie data:): wcześniej wyjątek w pierwszej linii zabijał cały skrypt i przycisk nic nie robił.
+JOIN_HARNESS = r"""
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[2], "utf8").match(/<script>([\s\S]*?)<\/script>/)[1];
+const elements = {}, fetched = [];
+const element = id => (elements[id] ??= {
+  id, hidden: false, className: "", textContent: "", style: {}, listeners: {}, firstElementChild: { style: {} },
+  addEventListener(type, fn) { this.listeners[type] = fn; }, replaceChildren() {},
+});
+const sandbox = {
+  document: { getElementById: element }, location: { search: "" }, navigator: {}, performance, URLSearchParams,
+  crypto: { getRandomValues: array => array.fill(7) }, setTimeout: () => 0,
+  fetch: url => { fetched.push(url); return Promise.reject(new Error("offline")); },
+};
+sandbox.window = Object.assign(sandbox, { isSecureContext: false });
+vm.createContext(sandbox);
+vm.runInContext(  // jak w przeglądarce: samo odczytanie localStorage rzuca SecurityError
+  `Object.defineProperty(globalThis, "localStorage", {
+     get() { throw Object.assign(new Error("Storage is disabled"), { name: "SecurityError" }); } })`,
+  sandbox
+);
+vm.runInContext(source, sandbox);
+const click = element("joinButton").listeners.click;
+if (!click) throw new Error("skrypt nie podpiął obsługi przycisku");
+click().then(() => console.log(JSON.stringify({ join: element("join").hidden, play: element("play").hidden, fetched })));
+"""
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="do sprawdzenia skryptu strony potrzebny jest node")
+def test_join_button_works_when_the_browser_blocks_local_storage(tmp_path):
+    harness = tmp_path / "join.js"
+    harness.write_text(JOIN_HARNESS, encoding="utf-8")
+
+    run = subprocess.run(
+        ["node", str(harness), str(APP_DIR / "index.html")], capture_output=True, text=True, encoding="utf-8", timeout=30
+    )
+
+    assert run.returncode == 0, run.stderr
+    result = json.loads(run.stdout)
+    assert result["join"] is True and result["play"] is False  # ekran dołączania znika, zaczyna się gra
+    assert re.fullmatch(r"api/state\?device=[A-Za-z0-9-]{8,64}", result["fetched"][0])  # zapasowe id przyjmie serwer
