@@ -32,15 +32,33 @@ class Settings:
     max_reprompts: int = 2
 
 
+def load_env() -> Mapping[str, str]:
+    """Ładuje plik .env z bieżącego katalogu (lub nadrzędnego) i zwraca zmienne środowiskowe."""
+    load_dotenv(find_dotenv(usecwd=True))
+    return os.environ
+
+
+def require(env: Mapping[str, str], *names: str) -> None:
+    missing = [name for name in names if not env.get(name)]
+    if missing:
+        raise ConfigError("Brak ustawień w .env: " + ", ".join(missing))
+
+
+def get_int(env: Mapping[str, str], name: str, default: int) -> int:
+    value = env.get(name)
+    if not value:
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise ConfigError(f"{name} musi być liczbą całkowitą, jest: {value!r}") from exc
+
+
 def load_settings(env: Mapping[str, str] | None = None, *, require_speech: bool = True) -> Settings:
     """Czyta ustawienia. Bez `env` najpierw ładuje plik .env z bieżącego katalogu."""
     if env is None:
-        load_dotenv(find_dotenv(usecwd=True))
-        env = os.environ
-    required = OPENAI_VARS + (SPEECH_VARS if require_speech else ())
-    missing = [name for name in required if not env.get(name)]
-    if missing:
-        raise ConfigError("Brak ustawień w .env: " + ", ".join(missing))
+        env = load_env()
+    require(env, *OPENAI_VARS, *(SPEECH_VARS if require_speech else ()))
     defaults = Settings(openai_endpoint="", openai_api_key="", openai_deployment="")
     return Settings(
         openai_endpoint=env["AZURE_OPENAI_ENDPOINT"],
@@ -52,17 +70,7 @@ def load_settings(env: Mapping[str, str] | None = None, *, require_speech: bool 
         language=env.get("BAJKA_LANGUAGE") or defaults.language,
         voice=env.get("BAJKA_VOICE") or defaults.voice,
         voice_rate=env.get("BAJKA_VOICE_RATE") or defaults.voice_rate,
-        initial_silence_ms=_int(env, "BAJKA_INITIAL_SILENCE_MS", defaults.initial_silence_ms),
-        end_silence_ms=_int(env, "BAJKA_END_SILENCE_MS", defaults.end_silence_ms),
-        max_reprompts=_int(env, "BAJKA_MAX_REPROMPTS", defaults.max_reprompts),
+        initial_silence_ms=get_int(env, "BAJKA_INITIAL_SILENCE_MS", defaults.initial_silence_ms),
+        end_silence_ms=get_int(env, "BAJKA_END_SILENCE_MS", defaults.end_silence_ms),
+        max_reprompts=get_int(env, "BAJKA_MAX_REPROMPTS", defaults.max_reprompts),
     )
-
-
-def _int(env: Mapping[str, str], name: str, default: int) -> int:
-    value = env.get(name)
-    if not value:
-        return default
-    try:
-        return int(value)
-    except ValueError as exc:
-        raise ConfigError(f"{name} musi być liczbą całkowitą, jest: {value!r}") from exc
