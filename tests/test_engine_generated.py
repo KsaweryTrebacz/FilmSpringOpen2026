@@ -80,6 +80,13 @@ def story(scenario_dict):
     return parse_scenario(scenario_dict, base_dir=Path("film"))
 
 
+@pytest.fixture
+def cave_story(story, scenario_dict):
+    """Jak `story`, ale jaskinia (wybór prowadzi do niej wprost) korzysta z pomysłu o ozdobach z drugiej gałęzi."""
+    scenario_dict["scenes"]["gen_jaskinia"]["image_prompt"] = "cave decorated for a party with {ozdoby}"
+    return parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
 def make_engine(scenario, listener, illustrator, answer="las"):
     player, voice = FakePlayer(), FakeVoice()
     engine = StoryEngine(
@@ -105,6 +112,16 @@ def test_generated_scene_draws_remembered_idea_and_narrates_over_it(story):
     assert "party at the beehive decorated with rainbow ribbons" in illustrator.prompts
     assert player.calls[-2:] == [("loop", "party.mp4"), ("play", "las.mp4")]
     assert voice.lines[-1] == NARRATION
+
+
+def test_generated_scene_reached_without_the_open_scene_uses_its_default_idea(cave_story):
+    illustrator = NamedIllustrator()
+    engine, _, _ = make_engine(cave_story, FakeListener("jaskinia"), illustrator, answer="jaskinia")
+
+    assert engine.run() == ["intro", "gen_jaskinia", "jaskinia"]  # pytanie o ozdoby nie padło
+
+    assert illustrator.prompts == ["cave decorated for a party with flowers"]  # nie „{ozdoby}” w promptcie
+    assert engine.memory == {"ozdoby": "flowers"}
 
 
 def test_choice_scene_draws_generated_branch_while_question_is_asked(story):

@@ -72,7 +72,10 @@ class StoryEngine:
         self._image_timeout_s = image_timeout_s
         self._rng = rng or random.Random()
         self._stopped = threading.Event()
-        self._memory: dict[str, str] = {}
+        # Scena generowana może paść przed pytaniem otwartym (inna gałąź): domyślny pomysł jest od początku.
+        self._memory: dict[str, str] = {
+            scene.remember: scene.default_idea for scene in scenario.scenes.values() if scene.kind == "open"
+        }
         self._prefetched: dict[str, tuple[Future[Path], float]] = {}  # scena → (rysowanie, termin)
         self._scenario = scenario
         self._player = player
@@ -85,7 +88,7 @@ class StoryEngine:
 
     @property
     def memory(self) -> Mapping[str, str]:
-        """Pomysły dziecka zapamiętane w tym seansie (klucz `remember` → opis po angielsku)."""
+        """Pomysły dziecka z tego seansu (klucz `remember` → opis po angielsku), do pytania: `default_idea`."""
         return dict(self._memory)
 
     def stop(self) -> None:
