@@ -245,8 +245,6 @@ class StoryEngine:
             self._play(self._fallback_clip(scene))
             return
         self._memory[scene.remember] = vision.idea
-        if scene.drawing is not None:
-            self._loop(scene.drawing)
         prompt = fill_prompt(scene.image_prompt, {**self._memory, "idea": vision.idea})
         deadline = time.monotonic() + self._image_timeout_s
         future = self._pool.submit(self._render, prompt)
@@ -260,6 +258,8 @@ class StoryEngine:
         for attempt in range(self._max_reprompts + 1):
             transcript = self._listen()
             if transcript:
+                if scene.drawing is not None:
+                    self._loop(scene.drawing)  # od razu: odpowiedź modelu potrwa, a ekran nie może stać pusty
                 try:
                     vision = self._imaginer.imagine(scene, transcript)
                 except Exception:

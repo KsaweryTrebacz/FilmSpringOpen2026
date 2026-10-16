@@ -68,6 +68,19 @@ class StoppingListener(FakeListener):
         return answer
 
 
+class ScreenWatchingImaginer(FakeImaginer):
+    """Zapamiętuje, co zdążyło pójść na ekran, zanim model wyobraźni dostał słowa dziecka."""
+
+    def __init__(self, answers):
+        super().__init__(answers)
+        self.player = None
+        self.screen_when_asked = None
+
+    def imagine(self, scene, transcript):
+        self.screen_when_asked = list(self.player.calls)
+        return super().imagine(scene, transcript)
+
+
 def make_engine(scenario, listener, imaginer=None, illustrator=None, animator=None, timeout_s=5.0, voice=None):
     player, voice = FakePlayer(), voice or FakeVoice()
     engine = StoryEngine(
@@ -104,6 +117,17 @@ def test_open_scene_draws_childs_idea_while_hero_talks(live_scenario):
     assert engine.memory == {"ozdoby": "rainbow ribbons"}
 
 
+def test_drawing_loop_is_shown_as_soon_as_the_child_has_spoken(live_scenario):
+    imaginer = ScreenWatchingImaginer({"wstążkami": Vision(REPLY, "rainbow ribbons")})
+    engine, player, _ = make_engine(live_scenario, FakeListener("las", "wstążkami"), imaginer=imaginer)
+    imaginer.player = player
+
+    engine.run()
+
+    assert imaginer.screen_when_asked[-1] == ("loop", "rysuje.mp4")  # model może myśleć kilka sekund
+    assert player.calls.count(("loop", "rysuje.mp4")) == 1
+
+
 def test_silence_reprompts_then_draws(live_scenario):
     engine, player, voice = make_engine(live_scenario, FakeListener("las", None, "wstążkami"))
 
@@ -121,6 +145,7 @@ def test_after_max_reprompts_default_idea_and_fallback_clip(live_scenario):
 
     assert voice.lines == ["Las!", REPROMPT, REPROMPT, FALLBACK_VISION_LINE]
     assert player.calls[-2:] == [("play", "ozdoby_zapas.mp4"), ("play", "las.mp4")]
+    assert ("loop", "rysuje.mp4") not in player.calls  # dziecko nic nie powiedziało, więc nic się nie rysuje
     assert illustrator.prompts == []
     assert engine.memory == {"ozdoby": "flowers and ribbons"}
 
@@ -144,6 +169,16 @@ def test_imaginer_error_uses_fallback_clip(live_scenario):
 
     assert voice.lines == ["Las!", FALLBACK_VISION_LINE]
     assert ("play", "ozdoby_zapas.mp4") in player.calls
+
+
+def test_imaginer_error_comes_after_the_drawing_loop_was_already_shown(live_scenario):
+    imaginer = FakeImaginer({"wstążkami": TimeoutError("Azure OpenAI nie odpowiada")})
+    engine, player, _ = make_engine(live_scenario, FakeListener("las", "wstążkami"), imaginer=imaginer)
+
+    engine.run()
+
+    assert player.calls[-3:] == [("loop", "rysuje.mp4"), ("play", "ozdoby_zapas.mp4"), ("play", "las.mp4")]
+    assert player.calls.count(("loop", "rysuje.mp4")) == 1
 
 
 @pytest.mark.parametrize(

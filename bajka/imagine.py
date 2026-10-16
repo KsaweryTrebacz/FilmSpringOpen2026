@@ -94,8 +94,8 @@ class AzureImaginer:
             azure_endpoint=settings.endpoint,
             api_key=settings.api_key,
             api_version=settings.api_version,
-            timeout=10.0,
-            max_retries=1,
+            timeout=6.0,  # na żywo krótko; awaria albo zwłoka → klip zapasowy, a nie kilkanaście sekund ciszy
+            max_retries=0,
         )
         return cls(client, settings.deployment, hero)
 

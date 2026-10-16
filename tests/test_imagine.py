@@ -103,6 +103,21 @@ def test_settings_use_the_same_azure_openai_variables_as_intent():
         ImagineSettings.from_env({})
 
 
+def test_live_client_gives_up_fast_so_the_fallback_clip_comes_in_time(monkeypatch):
+    created = {}
+
+    def spy(**kwargs):
+        created.update(kwargs)
+        return SimpleNamespace()
+
+    monkeypatch.setattr("openai.AzureOpenAI", spy)
+
+    AzureImaginer.from_settings(ImagineSettings.from_env(LLM_ENV), "Lila Lupka")
+
+    assert created["timeout"] == 6.0
+    assert created["max_retries"] == 0
+
+
 # Demo: python -m bajka.imagine
 
 
