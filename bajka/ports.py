@@ -1,10 +1,14 @@
-"""Interfejsy, od których zależy silnik bajki. Implementacje: Azure, VLC, konsola, atrapy w testach."""
+"""Kontrakty między modułami bajki.
+
+Każdy moduł (STT, TTS, odtwarzacz, intencje) implementuje jeden z tych interfejsów i nie importuje
+pozostałych modułów, więc można go rozwijać i testować osobno. Silnik bajki zależy tylko od nich.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from bajka.scenario import Scene
 
@@ -15,6 +19,7 @@ class Interpretation:
     reply: str  # kwestia bohatera do wypowiedzenia przez TTS
 
 
+@runtime_checkable
 class Player(Protocol):
     def play(self, clip: Path) -> None:
         """Odtwarza klip i blokuje do jego końca."""
@@ -23,16 +28,19 @@ class Player(Protocol):
         """Zapętla klip w tle i wraca od razu."""
 
 
+@runtime_checkable
 class Listener(Protocol):
     def listen(self) -> str | None:
         """Słucha jednej wypowiedzi dziecka. None oznacza ciszę."""
 
 
+@runtime_checkable
 class Voice(Protocol):
     def say(self, text: str) -> None:
         """Wypowiada kwestię bohatera i blokuje do końca wypowiedzi."""
 
 
+@runtime_checkable
 class IntentResolver(Protocol):
     def resolve(self, scene: Scene, transcript: str) -> Interpretation:
         """Zamienia wypowiedź dziecka na wybór ze sceny i kwestię bohatera."""
