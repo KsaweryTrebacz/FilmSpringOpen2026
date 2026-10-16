@@ -3,6 +3,8 @@
 import logging
 from pathlib import Path
 
+import pytest
+
 from bajka.engine import StoryEngine
 from bajka.ports import Interpretation, Pulse, ShowObserver
 from bajka.scenario import parse_scenario
@@ -143,6 +145,21 @@ def test_shout_round_is_reported(scenario_dict):
 
     assert ("glosy", {"scene": "intro", "source": "krzykomierz", "counts": {"las": 3000, "jaskinia": 1000}}) in events
     assert ("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "okrzyk"}) in events
+
+
+@pytest.mark.parametrize("bad_level", [float("inf"), float("nan")])
+def test_non_finite_shout_level_does_not_stop_the_film(scenario_dict, bad_level):
+    # Do ConsoleMeter da się wpisać „inf”; round(inf) rzuca OverflowError i zatrzymałoby cały film.
+    scene = scenario_dict["scenes"]["intro"]
+    scene["vote"] = True
+    scene["choices"]["las"]["call"] = "Kto do lasu?"
+    scene["choices"]["jaskinia"]["call"] = "Kto do jaskini?"
+    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
+
+    visited, events = run(scenario, meter=FakeMeter([bad_level, 1000.0]))
+
+    assert visited == ["intro", "las"]
+    assert ("glosy", {"scene": "intro", "source": "krzykomierz", "counts": {"las": 0, "jaskinia": 1000}}) in events
 
 
 def test_broken_panel_does_not_stop_the_film(scenario, caplog):

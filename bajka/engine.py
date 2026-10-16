@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import threading
 from collections import Counter
 from pathlib import Path
@@ -216,7 +217,8 @@ class StoryEngine:
             log.exception("Błąd krzykomierza, traktuję jak ciszę")
             return None
         log.info("Okrzyki: %s -> %s", ", ".join(f"{k}={v:.0f}" for k, v in levels.items()), winner)
-        self._emit("glosy", scene=scene.id, source="krzykomierz", counts={k: round(v) for k, v in levels.items()})
+        counts = {k: round(v) if math.isfinite(v) else 0 for k, v in levels.items()}  # round(inf) rzuciłby OverflowError
+        self._emit("glosy", scene=scene.id, source="krzykomierz", counts=counts)
         return winner if winner in scene.choices else None
 
     def _ask(self, scene: Scene) -> Choice:
