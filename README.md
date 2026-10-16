@@ -4,7 +4,7 @@ Prototyp na hackathon FilmSpring Open 2026: bajka, w której ekran słucha i odp
 Bohater odwraca się do widza i zadaje pytanie, dziecko odpowiada głosem, a historia idzie
 w wybraną stronę. Bez myszki i klawiatury.
 
-Pracujemy w dwie osoby na niezależnych modułach — kto co robi i zasady: [docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md).
+Pracujemy na niezależnych modułach w trzech obszarach (A, B, C) — kto co robi i zasady: [docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md).
 
 Domyślnie całe AI działa **lokalnie na Windows** (Foundry Local z Whisper i Phi na NPU/GPU/CPU, głos
 z syntezatora Windows) — bez chmury i bez kluczy: [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md).
@@ -13,6 +13,7 @@ Usługi Azure zostają jako alternatywa (`--backend azure`).
 Film: **„Bzyczka szuka domu”** — interaktywny animowany film krótkometrażowy dla widowni kinowej
 ([scenariusz filmowy](scenarios/klub_ciekawskich.md), [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)).
 Zgodność z regulaminem hackathonu: [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
+**Nowa osoba w zespole? Zacznij od [docs/ONBOARDING.md](docs/ONBOARDING.md).**
 Co jeszcze zostało do zrobienia: [docs/DO_ZROBIENIA.md](docs/DO_ZROBIENIA.md).
 
 ## Jak to działa
