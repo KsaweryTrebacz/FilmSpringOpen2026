@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "python-vlc>=3.0.21203",
     "azure-cognitiveservices-speech>=1.52",
-    "openai>=1.55",
+    "openai>=3.31",
     "PyYAML>=6.0",
     "python-dotenv>=1.0",
     "sounddevice>=0.5",
