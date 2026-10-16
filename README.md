@@ -13,6 +13,7 @@ Usługi Azure zostają jako alternatywa (`--backend azure`).
 Film: **„Bzyczka szuka domu”** — interaktywny animowany film krótkometrażowy dla widowni kinowej
 ([scenariusz filmowy](scenarios/klub_ciekawskich.md), [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)).
 Zgodność z regulaminem hackathonu: [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
+Co jeszcze zostało do zrobienia: [docs/DO_ZROBIENIA.md](docs/DO_ZROBIENIA.md).
 
 ## Jak to działa
 
