@@ -4,6 +4,8 @@
 **Data:** 2026-10-16 · **Status:** zaakceptowany
 **Obszar pracy:** „obraz na żywo” — trzeci obok „ucha i mózgu” (A) i „oka i głosu” (B) z [podziału pracy](../../PODZIAL_PRACY.md)
 
+> **Zmiana z 16.10:** modele rysowania na żywo opisuje teraz [projekt darmowego rysowania](2026-10-16-darmowe-rysowanie-design.md): Cloudflare Workers AI i lokalny Phi zamiast Azure, bez obrazów referencyjnych.
+
 ## 1. Kontekst
 
 **Hackathon** „Kino szuka nowej formy. Znajdź ją.” trwa od 16.10.2026, 10:00 do 18.10.2026, 19:00
