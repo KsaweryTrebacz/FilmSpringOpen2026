@@ -136,6 +136,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("prompt", nargs="?", help="opis sceny po angielsku")
     parser.add_argument("--batch", type=Path, help="plik YAML z listą ujęć: [{name, prompt}, ...]")
     parser.add_argument("--out", type=Path, default=Path("ilustracje"), help="katalog na obrazy (domyślnie ilustracje)")
+    parser.add_argument(
+        "--retries",
+        type=int,
+        help="ponowienia przy błędach i limicie Azure (domyślnie 3 dla --batch, 0 dla jednego obrazu; do pomiaru czasu: 0)",
+    )
     args = parser.parse_args(argv)
     if (args.prompt is None) == (args.batch is None):
         parser.error("podaj opis sceny albo --batch")
@@ -143,13 +148,14 @@ def main(argv: list[str] | None = None) -> int:
         scenario = load_scenario(args.scenario)
         settings = ImageSettings.from_env(load_env())
         shots = load_shots(args.batch) if args.batch else [(None, args.prompt)]
-    except (ScenarioError, ConfigError, ValueError, OSError) as exc:
+    except (ScenarioError, ConfigError, ValueError, OSError, yaml.YAMLError) as exc:
         print(exc, file=sys.stderr)
         return 2
 
-    # Przy produkcji wolno ponawiać (limit to ok. 5 obrazów na minutę), na żywo nie.
+    # Przy produkcji wolno ponawiać (limit to ok. 5 obrazów na minutę); czas mierzymy bez ponowień (--retries 0).
+    retries = args.retries if args.retries is not None else (3 if args.batch else 0)
     illustrator = AzureIllustrator.from_settings(
-        settings, args.out, scenario.style, scenario.references, max_retries=3
+        settings, args.out, scenario.style, scenario.references, max_retries=retries
     )
     times = []
     for name, prompt in shots:
@@ -157,7 +163,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             path = illustrator.draw(prompt, name=name)
         except Exception as exc:  # demo pokazuje każdy błąd Azure (filtr treści, limit, klucz) i idzie dalej
-            print(f"Błąd ({name or prompt}): {exc}", file=sys.stderr)
+            print(f"Błąd ({name or prompt}, {time.perf_counter() - started:.1f} s): {exc}", file=sys.stderr)
             continue
         times.append(time.perf_counter() - started)
         print(f"{path} ({times[-1]:.1f} s)", flush=True)

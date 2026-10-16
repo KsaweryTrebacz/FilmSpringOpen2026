@@ -19,10 +19,11 @@ IMAGE_ENV = {
 class FakeImages:
     """Udaje client.images z SDK openai: zapamiętuje wywołania i zwraca obraz w base64."""
 
-    def __init__(self, png=b"PNG", error=None):
+    def __init__(self, png=b"PNG", error=None, errors=()):
         self.calls = []
         self._result = SimpleNamespace(data=[SimpleNamespace(b64_json=base64.b64encode(png).decode())])
         self._error = error
+        self._errors = list(errors)  # błąd dla kolejnych wywołań; None = sukces
 
     def generate(self, **kwargs):
         return self._answer("generate", kwargs)
@@ -33,8 +34,9 @@ class FakeImages:
 
     def _answer(self, method, kwargs):
         self.calls.append((method, kwargs))
-        if self._error is not None:
-            raise self._error
+        error = self._errors.pop(0) if self._errors else self._error
+        if error is not None:
+            raise error
         return self._result
 
 
@@ -179,8 +181,10 @@ def image_keys(tmp_path, monkeypatch):
         monkeypatch.setenv(name, value)
 
 
-def use_fake_images(monkeypatch, images):
+def use_fake_images(monkeypatch, images, retries=None):
     def from_settings(cls, settings, out_dir, style="", references=(), max_retries=0):
+        if retries is not None:
+            retries.append(max_retries)
         return AzureIllustrator(SimpleNamespace(images=images), settings.deployment, out_dir, style, references)
 
     monkeypatch.setattr(AzureIllustrator, "from_settings", classmethod(from_settings))
@@ -213,14 +217,36 @@ def test_demo_draws_one_picture_with_scenario_style(image_keys, monkeypatch, sce
 def test_demo_batch_reports_median_and_keeps_going_after_error(image_keys, monkeypatch, scenario_file, tmp_path, capsys):
     shots = tmp_path / "ujecia.yaml"
     shots.write_text(yaml.safe_dump([{"name": "01", "prompt": "a"}, {"name": "02", "prompt": "b"}]))
-    images = FakeImages()
-    use_fake_images(monkeypatch, images)
+    use_fake_images(monkeypatch, FakeImages(errors=[RuntimeError("content_policy_violation"), None]))
 
     assert main([str(scenario_file), "--batch", str(shots), "--out", str(tmp_path / "out")]) == 0
 
-    out = capsys.readouterr().out
-    assert "01.png" in out and "02.png" in out
-    assert "Mediana" in out
+    out, err = capsys.readouterr()
+    assert "02.png" in out and "01.png" not in out
+    assert "udane: 1/2" in out
+    assert "content_policy_violation" in err
+
+
+def test_demo_retries_only_in_batch_unless_asked(image_keys, monkeypatch, scenario_file, tmp_path):
+    shots = tmp_path / "ujecia.yaml"
+    shots.write_text(yaml.safe_dump([{"name": "01", "prompt": "a"}]))
+    retries = []
+    use_fake_images(monkeypatch, FakeImages(), retries)
+    out = str(tmp_path / "out")
+
+    main([str(scenario_file), "a meadow", "--out", out])
+    main([str(scenario_file), "--batch", str(shots), "--out", out])
+    main([str(scenario_file), "--batch", str(shots), "--retries", "0", "--out", out])
+
+    assert retries == [0, 3, 0]
+
+
+def test_demo_malformed_batch_file_exits_with_code_2(image_keys, monkeypatch, scenario_file, tmp_path):
+    shots = tmp_path / "ujecia.yaml"
+    shots.write_text("- name: [niezamknięte\n", encoding="utf-8")
+    use_fake_images(monkeypatch, FakeImages())
+
+    assert main([str(scenario_file), "--batch", str(shots)]) == 2
 
 
 def test_demo_returns_1_when_every_picture_fails(image_keys, monkeypatch, scenario_file, capsys):
