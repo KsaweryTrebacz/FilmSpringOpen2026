@@ -90,6 +90,23 @@ def test_template_may_only_use_remembered_ideas(live_dict):
         parse_scenario(live_dict, base_dir=Path("."))
 
 
+@pytest.mark.parametrize(
+    "template",
+    [
+        "the beehive with {} and {idea}",
+        "the beehive with {idea",
+        "the beehive } with {idea}",
+        "the beehive with {idea!z}",
+    ],
+    ids=["puste_pole", "niedomkniety", "samotny_nawias", "zla_konwersja"],
+)
+def test_malformed_image_prompt_is_rejected_when_loading(live_dict, template):
+    live_dict["scenes"]["ozdoby"]["image_prompt"] = template
+
+    with pytest.raises(ScenarioError, match="ozdoby"):
+        parse_scenario(live_dict, base_dir=Path("."))
+
+
 def test_unknown_kind_is_rejected(live_dict):
     live_dict["scenes"]["ozdoby"]["kind"] = "film"
 

@@ -185,7 +185,11 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
 
 def _parse_open(scene_id: str, data: dict, base_dir: Path, where: str) -> Scene:
     image_prompt = _require_str(data, "image_prompt", where)
-    if "idea" not in template_fields(image_prompt):
+    try:
+        fields = template_fields(image_prompt)
+    except ValueError as exc:
+        raise ScenarioError(f"{where}: niepoprawny szablon 'image_prompt': {exc}") from exc
+    if "idea" not in fields:
         raise ScenarioError(f"{where}: 'image_prompt' musi zawierać {{idea}}, czyli pomysł dziecka")
     return Scene(
         id=scene_id,
@@ -253,9 +257,19 @@ def _validate_graph(scenario: Scenario) -> None:
         if scene.next and scene.next not in scenario.scenes:
             raise ScenarioError(f"scena '{scene.id}': następna scena '{scene.next}' (next) nie istnieje")
         allowed = remembered | ({"idea"} if scene.kind == "open" else set())
-        unknown = template_fields(scene.image_prompt) - allowed
-        if unknown:
-            raise ScenarioError(
-                f"scena '{scene.id}': 'image_prompt' używa nieznanych pomysłów: {', '.join(sorted(unknown))}"
-                " (dozwolone: {idea} i klucze 'remember' scen otwartych)"
-            )
+        _check_template(scene.image_prompt, allowed, f"scena '{scene.id}'")
+
+
+def _check_template(template: str, allowed: set[str], where: str) -> None:
+    """Literówka w szablonie ma wyjść przy wczytaniu scenariusza, a nie w trakcie seansu."""
+    try:
+        fields = template_fields(template)
+        fill_prompt(template, dict.fromkeys(allowed, "x"))  # próbne wypełnienie łapie {} i złe formatowanie
+    except (ValueError, IndexError, KeyError, AttributeError) as exc:
+        raise ScenarioError(f"{where}: niepoprawny szablon 'image_prompt': {exc}") from exc
+    unknown = fields - allowed
+    if unknown:
+        raise ScenarioError(
+            f"{where}: 'image_prompt' używa nieznanych pomysłów: {', '.join(sorted(unknown))}"
+            " (dozwolone: {idea} i klucze 'remember' scen otwartych)"
+        )
