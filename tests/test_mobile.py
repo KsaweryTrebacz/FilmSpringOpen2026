@@ -292,6 +292,16 @@ def test_server_rejects_bad_requests(server):
         get(url + "../../etc/passwd")
 
 
+def test_second_server_cannot_take_a_port_that_is_already_listening(server):
+    # Zapomniany podgląd (python -m bajka.mobile) nie może po cichu dzielić portu z serwerem filmu (Windows + SO_REUSEADDR).
+    _, url = server
+    port = int(url.rstrip("/").rsplit(":", 1)[1])
+    second = MobileServer(audience(), MobileSettings(https=False, host="127.0.0.1", port=port))
+
+    with pytest.raises(OSError):
+        second.start()
+
+
 def test_https_uses_self_signed_certificate(tmp_path, monkeypatch, scenario):
     pytest.importorskip("cryptography")
     import ssl

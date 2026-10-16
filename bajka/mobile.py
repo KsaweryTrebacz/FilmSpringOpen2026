@@ -275,6 +275,9 @@ def join_page(url: str) -> str:
 
 class _Server(ThreadingHTTPServer):
     daemon_threads = True
+    # Na Windows SO_REUSEADDR pozwala drugiemu procesowi zająć port, na którym ktoś już nasłuchuje:
+    # zapomniany podgląd po cichu trzymałby telefony zamiast serwera filmu. Tam więc wyłączamy ponowne użycie portu.
+    allow_reuse_address = sys.platform != "win32"
     ssl_context: ssl.SSLContext | None = None
     audience: MobileAudience
     public_url: str = ""
