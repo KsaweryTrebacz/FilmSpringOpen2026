@@ -129,3 +129,19 @@ def test_manager_is_initialized_once_and_registers_accelerators():
 
     assert first is second
     assert calls == [("init", "bajka"), "eps"]
+
+
+def test_failed_accelerator_download_does_not_stop_the_story():
+    class FakeLocalManager:
+        instance = None
+
+        @classmethod
+        def initialize(cls, config):
+            def no_network(progress_callback):
+                raise ConnectionError("brak internetu")
+
+            cls.instance = SimpleNamespace(download_and_register_eps=no_network)
+
+    sdk = SimpleNamespace(FoundryLocalManager=FakeLocalManager, Configuration=lambda app_name: SimpleNamespace(app_name=app_name))
+
+    assert get_manager(sdk) is FakeLocalManager.instance

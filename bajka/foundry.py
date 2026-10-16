@@ -56,7 +56,11 @@ def get_manager(sdk: Any = None) -> Any:
             sdk.FoundryLocalManager.initialize(sdk.Configuration(app_name=APP_NAME))
             manager = sdk.FoundryLocalManager.instance
             log.info("Foundry Local: przygotowuję akceleratory (pierwszy raz pobiera sterowniki)…")
-            manager.download_and_register_eps(progress_callback=_ProgressLog("akcelerator"))
+            try:
+                manager.download_and_register_eps(progress_callback=_ProgressLog("akcelerator"))
+            except Exception:
+                # Bez sieci albo bez sterowników modele nadal działają na CPU; bajka nie może przez to nie wystartować.
+                log.warning("Nie udało się przygotować akceleratorów NPU/GPU, modele pójdą na CPU", exc_info=True)
         return sdk.FoundryLocalManager.instance
 
 
