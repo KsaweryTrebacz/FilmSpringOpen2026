@@ -1,0 +1,12 @@
+{
+  "name": "Klub Ciekawskich — seans",
+  "short_name": "Klub Ciekawskich",
+  "description": "Odpowiadaj Lili głosem podczas seansu filmu „Bzyczka szuka domu”.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14110f",
+  "theme_color": "#14110f",
+  "lang": "pl",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

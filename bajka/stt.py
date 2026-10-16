@@ -83,6 +83,36 @@ class AzureListener:
         return text
 
 
+class AzureFileTranscriber:
+    """Nagranie z telefonu widza (16 kHz mono) → tekst przez Azure; używa go `bajka/mobile.py` w trybie azure."""
+
+    def __init__(self, settings: SttSettings, recognize: Any = None) -> None:
+        self._settings = settings
+        self._recognize = recognize or self._recognize_file
+
+    def _recognize_file(self, path: str) -> Any:
+        audio = speechsdk.audio.AudioConfig(filename=path)
+        recognizer = speechsdk.SpeechRecognizer(speech_config=make_recognizer_config(self._settings), audio_config=audio)
+        return recognizer.recognize_once_async().get()
+
+    def __call__(self, samples: Any) -> str:
+        import os
+        import tempfile
+        import wave
+
+        handle, path = tempfile.mkstemp(suffix=".wav", prefix="bajka-")
+        os.close(handle)
+        try:
+            with wave.open(path, "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(16000)
+                wav.writeframes(samples.astype("<i2").tobytes())
+            return text_from_result(self._recognize(path)) or ""
+        finally:
+            os.remove(path)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m bajka.stt", description="Test rozpoznawania mowy z mikrofonu (Azure AI Speech)."

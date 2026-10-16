@@ -58,3 +58,17 @@ class ShoutMeter(Protocol):
 
     def winner(self, levels: dict[str, float]) -> str | None:
         """Zwycięska opcja rundy albo None, gdy było za cicho lub wyszedł remis."""
+
+
+@runtime_checkable
+class Audience(Protocol):
+    """Widownia z aplikacją mobilną: odpowiedzi przychodzą z mikrofonów telefonów (bajka/mobile.py)."""
+
+    def connected(self) -> int:
+        """Ile telefonów jest teraz połączonych z seansem."""
+
+    def collect(self, scene: Scene) -> list[Interpretation]:
+        """Otwiera rundę na telefonach (pytanie i opcje), czeka na odpowiedzi i zwraca rozpoznane wybory.
+
+        Pusta lista oznacza, że nikt nie odpowiedział.
+        """

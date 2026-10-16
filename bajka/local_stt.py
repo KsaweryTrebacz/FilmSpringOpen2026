@@ -131,6 +131,10 @@ class FoundryTranscriber:
         self._model = model
         self._language = language
 
+    @classmethod
+    def from_settings(cls, settings: LocalSttSettings) -> FoundryTranscriber:
+        return cls(load_model(settings.model, settings.device), settings.language)
+
     def __call__(self, samples: np.ndarray) -> str:
         from foundry_local_sdk import (
             AudioItem,
@@ -172,8 +176,7 @@ class LocalListener:
 
     @classmethod
     def from_settings(cls, settings: LocalSttSettings) -> LocalListener:
-        model = load_model(settings.model, settings.device)
-        return cls(FoundryTranscriber(model, settings.language), settings)
+        return cls(FoundryTranscriber.from_settings(settings), settings)
 
     def listen(self) -> str | None:
         log.info("Słucham…")

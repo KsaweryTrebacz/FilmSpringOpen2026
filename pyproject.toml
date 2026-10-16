@@ -28,8 +28,14 @@ local = [
     "winrt-Windows.Storage.Streams>=3.2; sys_platform == 'win32'",
 ]
 
+# Aplikacja mobilna widowni: certyfikat HTTPS dla mikrofonu w telefonach i kod QR na ekran kina.
+mobile = ["cryptography>=42", "segno>=1.6"]
+
 [tool.setuptools]
 packages = ["bajka"]
+
+[tool.setuptools.package-data]
+bajka = ["mobile_app/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

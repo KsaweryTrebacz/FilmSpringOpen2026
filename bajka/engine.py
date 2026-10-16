@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
+from collections import Counter
 
-from bajka.ports import IntentResolver, Interpretation, Listener, Player, ShoutMeter, Voice
+from bajka.ports import Audience, IntentResolver, Interpretation, Listener, Player, ShoutMeter, Voice
 from bajka.scenario import Choice, Scenario, Scene
 
 log = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ class StoryEngine:
         resolver: IntentResolver,
         max_reprompts: int = 2,
         meter: ShoutMeter | None = None,
+        audience: Audience | None = None,
     ) -> None:
         self._scenario = scenario
         self._player = player
@@ -35,6 +37,7 @@ class StoryEngine:
         self._resolver = resolver
         self._max_reprompts = max_reprompts
         self._meter = meter  # bez krzykomierza sceny `vote` rozpoznają wybór z mowy, jak pozostałe
+        self._audience = audience  # telefony widzów; gdy żaden nie jest połączony, słuchamy sali
 
     def run(self) -> list[str]:
         """Odtwarza bajkę i zwraca identyfikatory odwiedzonych scen."""
@@ -48,8 +51,49 @@ class StoryEngine:
                 return visited
             if scene.idle is not None:
                 self._player.loop(scene.idle)
-            choice = self._vote(scene) if scene.vote and self._meter is not None else self._ask(scene)
-            scene = self._scenario.scene(choice.next)
+            scene = self._scenario.scene(self._decide(scene).next)
+
+    def _decide(self, scene: Scene) -> Choice:
+        if self._audience is not None and self._phones_connected():
+            return self._ask_audience(scene)
+        if scene.vote and self._meter is not None:
+            return self._vote(scene)
+        return self._ask(scene)
+
+    def _phones_connected(self) -> bool:
+        try:
+            return self._audience.connected() > 0
+        except Exception:
+            log.exception("Błąd aplikacji mobilnej, słucham sali")
+            return False
+
+    def _ask_audience(self, scene: Scene) -> Choice:
+        """Runda na telefonach widowni: wygrywa wybór, który wskazało najwięcej osób."""
+        for attempt in range(self._max_reprompts + 1):
+            answers = self._collect(scene)
+            votes = Counter(a.choice_id for a in answers if a.choice_id in scene.choices)
+            ranked = votes.most_common(2)
+            log.info("Odpowiedzi z telefonów: %d, głosy: %s", len(answers), dict(votes))
+            if ranked and (len(ranked) == 1 or ranked[0][1] > ranked[1][1]):
+                choice = scene.choices[ranked[0][0]]
+                # Jedna odpowiedź = osobista reakcja modelu; przy wielu Lila mówi stałą kwestię ze scenariusza.
+                personal = answers[0].reply if len(answers) == 1 else ""
+                self._say(personal or choice.reply)
+                return choice
+            if attempt < self._max_reprompts:
+                unclear = answers[0].reply if len(answers) == 1 and not votes else ""
+                self._say(unclear or scene.reprompt)
+        default = scene.choices[scene.default]
+        log.info("Brak decyzji z telefonów, bohater wybiera sam: %s", default.id)
+        self._say(f"{scene.fallback or DEFAULT_FALLBACK} {default.reply}")
+        return default
+
+    def _collect(self, scene: Scene) -> list[Interpretation]:
+        try:
+            return self._audience.collect(scene)
+        except Exception:
+            log.exception("Błąd aplikacji mobilnej, traktuję rundę jak ciszę")
+            return []
 
     def _vote(self, scene: Scene) -> Choice:
         """Runda okrzyków: bohaterka wzywa po kolei do każdej opcji, wygrywa najgłośniejsza."""

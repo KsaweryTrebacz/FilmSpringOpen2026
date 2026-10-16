@@ -94,6 +94,24 @@ class FallbackResolver:
             return self._fallback.resolve(scene, transcript)
 
 
+class KeywordsFirstResolver:
+    """Najpierw słowa kluczowe (natychmiast), model językowy tylko dla odpowiedzi, których nie rozpoznały.
+
+    Przy wielu odpowiedziach z telefonów widowni (`bajka/mobile.py`) większość krótkich okrzyków
+    („mostek!”) rozpoznają słowa kluczowe, więc wolniejszy model nie spowalnia rundy.
+    """
+
+    def __init__(self, keywords: IntentResolver, model: IntentResolver) -> None:
+        self._keywords = keywords
+        self._model = model
+
+    def resolve(self, scene: Scene, transcript: str) -> Interpretation:
+        quick = self._keywords.resolve(scene, transcript)
+        if quick.choice_id is not None:
+            return quick
+        return self._model.resolve(scene, transcript)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m bajka.keywords", description="Test rozpoznawania wyboru po słowach kluczowych (offline)."

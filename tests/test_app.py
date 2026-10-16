@@ -4,7 +4,7 @@ import sys
 import pytest
 import yaml
 
-from bajka.app import build_meter, build_resolver, choose_backend, main, parse_args
+from bajka.app import build_meter, build_resolver, choose_backend, main, mobile_enabled, parse_args
 from bajka.config import ConfigError
 from bajka.keywords import KeywordIntentResolver
 
@@ -52,6 +52,12 @@ def test_shout_meter_is_typed_in_text_mode_and_uses_microphone_otherwise():
 
     assert isinstance(build_meter({}, text_mode=True), ConsoleMeter)
     assert isinstance(build_meter({}, text_mode=False), MicrophoneMeter)  # mikrofon otwiera się dopiero przy pomiarze
+
+
+def test_mobile_audience_is_enabled_by_flag_or_env():
+    assert not mobile_enabled(parse_args(["b.yaml"]), {})
+    assert mobile_enabled(parse_args(["b.yaml", "--mobile"]), {})
+    assert mobile_enabled(parse_args(["b.yaml"]), {"BAJKA_MOBILE": "1"})
 
 
 def test_no_llm_uses_keywords_without_loading_any_model():

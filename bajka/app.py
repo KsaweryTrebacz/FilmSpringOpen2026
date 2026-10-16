@@ -17,7 +17,7 @@ from bajka.config import ConfigError, get_int, load_env
 from bajka.engine import StoryEngine
 from bajka.foundry import FoundryError
 from bajka.intent import AzureIntentResolver, LlmSettings
-from bajka.keywords import FallbackResolver, KeywordIntentResolver
+from bajka.keywords import FallbackResolver, KeywordIntentResolver, KeywordsFirstResolver
 from bajka.local_tts import VoiceNotFoundError
 from bajka.ports import IntentResolver, Listener, ShoutMeter, Voice
 from bajka.safety import SafeReplyResolver
@@ -25,6 +25,8 @@ from bajka.scenario import ScenarioError, load_scenario, missing_media
 
 if TYPE_CHECKING:
     import tkinter as tk
+
+    from bajka.mobile import MobileServer
 
     from bajka.player import VlcPlayer
 
@@ -47,6 +49,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--no-llm", action="store_true", help="bez modelu językowego: wybór po słowach kluczowych ze scenariusza"
+    )
+    parser.add_argument(
+        "--mobile",
+        action="store_true",
+        help="odpowiedzi widowni z aplikacji mobilnej (mikrofony telefonów); także BAJKA_MOBILE=1 w .env",
     )
     return parser.parse_args(argv)
 
@@ -100,6 +107,28 @@ def build_meter(env: Mapping[str, str], text_mode: bool) -> ShoutMeter:
     return MicrophoneMeter(VoteSettings.from_env(env))
 
 
+def mobile_enabled(args: argparse.Namespace, env: Mapping[str, str]) -> bool:
+    return args.mobile or (env.get("BAJKA_MOBILE") or "0").strip().lower() in ("1", "tak", "true")
+
+
+def build_mobile(env: Mapping[str, str], backend: str, resolver: IntentResolver) -> MobileServer:
+    """Serwer aplikacji mobilnej: nagrania z telefonów rozpoznaje ten sam backend co resztę bajki."""
+    from bajka.mobile import MobileAudience, MobileServer, MobileSettings
+
+    if backend == "azure":
+        from bajka.stt import AzureFileTranscriber, SttSettings
+
+        transcribe = AzureFileTranscriber(SttSettings.from_env(env))
+    else:
+        from bajka.local_stt import FoundryTranscriber, LocalSttSettings
+
+        transcribe = FoundryTranscriber.from_settings(LocalSttSettings.from_env(env))
+    settings = MobileSettings.from_env(env)
+    # Wiele krótkich odpowiedzi naraz: słowa kluczowe od razu, model tylko dla niejasnych.
+    audience = MobileAudience(transcribe, KeywordsFirstResolver(KeywordIntentResolver(), resolver), settings)
+    return MobileServer(audience, settings)
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s")
     args = parse_args(argv)
@@ -120,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
         meter = build_meter(env, args.text)
         listener, voice = build_speech(env, args.text, backend)
         resolver = build_resolver(env, backend, not args.no_llm, scenario.hero)
+        mobile = build_mobile(env, backend, resolver) if mobile_enabled(args, env) else None
     except (ConfigError, FoundryError, VoiceNotFoundError, OSError) as exc:
         log.error("%s", exc)
         return 2
@@ -131,10 +161,25 @@ def main(argv: list[str] | None = None) -> int:
 
     from bajka.player import VlcPlayer
 
+    audience = None
+    if mobile is not None:
+        try:
+            url = mobile.start()
+        except OSError as exc:
+            log.error("Nie udało się uruchomić serwera aplikacji mobilnej: %s", exc)
+            return 2
+        audience = mobile.audience
+        log.info("Widzowie: otwórzcie %s w telefonie. Kod QR na ekran kina: %sqr", url, url)
     root = tk.Tk()
     player = VlcPlayer(root, fullscreen=not args.windowed)
-    engine = StoryEngine(scenario, player, listener, voice, resolver, max_reprompts=max_reprompts, meter=meter)
-    run_window(root, player, engine)
+    engine = StoryEngine(
+        scenario, player, listener, voice, resolver, max_reprompts=max_reprompts, meter=meter, audience=audience
+    )
+    try:
+        run_window(root, player, engine)
+    finally:
+        if mobile is not None:
+            mobile.stop()
     return 0
 
 

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14110f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<title>Klub Ciekawskich — seans</title>
+<style>
+  /* Ciemny ekran: telefon nie może rozświetlać sali kinowej. */
+  :root { --bg: #14110f; --card: #221c18; --ink: #f3e9d7; --dim: #a8998a; --lila: #e8b931; --ok: #7fb685; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink);
+    font: 20px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 520px; margin: 0 auto; padding: 24px 16px calc(24px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 26px; margin: 8px 0 4px; color: var(--lila); }
+  p { margin: 8px 0; }
+  .dim { color: var(--dim); font-size: 16px; }
+  .card { background: var(--card); border-radius: 20px; padding: 20px; margin: 16px 0; }
+  button { font: inherit; border: 0; border-radius: 16px; padding: 16px 20px; cursor: pointer; }
+  .big { width: 100%; font-size: 24px; font-weight: 700; background: var(--lila); color: #241b05; }
+  .choices { display: grid; gap: 12px; margin-top: 16px; }
+  .choice { width: 100%; font-size: 22px; background: #33291f; color: var(--ink); text-align: left; }
+  .choice:active { background: #4a3b2b; }
+  #question { font-size: 24px; font-weight: 700; }
+  #status { font-size: 22px; margin-top: 12px; }
+  .lupka { display: inline-block; width: 18px; height: 18px; border-radius: 50%; background: var(--lila);
+    vertical-align: middle; margin-right: 8px; box-shadow: 0 0 0 0 rgba(232, 185, 49, .7); }
+  .listening .lupka { animation: pulse 1.2s ease-out infinite; }
+  .sent .lupka { background: var(--ok); }
+  @keyframes pulse { to { box-shadow: 0 0 0 18px rgba(232, 185, 49, 0); } }
+  #level { height: 8px; border-radius: 4px; background: #33291f; overflow: hidden; margin-top: 12px; }
+  #level > div { height: 100%; width: 0; background: var(--lila); transition: width .1s; }
+  #debug { display: none; gap: 8px; margin-top: 12px; }
+  #debug input { flex: 1; font: inherit; padding: 12px; border-radius: 12px; border: 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Klub Ciekawskich</h1>
+  <p class="dim">Bzyczka szuka domu — seans z udziałem widowni</p>
+
+  <section id="join" class="card">
+    <p>Lila będzie zadawać pytania. Kiedy zaświeci się lupka, powiedz odpowiedź do telefonu.</p>
+    <button id="joinButton" class="big">Dołączam do seansu</button>
+    <p class="dim">Telefon poprosi o dostęp do mikrofonu. Nagranie służy tylko do rozpoznania odpowiedzi
+      na komputerze w kinie i nie jest nigdzie zapisywane.</p>
+    <p id="joinError" class="dim" hidden></p>
+  </section>
+
+  <section id="play" class="card" hidden>
+    <div id="waiting">
+      <p><span class="lupka"></span>Patrz na ekran! Lupka zaświeci się przy pytaniu.</p>
+    </div>
+    <div id="round" hidden>
+      <div id="question"></div>
+      <div id="status"><span class="lupka"></span><span id="statusText"></span></div>
+      <div id="level"><div></div></div>
+      <div class="choices" id="choices"></div>
+      <p class="dim">Możesz też dotknąć odpowiedzi.</p>
+      <form id="debug"><input id="debugText" placeholder="odpowiedź tekstem (próby)"><button>Wyślij</button></form>
+    </div>
+  </section>
+</main>
+<script>
+"use strict";
+const params = new URLSearchParams(location.search);
+const device = localStorage.getItem("bajka-device") || (() => {
+  const id = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, "0")).join("");
+  localStorage.setItem("bajka-device", id);
+  return id;
+})();
+const $ = id => document.getElementById(id);
+const TARGET_RATE = 16000;
+const END_SILENCE_MS = 1200;
+
+let audio = null;       // { context, processor, source }
+let currentRound = null;
+let recorder = null;    // stan nagrywania bieżącej rundy
+
+function show(id, visible) { $(id).hidden = !visible; }
+function status(text, cls) {
+  $("statusText").textContent = text;
+  $("round").className = cls || "";
+}
+
+$("joinButton").addEventListener("click", async () => {
+  try {
+    if (!window.isSecureContext || !navigator.mediaDevices) throw new Error("insecure");
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    await context.resume();
+    const source = context.createMediaStreamSource(stream);
+    const processor = context.createScriptProcessor(4096, 1, 1);
+    processor.onaudioprocess = event => onAudio(event.inputBuffer.getChannelData(0), context.sampleRate);
+    source.connect(processor);
+    processor.connect(context.destination);  // bez tego część przeglądarek nie wywołuje onaudioprocess
+    audio = { context, processor, source };
+  } catch (error) {
+    $("joinError").hidden = false;
+    $("joinError").textContent = error.message === "insecure"
+      ? "Ta strona nie ma bezpiecznego połączenia, więc telefon nie da dostępu do mikrofonu. Możesz odpowiadać dotykiem."
+      : "Bez dostępu do mikrofonu możesz odpowiadać dotykiem. (" + error.name + ")";
+  }
+  try { await navigator.wakeLock?.request("screen"); } catch (_) { /* ekran może się wygasić — nic nie szkodzi */ }
+  show("join", false);
+  show("play", true);
+  if (params.has("tekst")) $("debug").style.display = "flex";
+  poll();
+});
+
+async function poll() {
+  try {
+    const response = await fetch(`api/state?device=${device}`, { cache: "no-store" });
+    onState(await response.json());
+  } catch (_) { /* serwer chwilowo niedostępny — spróbujemy za chwilę */ }
+  setTimeout(poll, 800);
+}
+
+function onState(state) {
+  if (!state.round) {
+    if (currentRound !== null) stopRecording(false);
+    currentRound = null;
+    show("round", false);
+    show("waiting", true);
+    return;
+  }
+  if (state.round === currentRound) return;
+  currentRound = state.round;
+  show("waiting", false);
+  show("round", true);
+  $("question").textContent = state.question;
+  $("choices").replaceChildren(...state.choices.map(choice => {
+    const button = document.createElement("button");
+    button.className = "choice";
+    button.textContent = choice.label;
+    button.addEventListener("click", () => send(JSON.stringify({ choice: choice.id }), "application/json"));
+    return button;
+  }));
+  if (state.answered) {
+    status("Odpowiedź wysłana. Patrz na ekran!", "sent");
+  } else if (audio) {
+    navigator.vibrate?.(150);
+    startRecording(state.answer_seconds || 6, state.seconds_left || 8);
+  } else {
+    status("Dotknij odpowiedzi.", "listening");
+  }
+}
+
+// --- nagrywanie z wykrywaniem mowy ---
+
+function startRecording(maxSeconds, roundSeconds) {
+  recorder = {
+    chunks: [], preRoll: [], speaking: false, floor: 0.01, silentMs: 0, spokenMs: 0,
+    maxMs: maxSeconds * 1000, deadline: performance.now() + Math.max(1, roundSeconds - 0.5) * 1000, round: currentRound,
+  };
+  status("Słucham… powiedz odpowiedź!", "listening");
+}
+
+function onAudio(input, rate) {
+  const samples = new Float32Array(input);
+  let sum = 0;
+  for (const s of samples) sum += s * s;
+  const rms = Math.sqrt(sum / samples.length);
+  $("level").firstElementChild.style.width = Math.min(100, rms * 400) + "%";
+  if (!recorder) return;
+  const ms = samples.length / rate * 1000;
+  const r = recorder;
+  r.rate = rate;
+  if (!r.speaking) {
+    r.floor = 0.95 * r.floor + 0.05 * rms;              // gwar wokół telefonu
+    r.preRoll.push(samples);
+    if (r.preRoll.length > 3) r.preRoll.shift();
+    if (rms > Math.max(0.03, r.floor * 3)) {
+      r.speaking = true;
+      r.chunks.push(...r.preRoll);
+    } else if (performance.now() > r.deadline) {
+      stopRecording(false);                               // nikt nie mówił do telefonu
+      status("Nie słychać odpowiedzi. Możesz dotknąć odpowiedzi.", "");
+    }
+    return;
+  }
+  r.chunks.push(samples);
+  r.spokenMs += ms;
+  r.silentMs = rms > Math.max(0.02, r.floor * 2) ? 0 : r.silentMs + ms;
+  if (r.silentMs >= END_SILENCE_MS || r.spokenMs >= r.maxMs || performance.now() > r.deadline) stopRecording(true);
+}
+
+function stopRecording(sendIt) {
+  const r = recorder;
+  recorder = null;
+  if (!sendIt || !r || r.round !== currentRound) return;
+  send(encodeWav(downsample(r.chunks, r.rate)), "audio/wav");
+}
+
+function downsample(chunks, rate) {
+  const length = chunks.reduce((n, c) => n + c.length, 0);
+  const joined = new Float32Array(length);
+  let offset = 0;
+  for (const c of chunks) { joined.set(c, offset); offset += c.length; }
+  const ratio = rate / TARGET_RATE;
+  const out = new Int16Array(Math.floor(length / ratio));
+  for (let i = 0; i < out.length; i++) {
+    const start = Math.floor(i * ratio), end = Math.min(length, Math.floor((i + 1) * ratio));
+    let sum = 0;
+    for (let j = start; j < end; j++) sum += joined[j];
+    const value = Math.max(-1, Math.min(1, sum / Math.max(1, end - start)));
+    out[i] = value < 0 ? value * 0x8000 : value * 0x7fff;
+  }
+  return out;
+}
+
+function encodeWav(samples) {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+  const text = (offset, value) => [...value].forEach((ch, i) => view.setUint8(offset + i, ch.charCodeAt(0)));
+  text(0, "RIFF"); view.setUint32(4, 36 + samples.length * 2, true); text(8, "WAVE");
+  text(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, TARGET_RATE, true); view.setUint32(28, TARGET_RATE * 2, true);
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  text(36, "data"); view.setUint32(40, samples.length * 2, true);
+  samples.forEach((s, i) => view.setInt16(44 + i * 2, s, true));
+  return new Blob([buffer], { type: "audio/wav" });
+}
+
+async function send(body, type) {
+  const round = currentRound;
+  recorder = null;
+  status("Wysyłam…", "listening");
+  try {
+    const response = await fetch(`api/answer?device=${device}&round=${round}`, {
+      method: "POST", headers: { "Content-Type": type }, body,
+    });
+    const result = await response.json();
+    status(result.status === "closed" ? "Za późno — następnym razem!" : "Odpowiedź wysłana. Patrz na ekran!", "sent");
+  } catch (_) {
+    status("Nie udało się wysłać. Dotknij odpowiedzi.", "");
+  }
+}
+
+$("debug").addEventListener("submit", event => {
+  event.preventDefault();
+  send(JSON.stringify({ text: $("debugText").value }), "application/json");
+});
+</script>
+</body>
+</html>

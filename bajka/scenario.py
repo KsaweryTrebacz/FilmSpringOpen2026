@@ -21,6 +21,11 @@ class Choice:
     keywords: tuple[str, ...] = ()  # słowa, po których wybór rozpozna się bez LLM (bajka/keywords.py)
     call: str = ""  # scena `vote`: wezwanie do okrzyku, np. "Kto za mostkiem? Krzyczymy: MOSTEK!" (TTS)
     call_clip: Path | None = None  # scena `vote`: to samo wezwanie jako nagrany klip (ma pierwszeństwo przed `call`)
+    label: str = ""  # krótka nazwa opcji na ekranie telefonu widza (bajka/mobile.py), np. "Tęczowy Mostek"
+
+    @property
+    def display_label(self) -> str:
+        return self.label or self.id.replace("_", " ").capitalize()
 
 
 @dataclass(frozen=True)
@@ -101,6 +106,7 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
             reply=_require_str(c, "reply", f"{where}, wybór '{cid}'"),
             keywords=_optional_words(c, "keywords", f"{where}, wybór '{cid}'"),
             call=str(c.get("call") or "").strip() if isinstance(c, dict) else "",
+            label=str(c.get("label") or "").strip() if isinstance(c, dict) else "",
             call_clip=base_dir / c["call_clip"] if isinstance(c, dict) and c.get("call_clip") else None,
         )
         for cid, c in raw_choices.items()
