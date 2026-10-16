@@ -1,4 +1,5 @@
 import json
+import re
 import time
 import urllib.error
 import urllib.request
@@ -72,12 +73,39 @@ def test_scenes_and_decisions_build_the_path_and_the_log(scenario):
     snapshot = state.snapshot()
     assert snapshot["scene"] == "las"
     assert snapshot["path"] == [{"scene": "intro", "variant": "zwykla"}, {"scene": "las", "variant": "spokojna"}]
-    assert snapshot["decisions"] == [{"scene": "intro", "choice": "las", "label": "Las", "how": "wiekszosc"}]
+    assert snapshot["decisions"] == [
+        {"scene": "intro", "choice": "las", "label": "Las", "how": "wiekszosc", "source": None, "counts": None}
+    ]
     assert texts(snapshot) == [
         "Scena intro",
         "Decyzja w scenie intro: Las (większość głosów z telefonów)",
         "Scena las w wersji spokojnej",
     ]
+
+
+def test_decision_carries_the_vote_tally_that_preceded_it(scenario):
+    state = PanelState(scenario, PulseSettings())
+
+    state.event("glosy", {"scene": "intro", "source": "telefony", "counts": {"las": 18, "jaskinia": 7}})
+    state.event("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "wiekszosc"})
+
+    assert state.snapshot()["decisions"] == [
+        {"scene": "intro", "choice": "las", "label": "Las", "how": "wiekszosc",
+         "source": "telefony", "counts": {"las": 18, "jaskinia": 7}}
+    ]  # fmt: skip
+    assert list(state.snapshot()["decisions"][0]["counts"]) == ["las", "jaskinia"]  # kolejność opcji ze sceny
+
+
+def test_a_tally_is_used_once_so_a_later_decision_in_the_same_scene_has_none(scenario):
+    state = PanelState(scenario, PulseSettings())
+
+    state.event("glosy", {"scene": "intro", "source": "krzykomierz", "counts": {"las": 0.8, "jaskinia": 0.3}})
+    state.event("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "okrzyk"})
+    state.event("decyzja", {"scene": "intro", "choice": "jaskinia", "label": "Jaskinia", "how": "odpowiedz"})
+
+    first, second = state.snapshot()["decisions"]
+    assert first["source"] == "krzykomierz" and first["counts"] == {"las": 0.8, "jaskinia": 0.3}
+    assert second["source"] is None and second["counts"] is None
 
 
 def test_votes_are_kept_and_described_with_option_labels(scenario):
@@ -245,7 +273,10 @@ def test_panel_page_works_offline_and_has_all_sections(server):
     sections = ('id="tree-svg"', 'id="chart"', 'id="votes"', 'id="log"', 'id="slider"', 'data-preset="ekscytuje-sie"')
     for element in sections:
         assert element in page
-    assert "<link" not in page and 'src="http' not in page  # bez internetu na sali: żadnych zewnętrznych plików
+    for external in ("<link", "@import", "url(http", 'src="http', "src='http", "//cdn"):
+        assert external not in page  # bez internetu na sali: żadnych zewnętrznych plików
+    # Strona prosi dokładnie o te adresy, które serwer obsługuje (/graph, /state, POST /pulse).
+    assert set(re.findall(r'(?:fetch|getJSON)\(\s*"([^"]+)"', page)) == {"graph", "state", "pulse"}
 
 
 def test_unknown_page_is_404(server):

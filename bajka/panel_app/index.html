@@ -41,7 +41,9 @@
     grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
     gap: 16px;
     padding: 12px 24px 24px;
+    transition: opacity 0.3s;
   }
+  main.offline { opacity: 0.4; }  /* bez połączenia panel jest wygaszony: to nie są dane na żywo */
   .column { display: grid; gap: 16px; align-content: start; min-width: 0; }
   section {
     background: var(--card);
@@ -65,7 +67,12 @@
   .node.visited text { fill: var(--text); }
   .node.current rect { fill: #3b3214; stroke: var(--honey); stroke-width: 2.5; }
   .node.current text { fill: var(--honey); font-weight: 700; }
-  .node .badge { fill: var(--calm); font-size: 11px; }
+  .node text.badge, .node.visited text.badge, .node.current text.badge {
+    fill: var(--calm); font-size: 11px; font-weight: 400;
+  }
+  .node text.version, .node.visited text.version, .node.current text.version {
+    fill: var(--calm); font-size: 11px; font-weight: 400;
+  }
   .edge path { fill: none; stroke: #39406a; stroke-width: 1.5; }
   .edge text { fill: #6c7397; font-size: 11px; }
   .edge.taken path { stroke: var(--honey); stroke-width: 3; }
@@ -130,7 +137,7 @@
         <span><i style="background:#2a2f52"></i>już obejrzane</span>
         <span><i style="background:#1e2340;border:1px solid var(--line)"></i>przed nami</span>
         <span><i style="background:var(--honey)"></i>wybrana ścieżka</span>
-        <span style="color:var(--calm)">≈ scena ma wersję spokojniejszą</span>
+        <span style="color:var(--calm)">≈ scena ma wersje zależne od tętna sali; w ramce widać, którą zagrano</span>
       </div>
     </section>
     <section>
@@ -146,7 +153,7 @@
         <div class="chip" id="state">brak danych</div>
       </div>
       <div id="pulse-meta">Punkt odniesienia pojawi się po pierwszej scenie.</div>
-      <svg id="chart" viewBox="0 0 600 170" preserveAspectRatio="none" aria-label="Wykres tętna sali"></svg>
+      <svg id="chart" role="img" viewBox="0 0 600 170" preserveAspectRatio="none" aria-label="Wykres tętna sali"></svg>
     </section>
     <section>
       <h2 id="votes-title">Głosy widowni</h2>
@@ -179,7 +186,17 @@ const SVG = "http://www.w3.org/2000/svg";
 const HOW = { wiekszosc: "telefony", okrzyk: "okrzyk", odpowiedz: "mikrofon", domyslna: "sama" };
 const SOURCE = { telefony: "z telefonów", krzykomierz: "z krzykomierza" };
 const STATE_CLASS = { pobudzona: "excited", "w normie": "normal", znudzona: "bored" };
+const VERSION_NOTE = { spokojna: "tętno ↑ → wersja spokojna", zywa: "tętno ↓ → wersja żywa" };
+const REQUEST_TIMEOUT_MS = 4000;
+const NOTICE_MS = 5000;
 let graph = null;
+let refreshing = false;  // jedno odświeżenie naraz: wolny serwer nie dostaje kolejki zapytań
+let online = null;       // null: jeszcze nie próbowaliśmy, false: ostatnie odświeżenie się nie udało
+let notice = "";         // krótki komunikat o błędzie polecenia, pokazywany w miejscu stanu połączenia
+let noticeTimer = null;
+let sliderDragging = false;  // palec albo mysz trzyma suwak
+let sliderTimer = null;      // polecenie z suwaka czeka na wysłanie (odczekanie 150 ms)
+let commandsInFlight = 0;    // polecenia wysłane, bez odpowiedzi
 
 function el(name, attrs, text) {
   const node = document.createElementNS(SVG, name);
@@ -188,31 +205,53 @@ function el(name, attrs, text) {
   return node;
 }
 
+function timeout(ms) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return { signal: controller.signal, clear: () => clearTimeout(timer) };
+}
+
 async function getJSON(url) {
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw new Error(response.status);
-  return response.json();
+  const limit = timeout(REQUEST_TIMEOUT_MS);  // zawieszone zapytanie nie może zablokować kolejnych odświeżeń
+  try {
+    const response = await fetch(url, { cache: "no-store", signal: limit.signal });
+    if (!response.ok) throw new Error(response.status);
+    return await response.json();
+  } finally {
+    limit.clear();
+  }
 }
 
 function layout(g) {
-  // Od góry do dołu: rząd = odległość sceny od startu, sceny w rzędzie obok siebie.
+  // Od góry do dołu: rząd = odległość sceny od startu, sceny w rzędzie obok siebie, rząd wyśrodkowany.
   const rows = new Map();
   for (const scene of g.scenes) {
     if (!rows.has(scene.depth)) rows.set(scene.depth, []);
     rows.get(scene.depth).push(scene);
   }
   const widest = Math.max(...[...rows.values()].map((r) => r.length));
-  const nodeW = 132, nodeH = 38, gapX = 40, rowHeight = 66, margin = 170;  // margines na podpisy krawędzi
-  const inner = Math.max(widest, 2) * (nodeW + gapX);
+  const nodeW = 170, nodeH = 50, gapX = 40, gapY = 28, margin = 180;  // margines na podpisy krawędzi
+  const rowHeight = nodeH + gapY;
+  const columns = Math.max(widest, 2);
+  const inner = columns * nodeW + (columns - 1) * gapX;
   const width = inner + 2 * margin;
   const positions = {};
   for (const [depth, scenes] of rows) {
+    const rowWidth = scenes.length * nodeW + (scenes.length - 1) * gapX;
     scenes.forEach((scene, i) => {
-      const x = margin + (inner / (scenes.length + 1)) * (i + 1);
-      positions[scene.id] = { x: x - nodeW / 2, y: 12 + depth * rowHeight, w: nodeW, h: nodeH };
+      const x = margin + (inner - rowWidth) / 2 + i * (nodeW + gapX);
+      positions[scene.id] = { x, y: 12 + depth * rowHeight, w: nodeW, h: nodeH };
     });
   }
-  return { positions, width, height: 12 + rows.size * rowHeight };
+  return { positions, width, height: 24 + (rows.size - 1) * rowHeight + nodeH };
+}
+
+function decisionNote(decision) {
+  const how = HOW[decision.how] || decision.how;
+  if (decision.how === "wiekszosc" && decision.counts) {
+    return `${how} ${Object.values(decision.counts).map((n) => Math.round(n)).join(":")}`;
+  }
+  return how;  // okrzyk: poziomy głośności to nie liczby głosów, więc bez cyfr
 }
 
 function renderTree(state) {
@@ -222,6 +261,7 @@ function renderTree(state) {
   svg.style.maxWidth = `${Math.round(width * 1.15)}px`;
   svg.replaceChildren();
   const visited = new Set(state.path.map((p) => p.scene));
+  const playedVariant = new Map(state.path.map((p) => [p.scene, p.variant]));  // ostatnie wejście do sceny wygrywa
   const taken = new Map(state.decisions.map((d) => [`${d.scene}>${d.choice}`, d]));
   const groups = new Map();
   for (const edge of graph.edges) {
@@ -234,28 +274,41 @@ function renderTree(state) {
     const chosen = edges.map((e) => taken.get(`${e.from}>${e.choice}`)).find(Boolean);
     const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y, mid = (y1 + y2) / 2;
     const group = el("g", { class: chosen ? "edge taken" : "edge" });
+    const full = chosen ? `${chosen.label} · ${decisionNote(chosen)}` : edges.map((e) => e.label).join(" / ");
+    // Nazwę wybranej opcji skracamy, a wynik głosowania zostaje w całości.
+    const shown = chosen ? `${shorten(chosen.label, 18)} · ${decisionNote(chosen)}` : shorten(full, 28);
+    group.append(el("title", {}, full));
     group.append(el("path", { d: `M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}` }));
-    const label = chosen ? `${chosen.label} · ${HOW[chosen.how] || chosen.how}` : edges.map((e) => e.label).join(" / ");
     // Podpis na zewnątrz: scena po lewej stronie drzewa → w lewo, po prawej → w prawo.
     const leftward = x1 < width / 2 - 1 || (Math.abs(x1 - width / 2) <= 1 && x2 < x1);
     const lx = (x1 + x2) / 2 + (leftward ? -8 : 8);
-    group.append(el("text", { x: lx, y: mid + 4, "text-anchor": leftward ? "end" : "start" }, shorten(label, 28)));
+    group.append(el("text", { x: lx, y: mid + 4, "text-anchor": leftward ? "end" : "start" }, shown));
     svg.append(group);
   }
   for (const scene of graph.scenes) {
     const p = positions[scene.id];
     const kind = scene.id === state.scene ? "current" : visited.has(scene.id) ? "visited" : "";
+    const note = visited.has(scene.id) ? VERSION_NOTE[playedVariant.get(scene.id)] : undefined;
     const group = el("g", { class: `node ${kind}` });
     group.append(el("title", {}, scene.question || (scene.ending ? "zakończenie" : scene.id)));
     group.append(el("rect", { x: p.x, y: p.y, width: p.w, height: p.h, rx: 10 }));
-    group.append(el("text", { x: p.x + p.w / 2, y: p.y + p.h / 2 + 5, "text-anchor": "middle" }, shorten(scene.id, 15)));
-    if (scene.variants.length) group.append(el("text", { x: p.x + p.w - 10, y: p.y + 13, class: "badge" }, "≈"));
+    const nameY = note ? p.y + 21 : p.y + p.h / 2 + 5;
+    group.append(el("text", { x: p.x + p.w / 2, y: nameY, "text-anchor": "middle" }, shorten(scene.id, 18)));
+    if (note) {
+      group.append(el("text", { x: p.x + p.w / 2, y: p.y + 40, "text-anchor": "middle", class: "version" }, note));
+    }
+    if (scene.variants.length) group.append(el("text", { x: p.x + p.w - 12, y: p.y + 14, class: "badge" }, "≈"));
     svg.append(group);
   }
 }
 
 function shorten(text, max) {
   return text.length > max ? text.slice(0, max - 1) + "…" : text;
+}
+
+function setSlider(target) {
+  document.getElementById("slider").value = Math.round(target);
+  document.getElementById("target").textContent = Math.round(target);
 }
 
 function renderPulse(pulse) {
@@ -269,10 +322,8 @@ function renderPulse(pulse) {
     ? "Punkt odniesienia pojawi się po pierwszej scenie."
     : `Odniesienie ${Math.round(pulse.baseline)} · norma ${Math.round(pulse.bored)}–${Math.round(pulse.excited)}`
       + ` · widzów ${pulse.viewers ?? "–"} · cel symulatora ${pulse.target == null ? "–" : Math.round(pulse.target)}`;
-  const slider = document.getElementById("slider");
-  if (pulse.target != null && document.activeElement !== slider) {  // przebieg demo też przesuwa suwak
-    slider.value = Math.round(pulse.target);
-    document.getElementById("target").textContent = Math.round(pulse.target);
+  if (pulse.target != null && !userIsSettingTarget() && commandsInFlight === 0) {
+    setSlider(pulse.target);  // przebieg demo też przesuwa suwak
   }
   renderChart(pulse);
 }
@@ -347,49 +398,105 @@ function renderLog(entries) {
   }));
 }
 
-async function refresh() {
+function renderMood() {
+  document.getElementById("mood").textContent = graph.mood
+    ? `Film ${graph.mood}: gdy sala odbiega od nastroju filmu, scena gra inną wersję montażu`
+    : "Film bez nastroju (mood): wersje scen wyłączone";
+}
+
+function paintConnection() {
+  let text = "łączenie z filmem…", offline = false;
+  if (notice) {
+    text = notice;
+    offline = true;
+  } else if (online === false) {
+    text = "brak połączenia z filmem — czy aplikacja działa z flagą --panel?";
+    offline = true;
+  } else if (online) {
+    text = "połączono z filmem";
+  }
   const connection = document.getElementById("connection");
+  connection.textContent = text;
+  connection.className = offline ? "offline" : "";
+  document.querySelector("main").classList.toggle("offline", online === false);  // wygaszony panel nie udaje żywego
+}
+
+function showNotice(text) {
+  notice = text;
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => { notice = ""; paintConnection(); }, NOTICE_MS);
+  paintConnection();
+}
+
+async function refresh() {
+  if (refreshing) return;
+  refreshing = true;
   try {
-    if (!graph) {
-      graph = await getJSON("graph");
-      document.getElementById("mood").textContent = graph.mood
-        ? `Film ${graph.mood}: gdy sala odbiega od nastroju filmu, scena gra inną wersję montażu`
-        : "Film bez nastroju (mood): wersje scen wyłączone";
+    let state;
+    try {  // tylko pobranie danych znaczy "brak połączenia"
+      if (!graph) graph = await getJSON("graph");
+      state = await getJSON("state");
+    } catch (error) {
+      online = false;
+      paintConnection();
+      return;
     }
-    const state = await getJSON("state");
-    renderTree(state);
-    renderPulse(state.pulse);
-    renderVotes(state.votes);
-    renderLog(state.log);
-    connection.textContent = "połączono z filmem";
-    connection.className = "";
-  } catch (error) {
-    connection.textContent = "brak połączenia z filmem — czy aplikacja działa z flagą --panel?";
-    connection.className = "offline";
+    online = true;
+    // Każdy fragment rysujemy osobno: błąd w drzewie nie gasi wykresu tętna ani dziennika.
+    for (const draw of [renderMood, () => renderTree(state), () => renderPulse(state.pulse),
+                        () => renderVotes(state.votes), () => renderLog(state.log)]) {
+      try {
+        draw();
+      } catch (error) {
+        console.error("Błąd rysowania panelu", error);
+      }
+    }
+    paintConnection();
+  } finally {
+    refreshing = false;
   }
 }
 
 async function command(body) {
+  const limit = timeout(REQUEST_TIMEOUT_MS);
+  commandsInFlight += 1;
   try {
     const response = await fetch("pulse", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      signal: limit.signal,
     });
-    const answer = await response.json();
-    if (answer.target != null) {
-      document.getElementById("slider").value = Math.round(answer.target);
-      document.getElementById("target").textContent = Math.round(answer.target);
+    const answer = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      showNotice(answer.error || `symulator odrzucił polecenie (${response.status})`);
+    } else if (answer.target != null && !userIsSettingTarget()) {
+      setSlider(answer.target);
     }
   } catch (error) {
-    document.getElementById("connection").textContent = "nie udało się wysłać polecenia do symulatora";
+    showNotice("nie udało się wysłać polecenia do symulatora");
+  } finally {
+    limit.clear();
+    commandsInFlight -= 1;
   }
 }
 
+function userIsSettingTarget() {
+  return sliderDragging || sliderTimer !== null;
+}
+
 const slider = document.getElementById("slider");
-let sliderTimer = null;
+slider.addEventListener("pointerdown", () => { sliderDragging = true; });
+for (const type of ["pointerup", "pointercancel"]) {
+  window.addEventListener(type, () => { sliderDragging = false; });  // puszczenie poza suwakiem też się liczy
+}
+slider.addEventListener("change", () => { sliderDragging = false; });
+slider.addEventListener("blur", () => { sliderDragging = false; });
 slider.addEventListener("input", () => {
   document.getElementById("target").textContent = slider.value;
   clearTimeout(sliderTimer);
-  sliderTimer = setTimeout(() => command({ target: Number(slider.value) }), 150);
+  sliderTimer = setTimeout(() => {
+    sliderTimer = null;
+    command({ target: Number(slider.value) });
+  }, 150);
 });
 for (const button of document.querySelectorAll("[data-preset]")) {
   button.addEventListener("click", () => command({ preset: button.dataset.preset }));

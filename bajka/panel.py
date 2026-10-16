@@ -100,8 +100,9 @@ class PanelState:
         self._lock = threading.Lock()
         self._scene: str | None = None
         self._path: list[dict[str, str]] = []
-        self._decisions: list[dict[str, str]] = []
+        self._decisions: list[dict[str, Any]] = []
         self._votes: dict[str, Any] | None = None
+        self._tallies: dict[str, dict[str, Any]] = {}  # ostatnie głosy w każdej scenie, do podpisu decyzji
         self._history: deque[list[float]] = deque(maxlen=HISTORY_SAMPLES)
         self._last: Pulse | None = None
         self._baseline: float | None = None
@@ -152,11 +153,17 @@ class PanelState:
         self._say(f"Scena {data['scene']}{version}")
 
     def _on_decyzja(self, data: Mapping[str, Any]) -> None:
-        self._decisions.append({key: data[key] for key in ("scene", "choice", "label", "how")})
+        # Głosy poprzedzają decyzję i służą jej raz: przy kolejnej wizycie w scenie nie wrócą nieaktualne.
+        tally = self._tallies.pop(data["scene"], None)
+        decision: dict[str, Any] = {key: data[key] for key in ("scene", "choice", "label", "how")}
+        decision["source"] = tally["source"] if tally else None
+        decision["counts"] = tally["counts"] if tally else None
+        self._decisions.append(decision)
         self._say(f"Decyzja w scenie {data['scene']}: {data['label']} ({HOW.get(data['how'], data['how'])})")
 
     def _on_glosy(self, data: Mapping[str, Any]) -> None:
         self._votes = {"scene": data["scene"], "source": data["source"], "counts": dict(data["counts"])}
+        self._tallies[data["scene"]] = {"source": data["source"], "counts": dict(data["counts"])}
         choices = self._scenario.scene(data["scene"]).choices
         results = ", ".join(
             f"{choices[cid].display_label if cid in choices else cid} {count}" for cid, count in data["counts"].items()
