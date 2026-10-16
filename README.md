@@ -4,6 +4,8 @@ Prototyp na hackathon FilmSpring Open 2026: bajka, w której ekran słucha i odp
 Bohater odwraca się do widza i zadaje pytanie, dziecko odpowiada głosem, a historia idzie
 w wybraną stronę. Bez myszki i klawiatury.
 
+Pracujemy w dwie osoby na niezależnych modułach — kto co robi i zasady: [docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md).
+
 ## Jak to działa
 
 1. VLC odtwarza klip, w którym bohater zadaje pytanie (np. „las czy jaskinia?”).
@@ -46,7 +48,20 @@ python -m bajka scenarios/las_czy_jaskinia.yaml
 ```
 
 `Esc` zamyka aplikację. W trybie `--text` kliknij okno konsoli, żeby wpisać odpowiedź.
-Podgląd przejścia klip → pętla bez reszty systemu: `python -m bajka.player KLIP PĘTLA`.
+
+## Sprawdzanie modułów osobno
+
+Każdy moduł ma własne demo, które działa bez reszty aplikacji:
+
+```powershell
+python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure STT)
+python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos bohatera (Azure TTS)
+python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
+python -m bajka.player scenarios/clips/intro.mp4 scenarios/clips/intro_idle.mp4   # klip → pętla (VLC)
+```
+
+Każde demo wypisuje czas odpowiedzi, co pomaga stroić `BAJKA_INITIAL_SILENCE_MS`, `BAJKA_END_SILENCE_MS`
+i prompt. Bez kluczy w `.env` demo kończy się komunikatem, których zmiennych brakuje.
 
 ## Scenariusz
 
@@ -79,18 +94,19 @@ względne wobec pliku scenariusza. Scena bez `choices` kończy bajkę.
 | Moduł | Rola |
 |---|---|
 | `bajka/scenario.py` | Wczytanie i walidacja scenariusza YAML |
-| `bajka/config.py` | Ustawienia z `.env` |
-| `bajka/ports.py` | Interfejsy: `Player`, `Listener`, `Voice`, `IntentResolver` |
+| `bajka/config.py` | Wspólne narzędzia ustawień: `load_env`, `require`, `get_int` |
+| `bajka/ports.py` | Kontrakty: `Player`, `Listener`, `Voice`, `IntentResolver` |
 | `bajka/engine.py` | `StoryEngine`: przebieg bajki, dopytywanie, ścieżki awaryjne |
-| `bajka/intent.py` | Azure OpenAI: intencja + kwestia bohatera (structured outputs) |
-| `bajka/speech.py` | Azure AI Speech: STT z mikrofonu, TTS z odtwarzaniem do końca |
+| `bajka/stt.py` | Azure AI Speech: rozpoznawanie mowy z mikrofonu (`SttSettings`, `AzureListener`) |
+| `bajka/tts.py` | Azure AI Speech: głos bohatera, odtwarzanie do końca (`TtsSettings`, `AzureVoice`) |
+| `bajka/intent.py` | Azure OpenAI: intencja + kwestia bohatera (`LlmSettings`, `AzureIntentResolver`) |
 | `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter |
 | `bajka/console.py` | Tryb `--text` do prób bez mikrofonu |
 | `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg) |
 | `bajka/app.py` | Złożenie całości i uruchomienie |
 
-Silnik zależy tylko od interfejsów z `ports.py`, więc testy działają na atrapach,
-bez Azure, mikrofonu i VLC.
+Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne ustawienia
+(`XxxSettings.from_env`). Testy działają na atrapach, bez Azure, mikrofonu i VLC.
 
 ## Testy
 
@@ -103,6 +119,6 @@ python -m pytest
 - `FileNotFoundError: ... libvlc.dll`: brak VLC albo zainstalowana wersja 32-bit.
 - Bohater nie słyszy dziecka: Ustawienia Windows → Prywatność → Mikrofon → zezwól aplikacjom klasycznym;
   sprawdź domyślne urządzenie nagrywania.
-- `STT anulowane: ... 401` albo `TTS anulowane`: zły `AZURE_SPEECH_KEY` lub `AZURE_SPEECH_REGION`.
+- `rozpoznawanie anulowane: ... 401` albo `synteza anulowana: ... 401`: zły `AZURE_SPEECH_KEY` lub `AZURE_SPEECH_REGION`.
 - Dziecko musi długo czekać albo jest ucinane: dostrój `BAJKA_INITIAL_SILENCE_MS` i `BAJKA_END_SILENCE_MS`.
 - Krzaki zamiast polskich znaków w konsoli: `$env:PYTHONUTF8 = "1"`.

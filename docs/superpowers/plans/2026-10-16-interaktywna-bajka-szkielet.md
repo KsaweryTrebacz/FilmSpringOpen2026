@@ -8,6 +8,11 @@
 
 **Tech Stack:** Python 3.11+ (testowane na 3.13), python-vlc 3.0.21203 + VLC 3.x 64-bit, azure-cognitiveservices-speech 1.52, openai 3.31 (`AzureOpenAI`), PyYAML, python-dotenv, sounddevice + numpy, pytest.
 
+> **Stan 2026-10-16: plan wykonany, potem zrefaktorowany pod pracę w dwie osoby.** Aktualną strukturę opisuje [podział pracy](../../PODZIAL_PRACY.md). Różnice względem kodu w zadaniach poniżej:
+> - **Task 2:** zamiast wspólnej klasy `Settings` i `load_settings` każdy moduł ma własne ustawienia: `SttSettings` (`bajka/stt.py`), `TtsSettings` (`bajka/tts.py`), `LlmSettings` (`bajka/intent.py`); `BAJKA_MAX_REPROMPTS` czyta `app.py`. `bajka/config.py` zawiera tylko `ConfigError`, `load_env()`, `require(env, *names)`, `get_int(env, name, default)`.
+> - **Task 5:** `bajka/speech.py` rozdzielono na `bajka/stt.py` (`AzureListener.from_settings(SttSettings)`, `RecognitionError`) i `bajka/tts.py` (`AzureVoice.from_settings(TtsSettings)`, `SynthesisError`).
+> - **Nowe dema:** `python -m bajka.stt`, `python -m bajka.tts`, `python -m bajka.intent`. Kontrakty w `bajka/ports.py` są `@runtime_checkable`.
+
 ## Kontekst i ustalenia
 
 Ustalenia z sesji projektowej (nie ma osobnego specu — to jest źródło prawdy):
