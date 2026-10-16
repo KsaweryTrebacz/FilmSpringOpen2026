@@ -7,7 +7,8 @@ import threading
 from collections import Counter
 from pathlib import Path
 
-from bajka.ports import Audience, IntentResolver, Interpretation, Listener, Player, ShoutMeter, Voice
+from bajka.ports import Audience, AudiencePulse, IntentResolver, Interpretation, Listener, Player, ShoutMeter, Voice
+from bajka.pulse import PulseSettings, hall_state, pick_variant
 from bajka.scenario import Choice, Scenario, Scene
 
 log = logging.getLogger(__name__)
@@ -35,8 +36,13 @@ class StoryEngine:
         max_reprompts: int = 2,
         meter: ShoutMeter | None = None,
         audience: Audience | None = None,
+        pulse: AudiencePulse | None = None,
+        pulse_settings: PulseSettings | None = None,
     ) -> None:
         self._stopped = threading.Event()
+        self._pulse = pulse  # tętno sali; bez niego sceny grają zawsze zwykłą wersję
+        self._pulse_settings = pulse_settings or PulseSettings()
+        self._baseline: float | None = None  # tętno tuż po pierwszej scenie, punkt odniesienia na cały seans
         self._scenario = scenario
         self._player = player
         self._listener = listener
@@ -62,6 +68,27 @@ class StoryEngine:
         self._check_stopped()
         self._player.loop(clip)
 
+    def _clip_for(self, scene: Scene) -> Path:
+        """Wersja montażu według tętna sali; zwykły klip, gdy tętna nie ma albo sala jest w normie."""
+        if not scene.variants or self._pulse is None or self._baseline is None:
+            return scene.clip
+        bpm = self._read_bpm()
+        if bpm is None:
+            return scene.clip
+        state = hall_state(bpm, self._baseline, self._pulse_settings)
+        variant = pick_variant(self._scenario.mood, state)
+        chosen = variant if variant in scene.variants else None
+        log.info("Tętno sali %.0f (odniesienie %.0f), sala %s: scena %s w wersji %s",
+                 bpm, self._baseline, state, scene.id, chosen or "zwykłej")  # fmt: skip
+        return scene.variants[chosen] if chosen else scene.clip
+
+    def _read_bpm(self) -> float | None:
+        try:
+            return self._pulse.read().bpm
+        except Exception:
+            log.exception("Błąd odczytu tętna sali, scena w zwykłej wersji")
+            return None
+
     def run(self) -> list[str]:
         """Odtwarza bajkę i zwraca identyfikatory odwiedzonych scen."""
         visited: list[str] = []
@@ -71,9 +98,11 @@ class StoryEngine:
                 self._check_stopped()
                 visited.append(scene.id)
                 log.info("Scena: %s", scene.id)
-                self._play(scene.clip)
+                self._play(self._clip_for(scene))
                 if scene.is_ending:
                     return visited
+                if self._pulse is not None and self._baseline is None:
+                    self._baseline = self._read_bpm()  # sala dopiero usiadła
                 if scene.idle is not None:
                     self._loop(scene.idle)
                 scene = self._scenario.scene(self._decide(scene).next)

@@ -14,6 +14,7 @@ from bajka.pulse import (
     PulseSettings,
     SimulatedPulse,
     hall_state,
+    pick_variant,
     script_value,
 )
 
@@ -136,3 +137,19 @@ def test_settings_from_env_defaults_and_overrides():
 def test_thresholds_must_lie_on_both_sides_of_baseline(excited, bored):
     with pytest.raises(ConfigError, match="BAJKA_PULSE_EXCITED"):
         PulseSettings.from_env({"BAJKA_PULSE_EXCITED": excited, "BAJKA_PULSE_BORED": bored})
+
+
+@pytest.mark.parametrize(
+    ("mood", "state", "variant"),
+    [
+        ("spokojny", EXCITED, "spokojna"),
+        ("spokojny", NORMAL, None),
+        ("spokojny", BORED, None),
+        ("zywy", BORED, "zywa"),
+        ("zywy", NORMAL, None),
+        ("zywy", EXCITED, None),
+        ("", EXCITED, None),
+    ],
+)
+def test_pick_variant_brings_the_hall_towards_the_mood_of_the_film(mood, state, variant):
+    assert pick_variant(mood, state) == variant

@@ -19,6 +19,9 @@ hero: >
   wszystkie są członkiniami i członkami klubu, więc Lila mówi do nich w liczbie mnogiej.
   Lila, Fiku i widownia pomagają pszczółce Bzyczce wrócić do ula na końcu Kwiatowej Łąki.
 start: powitanie
+# Film jest spokojny. Gdy tętno sali skacze (flaga --panel, symulator tętna), sceny z `variants` grają wersję
+# spokojną: dłuższe ujęcia, wolniejszy montaż. Bez --panel film leci zawsze w zwykłych wersjach.
+mood: spokojny
 
 scenes:
   # SC. 1. Dziupla klubu. Interakcja: wspólne zawołanie (krzykomierz, jedna opcja).
@@ -89,6 +92,8 @@ scenes:
   # SC. 3b. Szumiący Las. Interakcja: rozpoznanie zwierzęcia po odgłosie, odpowiedź chórem.
   las:
     clip: clips/klub_ciekawskich/03b_las.mp4
+    variants:
+      spokojna: clips/klub_ciekawskich/03b_las_spokojna.mp4
     idle: clips/klub_ciekawskich/03b_las_idle.mp4
     question: Kto tak woła „hu-hu”? Sowa czy żaba?
     reprompt: Posłuchajcie jeszcze raz. Hu-hu, hu-hu. To sowa czy żaba?
@@ -111,6 +116,8 @@ scenes:
   # SC. 4. Wiaterek Fiufiu. Interakcja: cała sala oddycha spokojnie, potem okrzyk „tak” (krzykomierz).
   wiaterek:
     clip: clips/klub_ciekawskich/04_wiaterek.mp4
+    variants:
+      spokojna: clips/klub_ciekawskich/04_wiaterek_spokojna.mp4
     idle: clips/klub_ciekawskich/04_wiaterek_idle.mp4
     question: Pomożecie Fiufiu się uspokoić? Wielki wdech nosem… i powolny wydech buzią. Udało się?
     reprompt: Jeszcze raz, razem. Wdech nosem… i wydech buzią, fffuuu. Udało się? Krzyknijcie „tak”!
@@ -183,6 +190,8 @@ scenes:
   # SC. 7. Święto. Interakcja: wybór zakończenia okrzykiem (ruch albo śpiew).
   swieto:
     clip: clips/klub_ciekawskich/07_swieto.mp4
+    variants:
+      spokojna: clips/klub_ciekawskich/07_swieto_spokojna.mp4
     idle: clips/klub_ciekawskich/07_swieto_idle.mp4
     question: Jak świętujemy powrót Bzyczki? Pszczółkowym tańcem czy piosenką o kwiatkach?
     reprompt: Nie słychać, co wygrywa! Jeszcze jedna runda, głośniej. Taniec czy piosenka?

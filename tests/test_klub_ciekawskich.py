@@ -89,3 +89,9 @@ def test_every_option_has_a_short_label_for_audience_phones():
     labels = [c.label for s in SCENARIO.scenes.values() for c in s.choices.values()]
 
     assert all(labels) and max(map(len, labels)) <= 24
+
+
+def test_calm_film_has_calm_versions_of_three_lively_scenes():
+    assert SCENARIO.mood == "spokojny"
+    assert {s.id for s in SCENARIO.scenes.values() if s.variants} == {"las", "wiaterek", "swieto"}
+    assert all(set(s.variants) == {"spokojna"} for s in SCENARIO.scenes.values() if s.variants)

@@ -14,25 +14,34 @@ from pathlib import Path
 from bajka.scenario import Scenario, load_scenario
 
 COLORS = ("darkgreen", "midnightblue", "saddlebrown", "darkred", "indigo", "darkslategray")
+LABEL_FONT = Path("C:/Windows/Fonts/arial.ttf")  # ffmpeg na Windows pisze na klipie tylko z podaną czcionką
 
 
 def planned_clips(scenario: Scenario) -> list[tuple[Path, str, bool]]:
-    """(ścieżka, kolor, czy z dźwiękiem) — klipy scen mają ton, a pętle oczekiwania są ciche."""
+    """(ścieżka, kolor, czy z dźwiękiem) — klipy scen i ich wersje mają ton, a pętle oczekiwania są ciche."""
     clips: dict[Path, tuple[Path, str, bool]] = {}
     for index, scene in enumerate(scenario.scenes.values()):
         color = COLORS[index % len(COLORS)]
-        for path, with_tone in ((scene.clip, True), (scene.idle, False)):
+        tracks = [(scene.clip, True), (scene.idle, False)] + [(path, True) for path in scene.variants.values()]
+        for path, with_tone in tracks:
             if path is not None and path not in clips:  # ten sam plik w kilku scenach tylko raz
                 clips[path] = (path, color, with_tone)
     return list(clips.values())
 
 
-def ffmpeg_command(target: Path, color: str, seconds: float, with_tone: bool) -> list[str]:
+def ffmpeg_command(
+    target: Path, color: str, seconds: float, with_tone: bool, label: str = "", font: Path | None = None
+) -> list[str]:
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", f"color=c={color}:s=1280x720:r=25:d={seconds}"]
     if with_tone:
         cmd += ["-f", "lavfi", "-i", f"sine=frequency=440:duration={seconds}", "-c:a", "aac"]
     else:
         cmd += ["-an"]
+    if label and font is not None:  # nazwa pliku na planszy: na próbie widać, która scena i wersja gra
+        fontfile = str(font).replace("\\", "/").replace(":", "\\:")
+        text = label.replace("'", "").replace(":", "\\:")
+        position = "fontsize=56:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2"
+        cmd += ["-vf", f"drawtext=fontfile='{fontfile}':text='{text}':{position}"]
     return cmd + ["-c:v", "libx264", "-pix_fmt", "yuv420p", str(target)]
 
 
@@ -45,12 +54,13 @@ def main(argv: list[str] | None = None) -> int:
     if shutil.which("ffmpeg") is None:
         print("Nie znaleziono ffmpeg w PATH (Windows: winget install Gyan.FFmpeg)", file=sys.stderr)
         return 1
+    font = LABEL_FONT if LABEL_FONT.is_file() else None
     for path, color, with_tone in planned_clips(load_scenario(args.scenario)):
         if path.exists() and not args.force:
             print(f"pomijam, plik istnieje: {path}")
             continue
         path.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(ffmpeg_command(path, color, args.seconds, with_tone), check=True)
+        subprocess.run(ffmpeg_command(path, color, args.seconds, with_tone, path.stem, font), check=True)
         print(f"utworzono: {path}")
     return 0
 

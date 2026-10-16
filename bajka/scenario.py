@@ -14,6 +14,11 @@ REMOVED_SCENE_FIELDS = (
 )
 REMOVED_SCENARIO_FIELDS = ("style", "references")
 
+CALM_FILM, LIVELY_FILM = "spokojny", "zywy"  # nastrój filmu (`mood`): czego widownia oczekuje od filmu
+MOODS = (CALM_FILM, LIVELY_FILM)
+CALM, LIVELY = "spokojna", "zywa"  # wersje montażu sceny (`variants`), wybierane według tętna sali
+VARIANTS = (CALM, LIVELY)
+
 
 class ScenarioError(ValueError):
     """Scenariusz jest niepoprawny."""
@@ -46,6 +51,7 @@ class Scene:
     default: str | None = None
     choices: dict[str, Choice] = field(default_factory=dict)
     vote: bool = False  # widownia wybiera okrzykiem: wygrywa najgłośniej wykrzyczana opcja (seans w kinie)
+    variants: dict[str, Path] = field(default_factory=dict)  # wersje montażu: spokojna / zywa → klip
 
     @property
     def is_ending(self) -> bool:
@@ -57,6 +63,7 @@ class Scenario:
     hero: str
     start: str
     scenes: dict[str, Scene]
+    mood: str = ""  # nastrój filmu; bez niego film nie dopasowuje się do tętna sali
 
     def scene(self, scene_id: str) -> Scene:
         return self.scenes[scene_id]
@@ -79,10 +86,14 @@ def parse_scenario(raw: object, base_dir: Path) -> Scenario:
     if not isinstance(raw_scenes, dict) or not raw_scenes:
         raise ScenarioError("scenariusz: brak sekcji 'scenes'")
     _reject_removed(raw, REMOVED_SCENARIO_FIELDS, "scenariusz")
+    mood = str(raw.get("mood") or "").strip()
+    if mood and mood not in MOODS:
+        raise ScenarioError(f"scenariusz: 'mood' musi być jednym z: {', '.join(MOODS)}, jest: {mood!r}")
     scenario = Scenario(
         hero=_require_str(raw, "hero", "scenariusz"),
         start=_require_str(raw, "start", "scenariusz"),
         scenes={sid: _parse_scene(sid, data, base_dir) for sid, data in raw_scenes.items()},
+        mood=mood,
     )
     _validate_graph(scenario)
     return scenario
@@ -94,6 +105,7 @@ def missing_media(scenario: Scenario) -> list[Path]:
     for scene in scenario.scenes.values():
         paths.extend(path for path in (scene.clip, scene.idle) if path is not None)
         paths.extend(c.call_clip for c in scene.choices.values() if c.call_clip is not None)
+        paths.extend(scene.variants.values())
     return [path for path in dict.fromkeys(paths) if not path.is_file()]
 
 
@@ -124,8 +136,9 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
         if silent:
             raise ScenarioError(f"{where}: scena 'vote' wymaga 'call' albo 'call_clip' w wyborach: {', '.join(silent)}")
     clip = base_dir / _require_str(data, "clip", where)
+    variants = _parse_variants(data, base_dir, where)
     if not choices:
-        return Scene(id=scene_id, clip=clip)
+        return Scene(id=scene_id, clip=clip, variants=variants)
     return Scene(
         id=scene_id,
         clip=clip,
@@ -136,6 +149,7 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
         default=_require_str(data, "default", where),
         choices=choices,
         vote=vote,
+        variants=variants,
     )
 
 
@@ -144,6 +158,20 @@ def _require_str(data: object, key: str, where: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ScenarioError(f"{where}: brak pola '{key}' (niepusty tekst)")
     return value.strip()
+
+
+def _parse_variants(data: dict, base_dir: Path, where: str) -> dict[str, Path]:
+    raw = data.get("variants")
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict) or not raw:
+        raise ScenarioError(f"{where}: 'variants' musi być słownikiem wersji sceny, np. spokojna: las_spokojna.mp4")
+    unknown = [str(key) for key in raw if key not in VARIANTS]
+    if unknown:
+        raise ScenarioError(
+            f"{where}: nieznane wersje sceny: {', '.join(unknown)} (dostępne: {', '.join(VARIANTS)})"
+        )
+    return {key: base_dir / _require_str(raw, key, f"{where}, wersje sceny") for key in raw}
 
 
 def _reject_removed(data: dict, removed: tuple[str, ...], where: str) -> None:
@@ -172,6 +200,8 @@ def _validate_graph(scenario: Scenario) -> None:
             raise ScenarioError(
                 f"scena '{scene.id}': 'default' musi być jednym z wyborów: {', '.join(scene.choices)}"
             )
+        if scene.variants and not scenario.mood:
+            raise ScenarioError(f"scena '{scene.id}': 'variants' wymaga pola 'mood' scenariusza ({', '.join(MOODS)})")
         for choice in scene.choices.values():
             if choice.next not in scenario.scenes:
                 raise ScenarioError(

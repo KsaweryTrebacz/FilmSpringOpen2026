@@ -99,3 +99,54 @@ def test_keywords_must_be_a_list_of_words(scenario_dict):
     scenario_dict["scenes"]["intro"]["choices"]["las"]["keywords"] = "drzewa"
     with pytest.raises(ScenarioError, match="keywords"):
         parse_scenario(scenario_dict, base_dir=Path("."))
+
+
+# Nastrój filmu i wersje scen (tętno sali)
+
+
+def calm_film(scenario_dict, variants):
+    scenario_dict["mood"] = "spokojny"
+    scenario_dict["scenes"]["las"]["variants"] = variants
+    return scenario_dict
+
+
+def test_mood_and_scene_versions_are_parsed(scenario_dict):
+    scenario = parse_scenario(calm_film(scenario_dict, {"spokojna": "las_spokojna.mp4"}), base_dir=Path("film"))
+
+    assert scenario.mood == "spokojny"
+    assert scenario.scene("las").variants == {"spokojna": Path("film/las_spokojna.mp4")}
+    assert scenario.scene("intro").variants == {}
+
+
+def test_film_without_mood_does_not_adapt(scenario):
+    assert scenario.mood == ""
+
+
+def test_unknown_mood_is_refused(scenario_dict):
+    scenario_dict["mood"] = "straszny"
+    with pytest.raises(ScenarioError, match="'mood'.*spokojny, zywy"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_unknown_scene_version_is_refused(scenario_dict):
+    with pytest.raises(ScenarioError, match="scena 'las': nieznane wersje sceny: szybka"):
+        parse_scenario(calm_film(scenario_dict, {"szybka": "las_szybka.mp4"}), base_dir=Path("film"))
+
+
+def test_scene_versions_must_be_a_mapping_of_files(scenario_dict):
+    with pytest.raises(ScenarioError, match="'variants'"):
+        parse_scenario(calm_film(scenario_dict, ["las_spokojna.mp4"]), base_dir=Path("film"))
+
+
+def test_scene_versions_need_the_mood_of_the_film(scenario_dict):
+    scenario_dict["scenes"]["las"]["variants"] = {"spokojna": "las_spokojna.mp4"}
+    with pytest.raises(ScenarioError, match="scena 'las': 'variants' wymaga pola 'mood'"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_missing_media_lists_missing_version_clips(tmp_path, scenario_dict):
+    for name in ("intro.mp4", "intro_idle.mp4", "las.mp4", "jaskinia.mp4"):
+        (tmp_path / name).touch()
+    scenario = parse_scenario(calm_film(scenario_dict, {"spokojna": "las_spokojna.mp4"}), base_dir=tmp_path)
+
+    assert missing_media(scenario) == [tmp_path / "las_spokojna.mp4"]

@@ -1,7 +1,8 @@
 """Tętno sali. Na pokazie pochodzi z symulatora sterowanego z panelu: bez zegarków i bez danych prawdziwych osób.
 
 Wizja: aplikacja mobilna czyta tętno z zegarków widzów i wysyła do komputera z filmem tylko średnią całej sali.
-Moduł spełnia kontrakt `bajka.ports.AudiencePulse`; `hall_state` porównuje tętno z punktem odniesienia.
+Moduł spełnia kontrakt `bajka.ports.AudiencePulse`; `hall_state` porównuje tętno z punktem odniesienia,
+a `pick_variant` dobiera wersję sceny, która przybliża salę do nastroju filmu.
 Podgląd symulatora bez reszty aplikacji: python -m bajka.pulse [--script] [--seconds 30]
 """
 
@@ -18,6 +19,7 @@ from dataclasses import dataclass
 
 from bajka.config import ConfigError, get_float, get_int, load_env
 from bajka.ports import Pulse
+from bajka.scenario import CALM, CALM_FILM, LIVELY, LIVELY_FILM
 
 EXCITED = "pobudzona"
 NORMAL = "w normie"
@@ -59,6 +61,15 @@ def hall_state(bpm: float, baseline: float, settings: PulseSettings) -> str:
     if bpm <= baseline * settings.bored:
         return BORED
     return NORMAL
+
+
+def pick_variant(mood: str, state: str) -> str | None:
+    """Wersja sceny, która przybliża salę do nastroju filmu; None oznacza zwykły klip."""
+    if mood == CALM_FILM and state == EXCITED:
+        return CALM  # spokojny film, a sala się ekscytuje: wolniejszy montaż
+    if mood == LIVELY_FILM and state == BORED:
+        return LIVELY
+    return None
 
 
 def script_value(script: Sequence[tuple[float, float]], seconds: float) -> float:
