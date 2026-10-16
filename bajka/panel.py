@@ -184,6 +184,9 @@ class PanelState:
 
 class _Server(ThreadingHTTPServer):
     daemon_threads = True
+    # Na Windows SO_REUSEADDR pozwala drugiemu procesowi zająć port, na którym ktoś już nasłuchuje:
+    # zapomniany podgląd panelu po cichu wygrywałby z panelem filmu. Tam więc wyłączamy ponowne użycie portu.
+    allow_reuse_address = sys.platform != "win32"
     state: PanelState
     graph: dict[str, Any]
     pulse: SimulatedPulse | None

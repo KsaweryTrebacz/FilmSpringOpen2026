@@ -298,3 +298,13 @@ def test_pulse_commands_without_simulator_get_409(scenario):
 
     assert status == 409
     assert "symulator tętna jest wyłączony" in answer["error"]
+
+
+def test_second_panel_cannot_take_a_port_that_is_already_listening(server, scenario):
+    # Zapomniany podgląd (python -m bajka.panel) nie może po cichu dzielić portu z panelem filmu (Windows + SO_REUSEADDR).
+    _, url, _ = server
+    port = int(url.rstrip("/").rsplit(":", 1)[1])
+    second = PanelServer(PanelState(scenario, PulseSettings()), scenario_graph(scenario), None, PanelSettings(port=port))
+
+    with pytest.raises(OSError):
+        second.start()

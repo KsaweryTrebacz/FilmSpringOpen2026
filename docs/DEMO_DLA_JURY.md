@@ -11,7 +11,11 @@ Jury jest widownią: mówi do swoich telefonów, a jedna osoba steruje tętnem s
    `07_swieto_spokojna.mp4`). Bez nich bajka się nie uruchomi („Brak plików wideo”).
    Zastępcze klipy trwają po 4 sekundy i na nich liczymy 3 minuty. Z prawdziwymi klipami pokaz trwa dłużej.
 2. Laptop i telefony w tej samej sieci Wi-Fi, port aplikacji mobilnej (8443) otwarty w zaporze Windows.
-3. Ekrany: laptop i projektor jako rozszerzony ekran (Win+P, „Rozszerz”).
+3. Zamknijcie wszystkie podglądy, które mogły zostać po próbach (`python -m bajka.panel`,
+   `python -m bajka.mobile`). Zapomniany podgląd trzyma port 8090 (panel) albo 8443 (telefony) i odbierałby
+   zapytania zamiast filmu. Sprawdzenie: `netstat -ano | findstr 8090` (a potem `8443`) nie powinno przed
+   startem pokazać żadnego nasłuchującego procesu, a po starcie filmu dokładnie jeden.
+4. Ekrany: laptop i projektor jako rozszerzony ekran (Win+P, „Rozszerz”).
    - **Zalecane:** bajka z `--windowed`. Okno filmu przeciągnijcie na projektor i rozwińcie na cały ekran.
      Panel i stronę z kodem QR otwórzcie w przeglądarce na ekranie laptopa.
    - **Panel na tablecie jury:** `BAJKA_PANEL_HOST=0.0.0.0` w `.env`, w przeglądarce tabletu adres IP laptopa
@@ -19,7 +23,7 @@ Jury jest widownią: mówi do swoich telefonów, a jedna osoba steruje tętnem s
    - **Zamiast przeciągania okna:** ustawcie projektor jako ekran główny (Ustawienia, System, Ekran) i uruchomcie
      bajkę bez `--windowed`. Film otworzy się od razu na całym ekranie projektora. Przeglądarkę przesuńcie na laptopa.
    - Wybrany układ przećwiczcie na próbie, bo okna układają się chwilę, a film rusza od razu po starcie.
-4. Komenda startowa (**jeszcze jej nie uruchamiajcie**, patrz „Start”):
+5. Komenda startowa (**jeszcze jej nie uruchamiajcie**, patrz „Start”):
 
    ```powershell
    python -m bajka scenarios/klub_ciekawskich.yaml --mobile --panel --windowed
