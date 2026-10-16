@@ -95,13 +95,13 @@ Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
 
 | Kryterium | Argument |
 |---|---|
-| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci; w chmurze Azure powstają tylko ilustracje scen rysowanych na żywo, z samego tekstu, bez nagrania. Bez telefonów decyzje rozstrzyga krzykomierz |
+| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci; w chmurze Azure powstają tylko ilustracje scen rysowanych na żywo oraz, w scenach otwartych, kwestia bohaterki i pomysł na obraz (Azure OpenAI) — wszystko z samego tekstu, bez nagrania. Bez telefonów decyzje rozstrzyga krzykomierz |
 | **Adekwatność do zadania** | „Przyszłość odbioru dzieł audiowizualnych”: widz przestaje być bierny — współdecyduje o filmie. Nawiązujemy do tradycji: w czechosłowackim Kinoautomacie (Expo 67) widzowie głosowali przyciskami; u nas głosują głosem, a postać reaguje na nich |
 | **Oryginalność** | Własny świat i postacie, film dla najmłodszych z pierwszym w życiu doświadczeniem kina jako wspólnej zabawy |
 | **Kreatywność** | Mechaniki zaprojektowane pod salę kinową: okrzyki, odpowiedzi chórem, wspólny oddech, liczenie; pomyłki widowni stają się częścią nauki |
 
 Technologia pasuje do partnerów hackathonu: nagrodą jest Copilot+ PC Lenovo, a film działa lokalnie właśnie na takim
-komputerze.
+komputerze (z wyjątkiem scen rysowanych na żywo, które potrzebują Azure i internetu).
 
 ## Test z prawdziwą publicznością (§5 ust. 3)
 

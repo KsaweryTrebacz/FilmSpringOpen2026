@@ -9,7 +9,8 @@ Program zamienia zwykły film w **film, który słucha widowni**. Film jest poci
 program zbiera odpowiedzi widzów (głosem — do telefonu albo okrzykiem całej sali), rozpoznaje, co wybrali,
 pozwala postaci zareagować na żywo i wybiera kolejną scenę. Sam program nie zna żadnej historii: historia jest
 wymiennym plikiem — **scenariuszem** — a program to **silnik**, który ją odtwarza. Wszystko może działać na jednym
-komputerze z Windows, bez chmury i bez nagrywania widzów.
+komputerze z Windows, bez chmury i bez nagrywania widzów. Wyjątek: sceny rysowane na żywo potrzebują Azure, internetu
+i ffmpeg (patrz niżej).
 
 ## Trzy filary
 
@@ -76,16 +77,17 @@ wypowiedź ──▶ model językowy: kwestia postaci + bezpieczny opis obrazu �
 
 W czasie rysowania leci pętla „postać rysuje”, a postać mówi swoją kwestię. Pomysł zostaje zapamiętany
 i może wrócić w kolejnych scenach. Gdy rysowanie potrwa zbyt długo albo się nie uda, program pokazuje gotowy klip
-zapasowy. Ta część korzysta z chmury (Azure AI Foundry); do modelu obrazu trafia tylko przepisany opis, nigdy nagranie.
+zapasowy. Ta część korzysta z chmury (Azure OpenAI pisze kwestię i opis, Azure AI Foundry rysuje); do chmury
+trafia tylko tekst, nigdy nagranie.
 
 ## Tryby działania
 
 | Tryb | Co robi | Przykład |
 |---|---|---|
-| `local` (domyślny) | Rozpoznawanie mowy, model językowy i głos postaci na komputerze; bez kluczy i internetu po pierwszym pobraniu modeli | `python -m bajka SCENARIUSZ` |
+| `local` (domyślny) | Rozpoznawanie mowy, model językowy i głos postaci na komputerze; bez kluczy i internetu po pierwszym pobraniu modeli (wyjątek: sceny rysowane na żywo — klucze Azure, internet i ffmpeg) | `python -m bajka SCENARIUSZ` |
 | `azure` | To samo przez usługi Azure | `--backend azure` |
 | `--mobile` | Odpowiedzi z telefonów widzów | `python -m bajka SCENARIUSZ --mobile` |
-| `--no-llm` | Bez modelu językowego, tylko słowa kluczowe | na słabszym komputerze i do prób |
+| `--no-llm` | Bez modelu językowego przy wyborze ścieżki, tylko słowa kluczowe (sceny rysowane na żywo dalej korzystają z Azure) | na słabszym komputerze i do prób |
 | `--text` | Próba bez mikrofonu i głośnika (konsola) | `--text --no-llm --windowed` |
 
 ## Mapa kodu
