@@ -4,6 +4,11 @@ Domyślnie bajka działa w całości na komputerze z Windows (`BAJKA_BACKEND=loc
 model językowy i głos bohaterki. Po pierwszym pobraniu modeli nie potrzeba internetu ani kluczy, a nagrania
 dziecka nie opuszczają komputera. Tryb `azure` (usługi chmurowe) zostaje jako alternatywa.
 
+Wyjątek: sceny rysowane na żywo (`kind: open`, [projekt flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md))
+korzystają z Azure AI Foundry — pomysł dziecka opisuje Azure OpenAI, a ilustrację rysuje model obrazu w chmurze.
+Do modelu obrazu trafia tylko opis pomysłu przepisany przez model językowy, nigdy nagranie. Bez internetu
+w trakcie seansu te sceny pokazują klipy zapasowe, a reszta bajki działa lokalnie.
+
 ## Co z zestawu Microsoftu i gdzie
 
 | Element zestawu | Użycie w bajce | Moduł |

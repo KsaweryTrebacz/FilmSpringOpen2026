@@ -23,7 +23,7 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 
 ## §3 ust. 8 — treści
 
-Film słuchają małe dzieci, a część kwestii Lili pisze na żywo model językowy. Dlatego zabezpieczenia są w trzech
+Film słuchają małe dzieci, a część kwestii Lili pisze na żywo model językowy. Dlatego zabezpieczenia są w czterech
 warstwach:
 
 1. **Scenariusz** — wszystkie kwestie stałe są napisane i sprawdzone przez ludzi. Nie ma przemocy ani straszenia.
@@ -32,7 +32,13 @@ warstwach:
    nie powtarzaj brzydkich ani obraźliwych słów, nie mów o przemocy, poprawiaj pomyłki łagodnie. **POPRAWIONE**
 3. **Filtr kwestii** (`bajka/safety.py`): kwestia z wulgaryzmem, słowami o przemocy, linkiem albo dłuższa niż ok.
    dwa zdania nie zostaje wypowiedziana — Lila mówi zamiast niej sprawdzoną kwestię ze scenariusza. **POPRAWIONE**
-   W scenach decyzji w kinie (krzykomierz) model w ogóle nie pisze kwestii — Lila mówi tylko teksty ze scenariusza.
+   W scenach decyzji z krzykomierzem model w ogóle nie pisze kwestii, a przy odpowiedziach z telefonów — tylko gdy
+   odpowie jedna osoba; przy wielu Lila mówi teksty ze scenariusza.
+4. **Ilustracje rysowane na żywo** (sceny `kind: open`, moduły Ksawerego): pomysł dziecka najpierw przepisuje
+   model językowy na bezpieczny opis (`bajka/imagine.py`, te same zasady prawdy i kultury), podejrzana kwestia
+   unieważnia cały pomysł (`SafeImaginer`), a model obrazu ma własny filtr treści (gpt-image; przy FLUX —
+   Azure AI Content Safety). Przy każdym błędzie albo odrzuceniu pokazujemy przygotowany klip zapasowy.
+   **OK** w kodzie; **ZESPÓŁ**: filtr przy FLUX i sprzątanie ilustracji seansu (zadanie 6 planu „obraz na żywo”).
 
 **Poprawione fakty w scenariuszu:**
 - Sowa w dzień: sowy są aktywne głównie nocą, więc Lila mówi teraz „Sowy w dzień zwykle śpią, a my ją chyba budzimy!”.
@@ -118,5 +124,6 @@ Propozycja pierwszego seansu próbnego po hackathonie:
 - [ ] Decyzja o licencji repozytorium.
 - [ ] Data prezentacji potwierdzona z organizatorem (literówka „18.10.2022” w §2 ust. 3).
 - [ ] Na nagraniach z pokazu nie ma dzieci bez zgody opiekunów.
+- [ ] Ilustracje z sesji usuwane po seansie (katalog tymczasowy, zadanie 6 planu „obraz na żywo”).
 - [ ] Na pokazie: Wi-Fi dla telefonów (bez izolacji klientów), port aplikacji otwarty w zaporze, plansza z kodem QR,
       informacja dla opiekunów o mikrofonie.
