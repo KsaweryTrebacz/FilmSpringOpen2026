@@ -41,8 +41,35 @@ def live_scenario(scenario_dict):
     return parse_scenario(scenario_dict, base_dir=Path("film"))
 
 
-def make_engine(scenario, listener, imaginer=None, illustrator=None, animator=None, timeout_s=5.0):
-    player, voice = FakePlayer(), FakeVoice()
+class StoppingVoice(FakeVoice):
+    """Po wskazanej kwestii okno zostaje zamknięte (Esc): silnik dostaje stop() z innego wątku."""
+
+    def __init__(self, stop_after):
+        super().__init__()
+        self.engine = None
+        self._stop_after = stop_after
+
+    def say(self, text):
+        super().say(text)
+        if text == self._stop_after:
+            self.engine.stop()
+
+
+class StoppingListener(FakeListener):
+    """Esc w trakcie słuchania: zwraca odpowiedź, ale zanim silnik ją obsłuży, okno już się zamyka."""
+
+    def __init__(self, *answers):
+        super().__init__(*answers)
+        self.engine = None
+
+    def listen(self):
+        answer = super().listen()
+        self.engine.stop()
+        return answer
+
+
+def make_engine(scenario, listener, imaginer=None, illustrator=None, animator=None, timeout_s=5.0, voice=None):
+    player, voice = FakePlayer(), voice or FakeVoice()
     engine = StoryEngine(
         scenario,
         player,
@@ -152,6 +179,30 @@ def test_slow_drawing_times_out_to_fallback(live_scenario):
 
     assert voice.lines[-1] == FALLBACK_VISION_LINE
     assert ("play", "ozdoby_zapas.mp4") in player.calls
+
+
+def test_stop_after_hero_reply_ends_the_run_without_playing_or_saying_more(live_scenario):
+    voice = StoppingVoice(stop_after=REPLY)
+    engine, player, _ = make_engine(live_scenario, FakeListener("las", "wstążkami"), voice=voice)
+    voice.engine = engine
+
+    assert engine.run() == ["intro", "ozdoby"]
+
+    assert voice.lines == ["Las!", REPLY]  # po Esc bohater już nic nie mówi
+    assert ("play", "las.mp4") not in player.calls  # ani nie przechodzi do następnej sceny
+    assert ("play", "obraz_1.mp4") not in player.calls
+
+
+def test_stop_while_listening_ends_the_run_before_the_answer_is_acted_on(scenario):
+    listener = StoppingListener("las")
+    player, voice = FakePlayer(), FakeVoice()
+    engine = StoryEngine(scenario, player, listener, voice, CHOOSE_FOREST)
+    listener.engine = engine
+
+    assert engine.run() == ["intro"]
+
+    assert voice.lines == []
+    assert player.calls == [("play", "intro.mp4"), ("loop", "intro_idle.mp4")]
 
 
 def test_open_scenario_without_live_image_modules_is_refused(live_scenario):

@@ -259,6 +259,7 @@ def run_window(root: tk.Tk, player: VlcPlayer, engine: StoryEngine) -> None:
             finished.set()
 
     def close(_event: object = None) -> None:
+        engine.stop()  # zanim zgasimy ekran, wątek bajki ma przestać mówić i przechodzić do kolejnych scen
         player.stop()
         root.destroy()
 

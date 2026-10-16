@@ -1,10 +1,11 @@
 import argparse
 import sys
+import threading
 
 import pytest
 import yaml
 
-from bajka.app import build_meter, build_resolver, choose_backend, main, mobile_enabled, parse_args
+from bajka.app import build_meter, build_resolver, choose_backend, main, mobile_enabled, parse_args, run_window
 from bajka.config import ConfigError
 from bajka.keywords import KeywordIntentResolver
 
@@ -113,3 +114,51 @@ def test_missing_video_files_exit_with_code_2(tmp_path, monkeypatch, scenario_di
     path = write_scenario(tmp_path / "bajka.yaml", scenario_dict)
 
     assert main([str(path), "--text"]) == 2
+
+
+# Zamykanie okna (Esc)
+
+
+class FakeRoot:
+    """Okno tkinter bez ekranu: mainloop od razu „naciska Esc”."""
+
+    def __init__(self, events):
+        self._events = events
+        self._handlers = {}
+
+    def bind(self, sequence, handler):
+        self._handlers[sequence] = handler
+
+    def protocol(self, name, handler):
+        self._handlers[name] = handler
+
+    def after(self, _ms, _callback):
+        pass
+
+    def mainloop(self):
+        self._handlers["<Escape>"]()
+
+    def destroy(self):
+        self._events.append("okno zamknięte")
+
+
+def test_escape_stops_the_story_before_closing_player_and_window():
+    events = []
+    running = threading.Event()
+
+    class FakeEngine:
+        def run(self):
+            running.wait(timeout=5)
+            return []
+
+        def stop(self):
+            events.append("silnik zatrzymany")
+            running.set()
+
+    class FakePlayer:
+        def stop(self):
+            events.append("odtwarzacz zatrzymany")
+
+    run_window(FakeRoot(events), FakePlayer(), FakeEngine())
+
+    assert events == ["silnik zatrzymany", "odtwarzacz zatrzymany", "okno zamknięte"]

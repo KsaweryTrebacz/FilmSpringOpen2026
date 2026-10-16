@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import random
+import threading
 import time
 from collections import Counter
 from collections.abc import Iterable, Mapping
@@ -33,6 +34,10 @@ log = logging.getLogger(__name__)
 
 DEFAULT_FALLBACK = "Dobrze, to ja wybiorę!"
 FALLBACK_VISION_LINE = "Zobacz, co mam w wyobraźni!"
+
+
+class _Stopped(Exception):
+    """Okno zostało zamknięte (Esc): bajka kończy się natychmiast, bez dalszych scen i kwestii."""
 
 
 class StoryEngine:
@@ -66,6 +71,7 @@ class StoryEngine:
         self._animator = animator
         self._image_timeout_s = image_timeout_s
         self._rng = rng or random.Random()
+        self._stopped = threading.Event()
         self._memory: dict[str, str] = {}
         self._prefetched: dict[str, tuple[Future[Path], float]] = {}  # scena → (rysowanie, termin)
         self._scenario = scenario
@@ -82,6 +88,22 @@ class StoryEngine:
         """Pomysły dziecka zapamiętane w tym seansie (klucz `remember` → opis po angielsku)."""
         return dict(self._memory)
 
+    def stop(self) -> None:
+        """Przerywa bajkę przy najbliższej okazji; wywoływane z wątku okna, np. po Esc."""
+        self._stopped.set()
+
+    def _check_stopped(self) -> None:
+        if self._stopped.is_set():
+            raise _Stopped
+
+    def _play(self, clip: Path) -> None:
+        self._check_stopped()
+        self._player.play(clip)
+
+    def _loop(self, clip: Path) -> None:
+        self._check_stopped()
+        self._player.loop(clip)
+
     def run(self) -> list[str]:
         """Odtwarza bajkę i zwraca identyfikatory odwiedzonych scen."""
         visited: list[str] = []
@@ -89,6 +111,7 @@ class StoryEngine:
         self._pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="rysowanie")
         try:
             while True:
+                self._check_stopped()
                 visited.append(scene.id)
                 log.info("Scena: %s", scene.id)
                 if scene.kind == "generated":
@@ -96,11 +119,11 @@ class StoryEngine:
                     scene = self._scenario.scene(scene.next)
                     continue
                 self._prefetch(scene.successors if scene.choices else ())
-                self._player.play(scene.clip)
+                self._play(scene.clip)
                 if scene.is_ending:
                     return visited
                 if scene.idle is not None:
-                    self._player.loop(scene.idle)
+                    self._loop(scene.idle)
                 if scene.kind == "open":
                     self._ask_open(scene)  # pomysł z mikrofonu na sali, także gdy działają telefony
                     scene = self._scenario.scene(scene.next)
@@ -108,6 +131,9 @@ class StoryEngine:
                 choice = self._decide(scene)
                 self._drop_prefetched(other for other in scene.successors if other != choice.next)
                 scene = self._scenario.scene(choice.next)
+        except _Stopped:
+            log.info("Bajka zatrzymana")
+            return visited
         finally:
             self._pool.shutdown(wait=False, cancel_futures=True)  # nie czekamy na spóźnione obrazy
 
@@ -174,12 +200,14 @@ class StoryEngine:
             levels: dict[str, float] = {}
             for choice in scene.choices.values():
                 if choice.call_clip is not None:
-                    self._player.play(choice.call_clip)
-                    self._player.loop(scene.idle)
+                    self._play(choice.call_clip)
+                    self._loop(scene.idle)
                 else:
                     self._say(choice.call)
                 levels[choice.id] = self._meter.measure()
             winner = self._meter.winner(levels)
+        except _Stopped:
+            raise
         except Exception:
             log.exception("Błąd krzykomierza, traktuję jak ciszę")
             return None
@@ -211,18 +239,18 @@ class StoryEngine:
             self._memory[scene.remember] = scene.default_idea
             self._prefetch((scene.next,))
             self._say(FALLBACK_VISION_LINE)
-            self._player.play(self._fallback_clip(scene))
+            self._play(self._fallback_clip(scene))
             return
         self._memory[scene.remember] = vision.idea
         if scene.drawing is not None:
-            self._player.loop(scene.drawing)
+            self._loop(scene.drawing)
         prompt = fill_prompt(scene.image_prompt, {**self._memory, "idea": vision.idea})
         deadline = time.monotonic() + self._image_timeout_s
         future = self._pool.submit(self._render, prompt)
         self._prefetch((scene.next,))  # dopiero po rysunku dziecka: jego pomysł ma pierwszeństwo w kolejce
         if vision.reply:
             self._say(vision.reply)  # postać mówi, a obraz w tym czasie się rysuje
-        self._player.play(self._clip_or_fallback(scene, future, deadline))
+        self._play(self._clip_or_fallback(scene, future, deadline))
 
     def _hear_idea(self, scene: Scene) -> Vision | None:
         """Pomysł dziecka albo None: cisza po wszystkich dopytaniach, błąd LLM, pomysł nie do narysowania."""
@@ -245,7 +273,7 @@ class StoryEngine:
         future, deadline = self._prefetched.pop(scene.id)
         self._prefetch((scene.next,))
         clip = self._clip_or_fallback(scene, future, deadline, announce=False)
-        self._player.loop(clip)
+        self._loop(clip)
         self._say(scene.narration)  # postać mówi na tle zapętlonej ilustracji
 
     def _prefetch(self, scene_ids: Iterable[str]) -> None:
@@ -287,6 +315,7 @@ class StoryEngine:
         return self._rng.choice(scene.fallback_clips)
 
     def _listen(self) -> str | None:
+        self._check_stopped()
         try:
             transcript = self._listener.listen()
         except Exception:
@@ -309,6 +338,7 @@ class StoryEngine:
         return interpretation
 
     def _say(self, text: str) -> None:
+        self._check_stopped()  # przed try: zatrzymanie nie jest błędem TTS
         try:
             self._voice.say(text)
         except Exception:
