@@ -36,6 +36,14 @@ scenes:
     remember: skarb
     default_idea: a small chest full of glowing colorful crystals
     fallback_clips: [clips/rysowanie/skarb_zapas.mp4]
+    next: powrot
+
+  # Scena generowana: bez gotowego klipu, rysowana w tle z pomysłu zapamiętanego w scenie „skarb”.
+  powrot:
+    kind: generated
+    image_prompt: "the little fox walking home through a meadow at sunset, proudly carrying {skarb}"
+    narration: Wracam do domu z naszym skarbem. Dziękuję, że pomagasz mi w wyprawie!
+    fallback_clips: [clips/rysowanie/powrot_zapas.mp4]
     next: jaskinia
 
   las:

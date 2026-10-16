@@ -3,7 +3,8 @@
 Rodzaje scen (`kind`):
 - `clip` (domyślny): gotowy klip, opcjonalnie pytanie zamknięte z wyborami,
 - `open`: gotowy klip z pytaniem otwartym; pomysł dziecka jest rysowany na żywo (bajka/imagine.py,
-  bajka/illustrate.py, bajka/motion.py).
+  bajka/illustrate.py, bajka/motion.py),
+- `generated`: scena bez gotowego klipu, rysowana na żywo z zapamiętanych pomysłów dziecka, z narracją postaci.
 """
 
 from __future__ import annotations
@@ -15,8 +16,8 @@ from pathlib import Path
 
 import yaml
 
-KINDS = ("clip", "open")
-LIVE_KINDS = ("open",)  # sceny, które potrzebują generowania obrazów na żywo
+KINDS = ("clip", "open", "generated")
+LIVE_KINDS = ("open", "generated")  # sceny, które potrzebują generowania obrazów na żywo
 
 
 class ScenarioError(ValueError):
@@ -42,7 +43,7 @@ class Choice:
 @dataclass(frozen=True)
 class Scene:
     id: str
-    clip: Path
+    clip: Path | None  # None tylko w scenach `generated`
     idle: Path | None = None
     question: str = ""
     reprompt: str = ""
@@ -56,7 +57,8 @@ class Scene:
     remember: str = ""  # klucz, pod którym zapamiętujemy pomysł dziecka na resztę seansu
     default_idea: str = ""  # pomysł, gdy dziecko milczy albo pomysłu nie da się narysować
     fallback_clips: tuple[Path, ...] = ()  # gotowe klipy, gdy generowanie zawiedzie
-    next: str = ""  # następna scena dla scen bez wyborów (open)
+    next: str = ""  # następna scena dla scen bez wyborów (open, generated)
+    narration: str = ""  # kwestia postaci do sceny `generated`
 
     @property
     def is_ending(self) -> bool:
@@ -116,8 +118,7 @@ def missing_media(scenario: Scenario) -> list[Path]:
     """Zwraca klipy, pętle i obrazy referencyjne, których nie ma na dysku."""
     paths: list[Path] = list(scenario.references)
     for scene in scenario.scenes.values():
-        paths.append(scene.clip)
-        paths.extend(path for path in (scene.idle, scene.drawing) if path is not None)
+        paths.extend(path for path in (scene.clip, scene.idle, scene.drawing) if path is not None)
         paths.extend(c.call_clip for c in scene.choices.values() if c.call_clip is not None)
         paths.extend(scene.fallback_clips)
     return [path for path in dict.fromkeys(paths) if not path.is_file()]
@@ -146,6 +147,8 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
         raise ScenarioError(f"{where}: nieznany rodzaj sceny {kind!r}, dostępne: {', '.join(KINDS)}")
     if kind == "open":
         return _parse_open(scene_id, data, base_dir, where)
+    if kind == "generated":
+        return _parse_generated(scene_id, data, base_dir, where)
     raw_choices = data.get("choices") or {}
     if not isinstance(raw_choices, dict):
         raise ScenarioError(f"{where}: 'choices' musi być słownikiem")
@@ -202,6 +205,18 @@ def _parse_open(scene_id: str, data: dict, base_dir: Path, where: str) -> Scene:
         image_prompt=image_prompt,
         remember=_require_str(data, "remember", where),
         default_idea=_require_str(data, "default_idea", where),
+        fallback_clips=_require_paths(data, "fallback_clips", base_dir, where),
+        next=_require_str(data, "next", where),
+    )
+
+
+def _parse_generated(scene_id: str, data: dict, base_dir: Path, where: str) -> Scene:
+    return Scene(
+        id=scene_id,
+        kind="generated",
+        clip=None,
+        image_prompt=_require_str(data, "image_prompt", where),
+        narration=_require_str(data, "narration", where),
         fallback_clips=_require_paths(data, "fallback_clips", base_dir, where),
         next=_require_str(data, "next", where),
     )

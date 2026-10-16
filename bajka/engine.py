@@ -1,6 +1,7 @@
 """Silnik bajki: odtwarza sceny, słucha dziecka (albo całej widowni) i wybiera kolejny klip.
 
 Sceny z pytaniem otwartym (`kind: open`) rysują pomysł dziecka na żywo: Imaginer → Illustrator → Animator.
+Sceny generowane (`kind: generated`) rysujemy w tle zawczasu: gdy pada pytanie, które może do nich prowadzić.
 """
 
 from __future__ import annotations
@@ -9,7 +10,7 @@ import logging
 import random
 import time
 from collections import Counter
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 
@@ -66,6 +67,7 @@ class StoryEngine:
         self._image_timeout_s = image_timeout_s
         self._rng = rng or random.Random()
         self._memory: dict[str, str] = {}
+        self._prefetched: dict[str, tuple[Future[Path], float]] = {}  # scena → (rysowanie, termin)
         self._scenario = scenario
         self._player = player
         self._listener = listener
@@ -89,6 +91,11 @@ class StoryEngine:
             while True:
                 visited.append(scene.id)
                 log.info("Scena: %s", scene.id)
+                if scene.kind == "generated":
+                    self._show_generated(scene)
+                    scene = self._scenario.scene(scene.next)
+                    continue
+                self._prefetch(scene.successors if scene.choices else ())
                 self._player.play(scene.clip)
                 if scene.is_ending:
                     return visited
@@ -98,7 +105,9 @@ class StoryEngine:
                     self._ask_open(scene)  # pomysł z mikrofonu na sali, także gdy działają telefony
                     scene = self._scenario.scene(scene.next)
                     continue
-                scene = self._scenario.scene(self._decide(scene).next)
+                choice = self._decide(scene)
+                self._drop_prefetched(other for other in scene.successors if other != choice.next)
+                scene = self._scenario.scene(choice.next)
         finally:
             self._pool.shutdown(wait=False, cancel_futures=True)  # nie czekamy na spóźnione obrazy
 
@@ -200,10 +209,12 @@ class StoryEngine:
         vision = self._hear_idea(scene)
         if vision is None:
             self._memory[scene.remember] = scene.default_idea
+            self._prefetch((scene.next,))
             self._say(FALLBACK_VISION_LINE)
             self._player.play(self._fallback_clip(scene))
             return
         self._memory[scene.remember] = vision.idea
+        self._prefetch((scene.next,))  # następna scena może już korzystać z tego pomysłu
         if scene.drawing is not None:
             self._player.loop(scene.drawing)
         prompt = fill_prompt(scene.image_prompt, {**self._memory, "idea": vision.idea})
@@ -229,20 +240,45 @@ class StoryEngine:
                 self._say(scene.reprompt)
         return None
 
+    def _show_generated(self, scene: Scene) -> None:
+        self._prefetch((scene.id,))  # nic nie robi, jeśli scena już się rysuje
+        future, deadline = self._prefetched.pop(scene.id)
+        self._prefetch((scene.next,))
+        clip = self._clip_or_fallback(scene, future, deadline, announce=False)
+        self._player.loop(clip)
+        self._say(scene.narration)  # postać mówi na tle zapętlonej ilustracji
+
+    def _prefetch(self, scene_ids: Iterable[str]) -> None:
+        for scene_id in scene_ids:
+            target = self._scenario.scene(scene_id)
+            if target.kind != "generated" or scene_id in self._prefetched:
+                continue
+            prompt = fill_prompt(target.image_prompt, self._memory)
+            log.info("Rysuję w tle scenę %s", scene_id)
+            self._prefetched[scene_id] = (
+                self._pool.submit(self._render, prompt),
+                time.monotonic() + self._image_timeout_s,
+            )
+
+    def _drop_prefetched(self, scene_ids: Iterable[str]) -> None:
+        for scene_id in scene_ids:
+            self._prefetched.pop(scene_id, None)  # niewybrana gałąź: wynik i tak przepada
+
     def _render(self, prompt: str) -> Path:
         started = time.monotonic()
         clip = self._animator.animate(self._illustrator.draw(prompt))
         log.info("Narysowane w %.1f s: %s", time.monotonic() - started, clip.name)
         return clip
 
-    def _clip_or_fallback(self, scene: Scene, future: Future[Path], deadline: float) -> Path:
+    def _clip_or_fallback(self, scene: Scene, future: Future[Path], deadline: float, announce: bool = True) -> Path:
         try:
             return future.result(timeout=max(0.0, deadline - time.monotonic()))
         except TimeoutError:
             log.warning("Rysowanie trwa dłużej niż %.0f s, pokazuję klip zapasowy", self._image_timeout_s)
         except Exception:
             log.exception("Błąd rysowania, pokazuję klip zapasowy")
-        self._say(FALLBACK_VISION_LINE)
+        if announce:
+            self._say(FALLBACK_VISION_LINE)
         return self._fallback_clip(scene)
 
     def _fallback_clip(self, scene: Scene) -> Path:
