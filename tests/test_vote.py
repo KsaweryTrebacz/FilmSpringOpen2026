@@ -1,3 +1,5 @@
+import logging
+import time
 from pathlib import Path
 
 import numpy as np
@@ -179,6 +181,34 @@ def test_meter_failure_counts_as_quiet_round(scenario_dict):
     visited, _, _ = run(scenario, FakeMeter(OSError("brak mikrofonu"), {"las": 5, "jaskinia": 1}))
 
     assert visited == ["intro", "las"]
+
+
+class StoppingVoice(FakeVoice):
+    """Esc w trakcie wezwania: po wypowiedzeniu kwestii zatrzymuje silnik."""
+
+    def __init__(self):
+        super().__init__()
+        self.engine = None  # silnik powstaje dopiero po głosie, test podstawia go przed run()
+
+    def say(self, text):
+        super().say(text)
+        self.engine.stop()
+
+
+def test_stop_during_shout_round_ends_the_show_without_logging_a_meter_error(scenario_dict, caplog):
+    scenario = vote_scenario(scenario_dict)
+    voice = StoppingVoice()
+    meter = FakeMeter({"las": 5, "jaskinia": 1})
+    engine = StoryEngine(scenario, FakePlayer(), SilentListener(), voice, resolver=None, meter=meter)
+    voice.engine = engine
+    started = time.monotonic()
+
+    visited = engine.run()
+
+    assert time.monotonic() - started < 2.0
+    assert visited == ["intro"]
+    assert voice.lines == ["Kto do lasu? Krzyczymy: LAS!"]  # drugie wezwanie już nie pada
+    assert "Błąd krzykomierza" not in caplog.text  # Esc nie jest awarią krzykomierza
 
 
 def test_call_clip_is_played_and_idle_loop_resumes(scenario_dict):
