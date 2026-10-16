@@ -4,7 +4,8 @@ Komputer z filmem uruchamia lokalny serwer w tej samej sieci Wi-Fi. Widz skanuje
 otwiera aplikację w przeglądarce telefonu (bez instalacji; można dodać do ekranu głównego) i zezwala na
 mikrofon. Gdy Lila zadaje pytanie, telefon pokazuje je z opcjami i sam nagrywa odpowiedź, a komputer
 rozpoznaje ją lokalnie (Whisper), ustala wybór (słowa kluczowe, w razie potrzeby model językowy) i liczy głosy.
-Moduł spełnia kontrakt `bajka.ports.Audience`. Nagrania są przetwarzane w pamięci i nie są zapisywane.
+Moduł spełnia kontrakt `bajka.ports.Audience`. Nagrania nie są przechowywane: lokalne rozpoznawanie (Foundry Local)
+dostaje je przez plik tymczasowy WAV, usuwany zaraz po rozpoznaniu (w trybie azure nagranie trafia do Azure Speech).
 
 Próba z telefonami bez filmu: python -m bajka.mobile SCENARIUSZ [--scene ID] [--no-llm]
 """
@@ -268,7 +269,7 @@ def join_page(url: str) -> str:
         "<body style='margin:0;background:#1b1b1b;color:#fffdf4;font:28px system-ui;display:grid;place-items:center;"
         "min-height:100vh;text-align:center'><div><h1>Zeskanuj i dołącz do Klubu Ciekawskich!</h1>"
         f"<div style='background:#fffdf4;display:inline-block;padding:16px;border-radius:16px'>{qr}</div>"
-        f"<p>{url}</p><p style='font-size:20px;opacity:.7'>Zezwól na mikrofon. Nagrania nie są zapisywane.</p>"
+        f"<p>{url}</p><p style='font-size:20px;opacity:.7'>Zezwól na mikrofon. Nagranie służy tylko do rozpoznania odpowiedzi i jest usuwane zaraz po rozpoznaniu.</p>"
         "</div></body></html>"
     )
 

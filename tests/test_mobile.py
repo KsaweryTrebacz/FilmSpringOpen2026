@@ -13,7 +13,8 @@ import pytest
 from bajka.config import ConfigError
 from bajka.engine import StoryEngine
 from bajka.keywords import KeywordIntentResolver
-from bajka.mobile import MAX_UPLOAD_BYTES, MobileAudience, MobileServer, MobileSettings, join_page, samples_from_wav
+from bajka import mobile as mobile_module
+from bajka.mobile import APP_DIR, MAX_UPLOAD_BYTES, MobileAudience, MobileServer, MobileSettings, join_page, samples_from_wav
 from bajka.ports import Audience, Interpretation
 
 FAST = MobileSettings(round_seconds=0.6, resolve_seconds=1.0, https=False, host="127.0.0.1", port=0)
@@ -358,3 +359,26 @@ def test_https_uses_self_signed_certificate(tmp_path, monkeypatch, scenario):
 
 def test_join_page_contains_address():
     assert "https://10.0.0.5:8443/" in join_page("https://10.0.0.5:8443/")
+
+
+def normalized(text):
+    return " ".join(text.split())
+
+
+def test_viewer_notices_say_the_recording_is_deleted_right_after_recognition():
+    # Foundry Local dostaje nagranie przez plik tymczasowy, więc widzom nie wolno obiecywać "nigdzie nie zapisujemy"
+    # (zgodnie z docs/ZGODNOSC_Z_REGULAMINEM.md i FAQ w docs/DEMO_DLA_JURY.md).
+    app = normalized((APP_DIR / "index.html").read_text(encoding="utf-8"))
+    qr = normalized(join_page("https://10.0.0.5:8443/"))
+
+    assert "pliku tymczasowego" in app
+    for notice in (app, qr):
+        assert "usuwan" in notice and "zaraz po rozpoznaniu" in notice
+        assert "nigdzie zapisywane" not in notice and "nie są zapisywane" not in notice
+
+
+def test_module_docstring_does_not_claim_recordings_stay_in_memory():
+    doc = normalized(mobile_module.__doc__)
+
+    assert "w pamięci" not in doc and "nie są zapisywane" not in doc
+    assert "plik tymczasowy" in doc
