@@ -19,7 +19,7 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 | §3 ust. 10 | Praca może zostać opublikowana na stronie i w mediach społecznościowych organizatora | **ZESPÓŁ** | Wszystko, co pokażemy, musi nadawać się do publikacji: bez nagrań dzieci bez zgody opiekunów, bez cudzych utworów |
 | §4 ust. 5 | Kryteria: innowacyjność, adekwatność do zadania, oryginalność, kreatywność | **OK** | Mapowanie na pitch niżej |
 | §5 ust. 3 | Najlepszy projekt to pomysł wart dalszego rozwijania i testowania z prawdziwą publicznością | **OK** / **ZESPÓŁ** | Projekt jest od początku zbudowany do seansu z widownią; plan testu niżej |
-| §6 | Ochrona danych (RODO) | **OK** | Aplikacja nie zapisuje głosu ani wypowiedzi; lokalne AI przetwarza mowę na komputerze, bez wysyłania do chmury |
+| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie zapisuje głosu ani wypowiedzi; lokalne AI przetwarza mowę na komputerze, bez wysyłania do chmury. Głos dzieci z telefonów — szczegóły niżej |
 
 ## §3 ust. 8 — treści
 
@@ -70,11 +70,26 @@ głosów widowni nie zapisujemy. **POPRAWIONE**
 | numpy | BSD-3-Clause (z komponentami MIT, Zlib, CC0) | Dźwięk |
 | ffmpeg | LGPL/GPL (zależnie od kompilacji) | Narzędzie do zaślepek i ruchu kamery; nie jest częścią filmu |
 
+## Aplikacja mobilna widowni — prywatność i bezpieczeństwo
+
+Odpowiedzi publiczności zbiera aplikacja na telefony z dostępem do mikrofonu ([README](../README.md#aplikacja-mobilna-widowni)).
+Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
+
+| Kwestia | Rozwiązanie | Stan |
+|---|---|---|
+| Gdzie trafia nagranie | Tylko do komputera z filmem w sieci lokalnej, szyfrowane (HTTPS); rozpoznawane w pamięci i od razu usuwane; bez chmury w trybie lokalnym | **OK** |
+| Kiedy telefon nagrywa | Tylko w trakcie rundy pytania (pulsuje lupka), najwyżej kilka sekund; poza rundami nic nie jest wysyłane | **OK** |
+| Informacja dla widza | Przed dołączeniem aplikacja mówi, że nagranie służy tylko do rozpoznania odpowiedzi i nie jest zapisywane | **OK** |
+| Dzieci i opiekunowie | Telefon należy zwykle do opiekuna, który dołącza i zezwala na mikrofon; przed seansem krótka informacja dla opiekunów (plansza przy wejściu albo słowo prowadzącego) | **ZESPÓŁ** |
+| Nadużycia | Jedna odpowiedź na telefon w rundzie, limit rozmiaru nagrania, odpowiedzi tylko w otwartej rundzie; kwestie modelu filtrowane (`bajka/safety.py`) | **OK** |
+| Odpowiedź bez mówienia | Dziecko, które nie chce albo nie może mówić, dotyka opcji | **OK** |
+| Pomysł na przyszłość: tętno z zegarka | Dane o zdrowiu (RODO art. 9) — tylko za wyraźną zgodą opiekunów, dobrowolnie, uśrednione i bez zapisywania; na razie wyłącznie pomysł w README | — |
+
 ## Pitch wobec kryteriów jury (§4 ust. 5)
 
 | Kryterium | Argument |
 |---|---|
-| **Innowacyjność** | Bohaterka filmu słucha sali i odpowiada na żywo; całe AI działa na komputerze w kinie (Copilot+ PC z NPU, Foundry Local), bez chmury i bez nagrywania dzieci. Krzykomierz rozstrzyga decyzje całej widowni |
+| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Całe AI działa lokalnie (Copilot+ PC z NPU, Foundry Local), bez chmury i bez nagrywania dzieci. Bez telefonów decyzje rozstrzyga krzykomierz |
 | **Adekwatność do zadania** | „Przyszłość odbioru dzieł audiowizualnych”: widz przestaje być bierny — współdecyduje o filmie. Nawiązujemy do tradycji: w czechosłowackim Kinoautomacie (Expo 67) widzowie głosowali przyciskami; u nas głosują głosem, a postać reaguje na nich |
 | **Oryginalność** | Własny świat i postacie, film dla najmłodszych z pierwszym w życiu doświadczeniem kina jako wspólnej zabawy |
 | **Kreatywność** | Mechaniki zaprojektowane pod salę kinową: okrzyki, odpowiedzi chórem, wspólny oddech, liczenie; pomyłki widowni stają się częścią nauki |
@@ -103,3 +118,5 @@ Propozycja pierwszego seansu próbnego po hackathonie:
 - [ ] Decyzja o licencji repozytorium.
 - [ ] Data prezentacji potwierdzona z organizatorem (literówka „18.10.2022” w §2 ust. 3).
 - [ ] Na nagraniach z pokazu nie ma dzieci bez zgody opiekunów.
+- [ ] Na pokazie: Wi-Fi dla telefonów (bez izolacji klientów), port aplikacji otwarty w zaporze, plansza z kodem QR,
+      informacja dla opiekunów o mikrofonie.

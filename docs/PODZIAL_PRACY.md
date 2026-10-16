@@ -20,6 +20,7 @@ i własne demo, więc dwie osoby mogą commitować równolegle na `main` bez wch
 | [`bajka/keywords.py`](../bajka/keywords.py) — tekst → wybór po słowach kluczowych, zapas dla LLM | `IntentResolver` | A | `python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik` | `tests/test_keywords.py` |
 | [`bajka/vote.py`](../bajka/vote.py) — krzykomierz: decyzje widowni w kinie okrzykiem | `ShoutMeter` | A | `python -m bajka.vote` (kalibracja na sali) | `tests/test_vote.py` |
 | [`bajka/safety.py`](../bajka/safety.py) — filtr kwestii modelu (regulamin §3 ust. 8) | `IntentResolver` | A | — | `tests/test_safety.py` |
+| [`bajka/mobile.py`](../bajka/mobile.py) + [`bajka/mobile_app/`](../bajka/mobile_app/) — aplikacja mobilna widowni: odpowiedzi z mikrofonów telefonów | `Audience` | A | `python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek` | `tests/test_mobile.py` |
 | [`bajka/tts.py`](../bajka/tts.py) — kwestia bohatera → głos | `Voice` | B | `python -m bajka.tts "Idziemy do lasu?"` | `tests/test_tts.py` |
 | [`bajka/local_tts.py`](../bajka/local_tts.py) — kwestia bohatera → głos Windows, offline | `Voice` | B | `python -m bajka.local_tts "Cześć!"` | `tests/test_local_tts.py` |
 | [`bajka/player.py`](../bajka/player.py) — VLC w pełnoekranowym oknie | `Player` | B | `python -m bajka.player KLIP PĘTLA` | ręcznie (wymaga VLC) |
