@@ -1,5 +1,7 @@
 # Obraz na żywo — plan implementacji
 
+> **Zmiana z 16.10:** rysowanie na żywo (sceny `open` i `generated`) zostało usunięte z projektu. Jego miejsce zajmuje [film, który czuje salę](../specs/2026-10-16-film-czuje-sale-design.md): tętno widowni, wersje scen i panel dla jury.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Dziecko odpowiada na pytanie otwarte, a bajka w ciągu kilkunastu sekund pokazuje jego pomysł jako ilustrację z ruchem kamery. W wersji P2 dochodzą sceny rysowane w tle z zapamiętanych pomysłów.
