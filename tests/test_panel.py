@@ -233,6 +233,21 @@ def test_bad_pulse_commands_get_400(server, body, error):
     assert error in answer["error"]
 
 
+def test_panel_page_works_offline_and_has_all_sections(server):
+    _, url, _ = server
+
+    with urllib.request.urlopen(url, timeout=5) as response:
+        assert response.status == 200
+        assert response.headers["Content-Type"].startswith("text/html")
+        page = response.read().decode("utf-8")
+
+    assert "<title>Film, który czuje salę" in page
+    sections = ('id="tree-svg"', 'id="chart"', 'id="votes"', 'id="log"', 'id="slider"', 'data-preset="ekscytuje-sie"')
+    for element in sections:
+        assert element in page
+    assert "<link" not in page and 'src="http' not in page  # bez internetu na sali: żadnych zewnętrznych plików
+
+
 def test_unknown_page_is_404(server):
     _, url, _ = server
 

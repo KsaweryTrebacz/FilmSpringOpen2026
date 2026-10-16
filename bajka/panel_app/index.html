@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Film, który czuje salę — panel</title>
+<style>
+  :root {
+    --bg: #0e1120;
+    --card: #171b2e;
+    --line: #2a3050;
+    --text: #eef0fa;
+    --muted: #9aa1bd;
+    --honey: #ffc94d;
+    --calm: #5ec8ff;
+    --excited: #ff7a59;
+    --normal: #59d98e;
+    --bored: #a98bff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 system-ui, "Segoe UI", sans-serif;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 20px;
+    padding: 18px 24px 6px;
+  }
+  h1 { margin: 0; font-size: 24px; letter-spacing: 0.2px; }
+  h1 span { color: var(--honey); }
+  .subtitle { color: var(--muted); }
+  #connection { margin-left: auto; color: var(--muted); font-size: 13px; }
+  #connection.offline { color: var(--excited); }
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+    gap: 16px;
+    padding: 12px 24px 24px;
+  }
+  .column { display: grid; gap: 16px; align-content: start; min-width: 0; }
+  section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    min-width: 0;
+  }
+  h2 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  #tree svg { width: 100%; height: auto; display: block; margin: 0 auto; }
+  .node rect { fill: #1e2340; stroke: var(--line); stroke-width: 1.5; }
+  .node text { fill: var(--muted); font-size: 13px; }
+  .node.visited rect { fill: #2a2f52; stroke: #6c7397; }
+  .node.visited text { fill: var(--text); }
+  .node.current rect { fill: #3b3214; stroke: var(--honey); stroke-width: 2.5; }
+  .node.current text { fill: var(--honey); font-weight: 700; }
+  .node .badge { fill: var(--calm); font-size: 11px; }
+  .edge path { fill: none; stroke: #39406a; stroke-width: 1.5; }
+  .edge text { fill: #6c7397; font-size: 11px; }
+  .edge.taken path { stroke: var(--honey); stroke-width: 3; }
+  .edge.taken text { fill: var(--honey); font-weight: 600; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 12px; margin-top: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
+  .pulse-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  #bpm { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #bpm small { font-size: 15px; color: var(--muted); font-weight: 400; }
+  .chip { padding: 4px 12px; border-radius: 999px; font-weight: 600; background: #252a45; color: var(--muted); }
+  .chip.excited { background: rgba(255, 122, 89, 0.18); color: var(--excited); }
+  .chip.normal { background: rgba(89, 217, 142, 0.15); color: var(--normal); }
+  .chip.bored { background: rgba(169, 139, 255, 0.18); color: var(--bored); }
+  #pulse-meta { color: var(--muted); font-size: 13px; }
+  #chart { width: 100%; height: 170px; display: block; margin-top: 8px; }
+  .votes { display: grid; gap: 8px; }
+  .vote { display: grid; grid-template-columns: 130px 1fr 44px; gap: 10px; align-items: center; }
+  .vote .bar { height: 14px; border-radius: 7px; background: #252a45; overflow: hidden; }
+  .vote .bar div { height: 100%; background: var(--honey); border-radius: 7px; transition: width 0.4s; }
+  .vote .count { text-align: right; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); font-style: italic; }
+  .controls { display: grid; gap: 10px; }
+  .slider { display: flex; align-items: center; gap: 12px; }
+  .slider input { flex: 1; accent-color: var(--honey); }
+  #target { width: 72px; text-align: right; font-variant-numeric: tabular-nums; }
+  .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+  button {
+    background: #252a45;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font: inherit;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--honey); }
+  button.primary { background: var(--honey); color: #1b1503; border-color: var(--honey); font-weight: 600; }
+  .note { color: var(--muted); font-size: 12px; }
+  #log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 280px; overflow: auto; }
+  #log li { display: grid; grid-template-columns: 70px 1fr; gap: 8px; }
+  #log time { color: var(--muted); font-variant-numeric: tabular-nums; }
+  #log li:first-child { color: var(--honey); }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; padding: 12px 16px 24px; }
+    header { padding: 16px 16px 4px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Film, który <span>czuje salę</span></h1>
+  <div class="subtitle" id="mood">Drzewo scen, głosy widowni i tętno sali na żywo</div>
+  <div id="connection">łączenie z filmem…</div>
+</header>
+<main>
+  <div class="column">
+    <section id="tree">
+      <h2>Drzewo scen</h2>
+      <svg id="tree-svg" role="img" aria-label="Drzewo scen filmu"></svg>
+      <div class="legend">
+        <span><i style="background:#3b3214;border:2px solid var(--honey)"></i>teraz na ekranie</span>
+        <span><i style="background:#2a2f52"></i>już obejrzane</span>
+        <span><i style="background:#1e2340;border:1px solid var(--line)"></i>przed nami</span>
+        <span><i style="background:var(--honey)"></i>wybrana ścieżka</span>
+        <span style="color:var(--calm)">≈ scena ma wersję spokojniejszą</span>
+      </div>
+    </section>
+    <section>
+      <h2>Dlaczego film zrobił to, co zrobił</h2>
+      <ul id="log"><li class="empty">Czekam na pierwszą scenę…</li></ul>
+    </section>
+  </div>
+  <div class="column">
+    <section>
+      <h2>Tętno sali</h2>
+      <div class="pulse-head">
+        <div id="bpm">–<small> uderzeń/min</small></div>
+        <div class="chip" id="state">brak danych</div>
+      </div>
+      <div id="pulse-meta">Punkt odniesienia pojawi się po pierwszej scenie.</div>
+      <svg id="chart" viewBox="0 0 600 170" preserveAspectRatio="none" aria-label="Wykres tętna sali"></svg>
+    </section>
+    <section>
+      <h2 id="votes-title">Głosy widowni</h2>
+      <div class="votes" id="votes"><div class="empty">Jeszcze nikt nie głosował.</div></div>
+    </section>
+    <section>
+      <h2>Symulator tętna (demo)</h2>
+      <div class="controls">
+        <div class="slider">
+          <input type="range" id="slider" min="60" max="160" step="1" value="90" aria-label="Tętno docelowe">
+          <output id="target">90</output>
+        </div>
+        <div class="buttons">
+          <button data-preset="spokojna">Spokojna sala</button>
+          <button data-preset="ekscytuje-sie">Sala się ekscytuje</button>
+          <button data-preset="nudzi-sie">Sala się nudzi</button>
+          <button class="primary" id="script">▶ Przebieg demo</button>
+        </div>
+        <div class="note">
+          Dane symulowane, żadne prawdziwe tętno. W przyszłości zegarki widzów, tylko średnia całej sali,
+          za zgodą opiekunów i bez zapisywania.
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+"use strict";
+const SVG = "http://www.w3.org/2000/svg";
+const HOW = { wiekszosc: "telefony", okrzyk: "okrzyk", odpowiedz: "mikrofon", domyslna: "sama" };
+const SOURCE = { telefony: "z telefonów", krzykomierz: "z krzykomierza" };
+const STATE_CLASS = { pobudzona: "excited", "w normie": "normal", znudzona: "bored" };
+let graph = null;
+
+function el(name, attrs, text) {
+  const node = document.createElementNS(SVG, name);
+  for (const [key, value] of Object.entries(attrs || {})) node.setAttribute(key, value);
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+async function getJSON(url) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(response.status);
+  return response.json();
+}
+
+function layout(g) {
+  // Od góry do dołu: rząd = odległość sceny od startu, sceny w rzędzie obok siebie.
+  const rows = new Map();
+  for (const scene of g.scenes) {
+    if (!rows.has(scene.depth)) rows.set(scene.depth, []);
+    rows.get(scene.depth).push(scene);
+  }
+  const widest = Math.max(...[...rows.values()].map((r) => r.length));
+  const nodeW = 132, nodeH = 38, gapX = 40, rowHeight = 66, margin = 170;  // margines na podpisy krawędzi
+  const inner = Math.max(widest, 2) * (nodeW + gapX);
+  const width = inner + 2 * margin;
+  const positions = {};
+  for (const [depth, scenes] of rows) {
+    scenes.forEach((scene, i) => {
+      const x = margin + (inner / (scenes.length + 1)) * (i + 1);
+      positions[scene.id] = { x: x - nodeW / 2, y: 12 + depth * rowHeight, w: nodeW, h: nodeH };
+    });
+  }
+  return { positions, width, height: 12 + rows.size * rowHeight };
+}
+
+function renderTree(state) {
+  const svg = document.getElementById("tree-svg");
+  const { positions, width, height } = layout(graph);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.style.maxWidth = `${Math.round(width * 1.15)}px`;
+  svg.replaceChildren();
+  const visited = new Set(state.path.map((p) => p.scene));
+  const taken = new Map(state.decisions.map((d) => [`${d.scene}>${d.choice}`, d]));
+  const groups = new Map();
+  for (const edge of graph.edges) {
+    const key = `${edge.from}>${edge.to}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(edge);
+  }
+  for (const edges of groups.values()) {
+    const a = positions[edges[0].from], b = positions[edges[0].to];
+    const chosen = edges.map((e) => taken.get(`${e.from}>${e.choice}`)).find(Boolean);
+    const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y, mid = (y1 + y2) / 2;
+    const group = el("g", { class: chosen ? "edge taken" : "edge" });
+    group.append(el("path", { d: `M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}` }));
+    const label = chosen ? `${chosen.label} · ${HOW[chosen.how] || chosen.how}` : edges.map((e) => e.label).join(" / ");
+    // Podpis na zewnątrz: scena po lewej stronie drzewa → w lewo, po prawej → w prawo.
+    const leftward = x1 < width / 2 - 1 || (Math.abs(x1 - width / 2) <= 1 && x2 < x1);
+    const lx = (x1 + x2) / 2 + (leftward ? -8 : 8);
+    group.append(el("text", { x: lx, y: mid + 4, "text-anchor": leftward ? "end" : "start" }, shorten(label, 28)));
+    svg.append(group);
+  }
+  for (const scene of graph.scenes) {
+    const p = positions[scene.id];
+    const kind = scene.id === state.scene ? "current" : visited.has(scene.id) ? "visited" : "";
+    const group = el("g", { class: `node ${kind}` });
+    group.append(el("title", {}, scene.question || (scene.ending ? "zakończenie" : scene.id)));
+    group.append(el("rect", { x: p.x, y: p.y, width: p.w, height: p.h, rx: 10 }));
+    group.append(el("text", { x: p.x + p.w / 2, y: p.y + p.h / 2 + 5, "text-anchor": "middle" }, shorten(scene.id, 15)));
+    if (scene.variants.length) group.append(el("text", { x: p.x + p.w - 10, y: p.y + 13, class: "badge" }, "≈"));
+    svg.append(group);
+  }
+}
+
+function shorten(text, max) {
+  return text.length > max ? text.slice(0, max - 1) + "…" : text;
+}
+
+function renderPulse(pulse) {
+  const bpm = document.getElementById("bpm");
+  bpm.firstChild.textContent = pulse.bpm == null ? "–" : Math.round(pulse.bpm);
+  const chip = document.getElementById("state");
+  chip.textContent = pulse.state ? `sala ${pulse.state}` : "brak punktu odniesienia";
+  chip.className = `chip ${STATE_CLASS[pulse.state] || ""}`;
+  const meta = document.getElementById("pulse-meta");
+  meta.textContent = pulse.baseline == null
+    ? "Punkt odniesienia pojawi się po pierwszej scenie."
+    : `Odniesienie ${Math.round(pulse.baseline)} · norma ${Math.round(pulse.bored)}–${Math.round(pulse.excited)}`
+      + ` · widzów ${pulse.viewers ?? "–"} · cel symulatora ${pulse.target == null ? "–" : Math.round(pulse.target)}`;
+  const slider = document.getElementById("slider");
+  if (pulse.target != null && document.activeElement !== slider) {  // przebieg demo też przesuwa suwak
+    slider.value = Math.round(pulse.target);
+    document.getElementById("target").textContent = Math.round(pulse.target);
+  }
+  renderChart(pulse);
+}
+
+function renderChart(pulse) {
+  const svg = document.getElementById("chart");
+  svg.replaceChildren();
+  const points = pulse.history;
+  if (!points.length) return;
+  const W = 600, H = 170, pad = 8;
+  const tEnd = points[points.length - 1][0];
+  const span = Math.min(120, Math.max(10, tEnd - points[0][0]));  // na początku wykres i tak wypełnia szerokość
+  const tStart = tEnd - span;
+  const values = points.map((p) => p[1]).concat(pulse.baseline ? [pulse.bored, pulse.excited] : []);
+  const low = Math.min(...values) - 6, high = Math.max(...values) + 6;
+  const x = (t) => ((t - tStart) / span) * W;
+  const y = (v) => H - pad - ((v - low) / (high - low)) * (H - 2 * pad);
+  if (pulse.baseline) {
+    svg.append(el("rect", {
+      x: 0, y: y(pulse.excited), width: W, height: y(pulse.bored) - y(pulse.excited),
+      fill: "rgba(89,217,142,0.08)",
+    }));
+    svg.append(el("line", {
+      x1: 0, x2: W, y1: y(pulse.baseline), y2: y(pulse.baseline),
+      stroke: "#59d98e", "stroke-dasharray": "6 6", "stroke-width": 1.5,
+    }));
+    svg.append(el("line", {
+      x1: 0, x2: W, y1: y(pulse.excited), y2: y(pulse.excited),
+      stroke: "rgba(255,122,89,0.6)", "stroke-dasharray": "2 6", "stroke-width": 1.5,
+    }));
+  }
+  const d = points.filter((p) => p[0] >= tStart).map((p, i) => `${i ? "L" : "M"}${x(p[0])},${y(p[1])}`).join(" ");
+  svg.append(el("path", { d, fill: "none", stroke: "#ffc94d", "stroke-width": 3, "stroke-linejoin": "round" }));
+}
+
+function renderVotes(votes) {
+  const box = document.getElementById("votes");
+  if (!votes) return;
+  document.getElementById("votes-title").textContent =
+    `Głosy widowni ${SOURCE[votes.source] || ""} — scena ${votes.scene}`;
+  const labels = Object.fromEntries(graph.edges.filter((e) => e.from === votes.scene).map((e) => [e.choice, e.label]));
+  const total = Object.values(votes.counts).reduce((a, b) => a + b, 0) || 1;
+  box.replaceChildren(...Object.entries(votes.counts).map(([choice, count]) => {
+    const row = document.createElement("div");
+    row.className = "vote";
+    const name = document.createElement("div");
+    name.textContent = labels[choice] || choice;
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const fill = document.createElement("div");
+    fill.style.width = `${(100 * count) / total}%`;
+    bar.append(fill);
+    const number = document.createElement("div");
+    number.className = "count";
+    number.textContent = count;
+    row.append(name, bar, number);
+    return row;
+  }));
+}
+
+function renderLog(entries) {
+  if (!entries.length) return;
+  const list = document.getElementById("log");
+  list.replaceChildren(...entries.slice().reverse().map((entry) => {
+    const item = document.createElement("li");
+    const time = document.createElement("time");
+    time.textContent = entry.time;
+    const text = document.createElement("span");
+    text.textContent = entry.text;
+    item.append(time, text);
+    return item;
+  }));
+}
+
+async function refresh() {
+  const connection = document.getElementById("connection");
+  try {
+    if (!graph) {
+      graph = await getJSON("graph");
+      document.getElementById("mood").textContent = graph.mood
+        ? `Film ${graph.mood}: gdy sala odbiega od nastroju filmu, scena gra inną wersję montażu`
+        : "Film bez nastroju (mood): wersje scen wyłączone";
+    }
+    const state = await getJSON("state");
+    renderTree(state);
+    renderPulse(state.pulse);
+    renderVotes(state.votes);
+    renderLog(state.log);
+    connection.textContent = "połączono z filmem";
+    connection.className = "";
+  } catch (error) {
+    connection.textContent = "brak połączenia z filmem — czy aplikacja działa z flagą --panel?";
+    connection.className = "offline";
+  }
+}
+
+async function command(body) {
+  try {
+    const response = await fetch("pulse", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    const answer = await response.json();
+    if (answer.target != null) {
+      document.getElementById("slider").value = Math.round(answer.target);
+      document.getElementById("target").textContent = Math.round(answer.target);
+    }
+  } catch (error) {
+    document.getElementById("connection").textContent = "nie udało się wysłać polecenia do symulatora";
+  }
+}
+
+const slider = document.getElementById("slider");
+let sliderTimer = null;
+slider.addEventListener("input", () => {
+  document.getElementById("target").textContent = slider.value;
+  clearTimeout(sliderTimer);
+  sliderTimer = setTimeout(() => command({ target: Number(slider.value) }), 150);
+});
+for (const button of document.querySelectorAll("[data-preset]")) {
+  button.addEventListener("click", () => command({ preset: button.dataset.preset }));
+}
+document.getElementById("script").addEventListener("click", () => command({ script: "demo" }));
+
+refresh();
+setInterval(refresh, 500);
+</script>
+</body>
+</html>
