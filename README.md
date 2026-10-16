@@ -10,8 +10,9 @@ Domyślnie całe AI działa **lokalnie na Windows** (Foundry Local z Whisper i P
 z syntezatora Windows) — bez chmury i bez kluczy: [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md).
 Usługi Azure zostają jako alternatywa (`--backend azure`).
 
-Gotowa bajka edukacyjna: **„Klub Ciekawskich: Bzyczka szuka domu”** — [scenariusz z dialogami](scenarios/klub_ciekawskich.md)
-i [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml).
+Film: **„Bzyczka szuka domu”** — interaktywny animowany film krótkometrażowy dla widowni kinowej
+([scenariusz filmowy](scenarios/klub_ciekawskich.md), [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)).
+Zgodność z regulaminem hackathonu: [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
 
 ## Jak to działa
 
@@ -23,6 +24,11 @@ i [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml).
 5. Cisza albo niejasna odpowiedź: bohater dopytuje (domyślnie 2 razy), potem sam wybiera ścieżkę domyślną.
 
 W trybie `--backend azure` kroki 2–4 wykonują Azure AI Speech i Azure OpenAI.
+
+**W kinie** na sali siedzi wiele dzieci, więc decyzje (sceny `vote: true`) rozstrzyga **krzykomierz**: bohaterka
+wzywa po kolei do każdej opcji („Kto za mostkiem? Krzyczymy… Mostek!”), a wygrywa najgłośniejszy okrzyk. Zagadki
+sala rozwiązuje chórem, a odpowiedź rozpoznaje Whisper z modelem językowym. Kwestie pisane na żywo przez model
+przechodzą przez filtr treści (`bajka/safety.py`).
 
 Mikrofon jest wyłączony, gdy bohater mówi, więc nie słyszy sam siebie. Awaria STT, LLM albo TTS
 nie zatrzymuje bajki: zamiast tego wybierana jest ścieżka domyślna albo kwestia ze scenariusza.
@@ -76,6 +82,7 @@ python -m bajka.local_stt --repeat 3                 # mikrofon → tekst (Whisp
 python -m bajka.local_tts "Cześć! Jestem Lila Lupka!"  # tekst → głos bohaterki (Windows)
 python -m bajka.local_intent scenarios/klub_ciekawskich.yaml "tam gdzie ciemno" --scene kuferek   # wypowiedź → wybór (Phi)
 python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik   # wypowiedź → wybór (słowa kluczowe)
+python -m bajka.vote                                 # kalibracja krzykomierza na sali: gwar i okrzyk
 python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure STT)
 python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos bohatera (Azure TTS)
 python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
@@ -105,6 +112,9 @@ scenariusza. Scena bez `choices` kończy bajkę.
 | `choices.<id>.next` | Scena, która nastąpi po tym wyborze |
 | `choices.<id>.reply` | Statyczna reakcja bohatera, gdy LLM nie odpowie |
 | `choices.<id>.keywords` | Opcjonalnie: słowa, po których wybór rozpozna się bez LLM (identyfikator wyboru liczy się zawsze) |
+| `scenes.<id>.vote` | Opcjonalnie `true`: widownia wybiera okrzykiem (krzykomierz) zamiast słowami |
+| `choices.<id>.call` | W scenie `vote`: wezwanie do okrzyku mówione przez bohaterkę, np. „Kto za mostkiem? Krzyczymy… Mostek!” |
+| `choices.<id>.call_clip` | W scenie `vote`: to samo wezwanie jako nagrany klip (ma pierwszeństwo przed `call`) |
 
 ## Wskazówki do klipów
 
@@ -130,6 +140,8 @@ scenariusza. Scena bez `choices` kończy bajkę.
 | `bajka/local_tts.py` | Głos z syntezatora Windows (`WindowsTtsSettings`, `WindowsVoice`) |
 | `bajka/keywords.py` | Wybór po słowach kluczowych, offline (`KeywordIntentResolver`, `FallbackResolver`) |
 | `bajka/audio.py` | Wspólne odtwarzanie WAV do końca wypowiedzi |
+| `bajka/vote.py` | Krzykomierz: głosowanie okrzykiem widowni (`VoteSettings`, `MicrophoneMeter`) |
+| `bajka/safety.py` | Filtr kwestii modelu językowego (`SafeReplyResolver`) |
 | `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter |
 | `bajka/console.py` | Tryb `--text` do prób bez mikrofonu |
 | `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg) |
@@ -156,3 +168,5 @@ python -m pytest
 - `Brak głosu Windows dla pl-PL`: dodaj polski głos w Ustawienia → Czas i język → Mowa.
 - `Foundry Local nie zna modelu …`: sprawdź aliasy przez `python -m bajka.foundry` i popraw `FOUNDRY_CHAT_MODEL` / `FOUNDRY_STT_MODEL`.
 - Dziecko jest ucinane albo hałas uruchamia nasłuch (tryb lokalny): dostrój `BAJKA_VAD_THRESHOLD` i `BAJKA_END_SILENCE_MS`.
+- Krzykomierz ciągle mówi „za cicho” albo każdą ciszę uznaje za okrzyk: `python -m bajka.vote` na sali i ustaw
+  `BAJKA_VOTE_MIN_LEVEL` / `BAJKA_VOTE_MIN_RATIO` według podpowiedzi.
