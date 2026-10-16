@@ -70,6 +70,18 @@ def test_request_sends_hero_question_and_childs_words_with_strict_schema():
     assert schema["schema"]["required"] == ["reply", "idea"]
 
 
+def test_prompt_carries_regulamin_rules_for_spoken_lines():
+    imaginer, completions = make_imaginer(answer("Super!", "ribbons"))
+
+    imaginer.imagine(OPEN_SCENE, "wstążkami")
+
+    system = completions.kwargs["messages"][0]["content"]
+    assert "Nie powtarzaj brzydkich ani obraźliwych słów" in system
+    assert "nie mów o przemocy" in system
+    assert "liczbie mnogiej" in system
+    assert "mów tylko\n   prawdę" in system or "mów tylko prawdę" in system
+
+
 def test_unusable_idea_comes_back_empty():
     vision = parse_vision(answer("Hmm, narysuję coś innego!", ""))
 
