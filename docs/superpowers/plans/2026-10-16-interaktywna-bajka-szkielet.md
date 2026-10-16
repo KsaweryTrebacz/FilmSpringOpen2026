@@ -31,7 +31,7 @@ Ustalenia z sesji projektowej (nie ma osobnego specu — to jest źródło prawd
 - Testy nie łączą się z siecią, nie używają mikrofonu i **nie importują `bajka.player`** (`import vlc` rzuca wyjątek bez zainstalowanego VLC).
 - Sekrety tylko w `.env` (w `.gitignore`); w repo jest wyłącznie `.env.example`.
 - Wartości domyślne: `AZURE_OPENAI_API_VERSION=2024-10-21`, głos `pl-PL-MarekNeural`, tempo `-10%`, cisza początkowa 6000 ms, cisza końcowa 1200 ms, `max_reprompts=2`.
-- Gałąź robocza: `feature/szkielet-bajki` (już istnieje na `origin`, zawiera ten plan).
+- Git: wszystkie commity bezpośrednio na `main`, bez gałęzi funkcyjnych; po każdym zadaniu `git push origin main`.
 
 ## Struktura plików
 
@@ -77,11 +77,11 @@ Ustalenia z sesji projektowej (nie ma osobnego specu — to jest źródło prawd
   - `ScenarioError(ValueError)`
   - Fikstury pytest: `scenario_dict` (głęboka kopia słownika) i `scenario` (sparsowany, `base_dir=Path("film")`): scena `intro` z wyborami `las`/`jaskinia`, `default: las`, sceny końcowe `las` i `jaskinia`.
 
-- [ ] **Step 1: Przygotuj gałąź, VLC i środowisko**
+- [ ] **Step 1: Przygotuj repozytorium, VLC i środowisko**
 
 ```powershell
-git fetch origin
-git switch feature/szkielet-bajki
+git switch main
+git pull
 winget install --id VideoLAN.VLC -e
 ```
 
