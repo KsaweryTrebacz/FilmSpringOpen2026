@@ -7,11 +7,9 @@ Test z prawdziwym głośnikiem: python -m bajka.tts ["kwestia bohatera"]
 from __future__ import annotations
 
 import argparse
-import io
 import logging
 import sys
 import time
-import wave
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -19,6 +17,7 @@ from xml.sax.saxutils import escape
 
 import azure.cognitiveservices.speech as speechsdk
 
+from bajka.audio import play_wav_bytes
 from bajka.config import ConfigError, load_env, require
 
 log = logging.getLogger(__name__)
@@ -68,18 +67,6 @@ def build_ssml(text: str, voice: str, language: str, rate: str) -> str:
         f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{language}">'
         f'<voice name="{voice}"><prosody rate="{rate}">{escape(text)}</prosody></voice></speak>'
     )
-
-
-def play_wav_bytes(data: bytes) -> None:
-    """Odtwarza WAV (PCM 16-bit) i blokuje do końca, więc mikrofon nie słyszy bohatera."""
-    import numpy as np
-    import sounddevice as sd
-
-    with wave.open(io.BytesIO(data)) as wav:
-        rate, channels = wav.getframerate(), wav.getnchannels()
-        frames = wav.readframes(wav.getnframes())
-    sd.play(np.frombuffer(frames, dtype=np.int16).reshape(-1, channels), rate)
-    sd.wait()
 
 
 class AzureVoice:
