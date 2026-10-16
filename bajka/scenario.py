@@ -265,7 +265,7 @@ def _check_template(template: str, allowed: set[str], where: str) -> None:
     try:
         fields = template_fields(template)
         fill_prompt(template, dict.fromkeys(allowed, "x"))  # próbne wypełnienie łapie {} i złe formatowanie
-    except (ValueError, IndexError, KeyError, AttributeError) as exc:
+    except (ValueError, IndexError, KeyError, AttributeError, TypeError) as exc:
         raise ScenarioError(f"{where}: niepoprawny szablon 'image_prompt': {exc}") from exc
     unknown = fields - allowed
     if unknown:

@@ -97,8 +97,9 @@ def test_template_may_only_use_remembered_ideas(live_dict):
         "the beehive with {idea",
         "the beehive } with {idea}",
         "the beehive with {idea!z}",
+        "the beehive with {idea} and {ozdoby[x]}",
     ],
-    ids=["puste_pole", "niedomkniety", "samotny_nawias", "zla_konwersja"],
+    ids=["puste_pole", "niedomkniety", "samotny_nawias", "zla_konwersja", "zly_indeks"],
 )
 def test_malformed_image_prompt_is_rejected_when_loading(live_dict, template):
     live_dict["scenes"]["ozdoby"]["image_prompt"] = template
