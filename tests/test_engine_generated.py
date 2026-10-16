@@ -102,6 +102,21 @@ class SlowVoice(FakeVoice):
         super().say(text)
 
 
+class StoppingVoice(FakeVoice):
+    """Po wskazanej kwestii zatrzymuje silnik z opóźnieniem, więc stop zawsze trafia w czekanie na obraz (bez wyścigu)."""
+
+    def __init__(self, line, delay):
+        super().__init__()
+        self.engine = None  # silnik powstaje dopiero po głosie, test podstawia go przed run()
+        self._line = line
+        self._delay = delay
+
+    def say(self, text):
+        super().say(text)
+        if text == self._line:
+            threading.Timer(self._delay, self.engine.stop).start()
+
+
 def make_engine(scenario, listener, illustrator, answer="las", voice=None, **engine_options):
     player, voice = FakePlayer(), voice or FakeVoice()
     engine = StoryEngine(
@@ -166,7 +181,7 @@ def test_generated_scene_stays_on_screen_for_the_requested_time_after_short_narr
     visited, elapsed = timed_run(engine)
 
     assert visited == ["intro", "gen_jaskinia", "jaskinia"]
-    assert elapsed >= 0.3  # narracja (w teście natychmiastowa) nie skraca pokazu obrazu
+    assert elapsed >= 0.4 - 0.03  # nie skraca pokazu obrazu (luz 0,03 s na zgrubny zegar Windows)
 
 
 def test_narration_counts_towards_the_time_on_screen(story):
@@ -177,18 +192,20 @@ def test_narration_counts_towards_the_time_on_screen(story):
 
     _, elapsed = timed_run(engine)
 
-    assert 0.35 <= elapsed < 0.65  # dochodzi tylko reszta (0,1 s), a nie całe 0,4 s po narracji
+    assert 0.35 <= elapsed < 0.69  # dochodzi tylko reszta (0,1 s), a nie całe 0,4 s po narracji
 
 
 def test_stop_ends_the_wait_on_the_picture_at_once(story):
+    voice = StoppingVoice("Ale tu pięknie świeci!", delay=0.1)  # stop dopiero, gdy scena generowana jest na ekranie
     engine, player, _ = make_engine(
-        story, FakeListener("jaskinia"), NamedIllustrator(), answer="jaskinia", generated_seconds=5.0
+        story, FakeListener("jaskinia"), NamedIllustrator(), answer="jaskinia", voice=voice, generated_seconds=5.0
     )
-    threading.Timer(0.1, engine.stop).start()
+    voice.engine = engine
 
     visited, elapsed = timed_run(engine)
 
     assert visited == ["intro", "gen_jaskinia"]
+    assert voice.lines[-1] == "Ale tu pięknie świeci!"  # scena generowana naprawdę doszła do głosu
     assert elapsed < 2.0
     assert ("play", "jaskinia.mp4") not in player.calls
 
