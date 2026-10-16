@@ -19,7 +19,7 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 | §3 ust. 10 | Praca może zostać opublikowana na stronie i w mediach społecznościowych organizatora | **ZESPÓŁ** | Wszystko, co pokażemy, musi nadawać się do publikacji: bez nagrań dzieci bez zgody opiekunów, bez cudzych utworów |
 | §4 ust. 5 | Kryteria: innowacyjność, adekwatność do zadania, oryginalność, kreatywność | **OK** | Mapowanie na pitch niżej |
 | §5 ust. 3 | Najlepszy projekt to pomysł wart dalszego rozwijania i testowania z prawdziwą publicznością | **OK** / **ZESPÓŁ** | Projekt jest od początku zbudowany do seansu z widownią; plan testu niżej |
-| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie zapisuje głosu ani wypowiedzi; lokalne AI przetwarza mowę na komputerze, bez wysyłania do chmury. Głos dzieci z telefonów — szczegóły niżej |
+| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie zapisuje głosu ani wypowiedzi; lokalne AI przetwarza mowę na komputerze, bez wysyłania nagrań do chmury. Wyjątek: w scenach rysowanych na żywo (`kind: open`) rozpoznany tekst odpowiedzi dziecka trafia do Azure OpenAI, a obraz rysuje Azure AI Foundry (nagranie głosu nigdy); informacja dla opiekunów powinna o tym wspomnieć. Głos dzieci z telefonów — szczegóły niżej |
 
 ## §3 ust. 8 — treści
 
@@ -95,7 +95,7 @@ Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
 
 | Kryterium | Argument |
 |---|---|
-| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Całe AI działa lokalnie (Copilot+ PC z NPU, Foundry Local), bez chmury i bez nagrywania dzieci. Bez telefonów decyzje rozstrzyga krzykomierz |
+| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci; w chmurze Azure powstają tylko ilustracje scen rysowanych na żywo, z samego tekstu, bez nagrania. Bez telefonów decyzje rozstrzyga krzykomierz |
 | **Adekwatność do zadania** | „Przyszłość odbioru dzieł audiowizualnych”: widz przestaje być bierny — współdecyduje o filmie. Nawiązujemy do tradycji: w czechosłowackim Kinoautomacie (Expo 67) widzowie głosowali przyciskami; u nas głosują głosem, a postać reaguje na nich |
 | **Oryginalność** | Własny świat i postacie, film dla najmłodszych z pierwszym w życiu doświadczeniem kina jako wspólnej zabawy |
 | **Kreatywność** | Mechaniki zaprojektowane pod salę kinową: okrzyki, odpowiedzi chórem, wspólny oddech, liczenie; pomyłki widowni stają się częścią nauki |

@@ -10,6 +10,11 @@ Domyślnie całe AI działa **lokalnie na Windows** (Foundry Local z Whisper i P
 z syntezatora Windows) — bez chmury i bez kluczy: [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md).
 Usługi Azure zostają jako alternatywa (`--backend azure`).
 
+**Wyjątek: sceny rysowane na żywo** (`kind: open` i `kind: generated`, np. [`scenarios/rysowanie_na_zywo.yaml`](scenarios/rysowanie_na_zywo.yaml))
+potrzebują Azure, kluczy w `.env` i ffmpeg. Rozpoznany lokalnie tekst odpowiedzi dziecka trafia do Azure OpenAI,
+a obraz rysuje Azure AI Foundry (nagranie głosu nigdy nie opuszcza komputera). Flaga `--no-llm` nie wyłącza tego
+kroku wyobraźni, wyłącza tylko model językowy przy wyborze ścieżki. Bez internetu te sceny pokazują klipy zapasowe.
+
 Film: **„Bzyczka szuka domu”** — interaktywny animowany film krótkometrażowy dla widowni kinowej
 ([scenariusz filmowy](scenarios/klub_ciekawskich.md), [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)).
 Zgodność z regulaminem hackathonu: [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).

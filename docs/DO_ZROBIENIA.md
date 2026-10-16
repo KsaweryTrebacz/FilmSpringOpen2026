@@ -1,6 +1,6 @@
 # Do zrobienia
 
-Stan na 16.10.2026 (295 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
+Stan na 16.10.2026 (322 testy przechodzą). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
 Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md).
 
 ## Kod i podpięcie (przed pokazem)
@@ -8,11 +8,15 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [x] **Zadanie 6 [planu „obraz na żywo”](superpowers/plans/2026-10-16-obraz-na-zywo.md)** (Ksawery): moduły
   rysowania podpięte w `bajka/app.py` razem z aplikacją mobilną, zaślepki pętli „rysuje” i klipów zapasowych,
   wpisy w `.env.example` i README.
+- [x] **Zadanie 7 planu „obraz na żywo”** (Ksawery): sceny generowane (`kind: generated`) rysowane w tle z pamięcią
+  pomysłów dziecka (`remember`, `default_idea` od początku seansu); po przeglądzie: Esc zatrzymuje bajkę od razu,
+  wyobraźnia ma krótki limit czasu (6 s), a obraz sceny generowanej zostaje na ekranie tyle, ile trwa klip.
 - [ ] **Decyzja: czy scena ozdabiania ula (`kind: open`) wchodzi do filmu.** Sceny otwarte słuchają dziś tylko
   mikrofonu przy ekranie, nie telefonów; w kinie trzeba by dodać na telefonach wybór spośród trzech pomysłów
   (propozycja w [scenariuszu](../scenarios/klub_ciekawskich.md), SC. 7b).
-- [ ] Dopisać `scenarios/ilustracje/kandydaci/` do `.gitignore`, żeby wygenerowane obrazy z karty postaci nie trafiły
-  przypadkiem do repozytorium.
+- [x] `.gitignore` obejmuje `/ilustracje/`, `/pomiar/` i `scenarios/ilustracje/kandydaci/`, żeby wygenerowane obrazy
+  (z nieznanymi jeszcze prawami) nie trafiły przypadkiem do repozytorium. Wybrane obrazy referencyjne trzeba skopiować
+  do `scenarios/ilustracje/` i dodać do repozytorium.
 
 ## Testy na prawdziwym sprzęcie (nic z tego nie było jeszcze uruchomione)
 
@@ -29,6 +33,8 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [ ] Kalibracja krzykomierza na sali: `python -m bajka.vote`.
 - [ ] Azure AI Foundry: dostęp, klucze w `.env`, pomiar czasu ilustracji i wybór modelu obrazu (gpt-image-1.5 albo FLUX.2).
 - [ ] Próba generalna całego filmu obiema ścieżkami: z telefonami (`--mobile`) i bez.
+- [ ] Próba generalna na laptopie pokazowym: prawdziwy Azure, VLC, TTS, pomiar z references, czas bajka.motion,
+  Esc w trakcie rysowania, limit 5 obrazów/min.
 
 ## Produkcja filmu
 
@@ -58,7 +64,6 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 
 ## Po hackathonie
 
-- [ ] Sceny generowane w tle z pamięcią opowieści (zadanie 7 planu „obraz na żywo”).
 - [ ] Tętno widzów z zegarka (pomysł opisany w [README](../README.md#pomysły-na-przyszłość)).
 - [ ] Natywna aplikacja z Phi Silica i dostrajaniem LoRA ([LOKALNE_AI.md](LOKALNE_AI.md)).
 - [ ] Testy uruchamiane automatycznie na GitHubie (GitHub Actions z `pytest`).

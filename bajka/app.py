@@ -192,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     missing = missing_media(scenario)  # przed ładowaniem modeli, które za pierwszym razem pobierają się minutami
     if missing:
-        log.error("Brak plików wideo: %s", ", ".join(map(str, missing)))
+        log.error("Brak plików (klipy wideo, obrazy referencyjne): %s", ", ".join(map(str, missing)))
         return 2
     try:
         env = load_env()
