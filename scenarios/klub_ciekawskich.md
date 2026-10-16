@@ -338,10 +338,10 @@ w kolejności wezwań).
 ### SC. 7b (planowana) — PLENER. UL — POPOŁUDNIE (`ozdoby`, obraz na żywo)
 
 Scena z [projektu flow filmu](../docs/superpowers/specs/2026-10-16-flow-filmu-design.md) (obszar C, scena `open`):
-Lila pyta, jak udekorujemy ul, a ilustracja powstaje na żywo z pomysłu widowni. Silnik obsługuje już sceny
-`kind: open`; do YAML (między SC. 6 a SC. 7) wejdzie, gdy aplikacja poda silnikowi moduły rysowania
-(zadanie 6 [planu „obraz na żywo”](../docs/superpowers/plans/2026-10-16-obraz-na-zywo.md)) i powstaną klipy:
-`07b_ozdoby.mp4`, cicha pętla oczekiwania, pętla „Lila rysuje” i 1–3 klipy zapasowe. Wymaga kluczy Azure
+Lila pyta, jak udekorujemy ul, a ilustracja powstaje na żywo z pomysłu widowni. Silnik i aplikacja obsługują już
+sceny `kind: open` ([plan „obraz na żywo”](../docs/superpowers/plans/2026-10-16-obraz-na-zywo.md)); do YAML (między
+SC. 6 a SC. 7) scena wejdzie po decyzji zespołu i z klipami: `07b_ozdoby.mp4`, cicha pętla oczekiwania, pętla
+„Lila rysuje” i 1–3 klipy zapasowe. Wymaga kluczy Azure
 (pomysł i ilustracja powstają w chmurze); bez internetu w trakcie seansu lecą klipy zapasowe.
 
 **W kinie** pytanie otwarte do całej sali będzie nieczytelne, a scena otwarta słucha dziś tylko mikrofonu przy

@@ -1,18 +1,13 @@
 # Do zrobienia
 
-Stan na 16.10.2026, po przeglądzie repozytorium (284 testy przechodzą). Prezentacja przed jury: **18.10.2026, 19:00**.
+Stan na 16.10.2026 (295 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
 Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md).
 
 ## Kod i podpięcie (przed pokazem)
 
-- [ ] **Zadanie 6 [planu „obraz na żywo”](superpowers/plans/2026-10-16-obraz-na-zywo.md)** (Ksawery). Dziś
-  `python -m bajka scenarios/rysowanie_na_zywo.yaml` nie rusza: zaślepki nie tworzą pętli „rysuje” ani klipów
-  zapasowych, a aplikacja nie podaje silnikowi modułów rysowania. Do zrobienia:
-  - podpięcie modułów rysowania w `bajka/app.py`. **Uwaga:** kroki 4–5 planu podmieniają fragmenty `app.py`,
-    które zmieniły się po dodaniu aplikacji mobilnej (`build_mobile`, `audience=audience` w `StoryEngine`) — trzeba
-    je scalić ręcznie,
-  - zaślepki dla `drawing` i `fallback_clips` w `bajka/placeholders.py`,
-  - wpisy w `.env.example` i README.
+- [x] **Zadanie 6 [planu „obraz na żywo”](superpowers/plans/2026-10-16-obraz-na-zywo.md)** (Ksawery): moduły
+  rysowania podpięte w `bajka/app.py` razem z aplikacją mobilną, zaślepki pętli „rysuje” i klipów zapasowych,
+  wpisy w `.env.example` i README.
 - [ ] **Decyzja: czy scena ozdabiania ula (`kind: open`) wchodzi do filmu.** Sceny otwarte słuchają dziś tylko
   mikrofonu przy ekranie, nie telefonów; w kinie trzeba by dodać na telefonach wybór spośród trzech pomysłów
   (propozycja w [scenariuszu](../scenarios/klub_ciekawskich.md), SC. 7b).
@@ -52,7 +47,7 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [ ] Sprawdzone licencje: generatory obrazu (i wideo, jeśli użyte), głosy syntezatora do publikacji, fonty w napisach.
 - [ ] Data prezentacji potwierdzona z organizatorem (w §2 ust. 3 regulaminu stoi „18.10.2022”).
 - [ ] Informacja dla opiekunów o mikrofonie i prywatności; na nagraniach z pokazu bez dzieci bez zgody opiekunów.
-- [ ] Ilustracje z seansu usuwane po pokazie (katalog tymczasowy — część zadania 6).
+- [x] Ilustracje z poprzednich seansów usuwane przy starcie aplikacji (katalog tymczasowy, zadanie 6).
 - [ ] Decyzja o licencji repozytorium (dziś nie ma pliku `LICENSE`).
 
 ## Pokaz dla jury (18.10, 19:00)

@@ -38,7 +38,7 @@ warstwach:
    model językowy na bezpieczny opis (`bajka/imagine.py`, te same zasady prawdy i kultury), podejrzana kwestia
    unieważnia cały pomysł (`SafeImaginer`), a model obrazu ma własny filtr treści (gpt-image; przy FLUX —
    Azure AI Content Safety). Przy każdym błędzie albo odrzuceniu pokazujemy przygotowany klip zapasowy.
-   **OK** w kodzie; **ZESPÓŁ**: filtr przy FLUX i sprzątanie ilustracji seansu (zadanie 6 planu „obraz na żywo”).
+   Ilustracje poprzednich seansów aplikacja usuwa przy starcie. **OK** w kodzie; **ZESPÓŁ**: filtr treści przy FLUX.
 
 **Poprawione fakty w scenariuszu:**
 - Sowa w dzień: sowy są aktywne głównie nocą, więc Lila mówi teraz „Sowy w dzień zwykle śpią, a my ją chyba budzimy!”.
@@ -124,6 +124,6 @@ Propozycja pierwszego seansu próbnego po hackathonie:
 - [ ] Decyzja o licencji repozytorium.
 - [ ] Data prezentacji potwierdzona z organizatorem (literówka „18.10.2022” w §2 ust. 3).
 - [ ] Na nagraniach z pokazu nie ma dzieci bez zgody opiekunów.
-- [ ] Ilustracje z sesji usuwane po seansie (katalog tymczasowy, zadanie 6 planu „obraz na żywo”).
+- [x] Ilustracje z poprzednich seansów usuwane przy starcie aplikacji (zadanie 6 planu „obraz na żywo”).
 - [ ] Na pokazie: Wi-Fi dla telefonów (bez izolacji klientów), port aplikacji otwarty w zaporze, plansza z kodem QR,
       informacja dla opiekunów o mikrofonie.
