@@ -8,8 +8,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+import shutil
+import tempfile
 import threading
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,9 +22,9 @@ from bajka.foundry import FoundryError
 from bajka.intent import AzureIntentResolver, LlmSettings
 from bajka.keywords import FallbackResolver, KeywordIntentResolver, KeywordsFirstResolver
 from bajka.local_tts import VoiceNotFoundError
-from bajka.ports import IntentResolver, Listener, ShoutMeter, Voice
-from bajka.safety import SafeReplyResolver
-from bajka.scenario import ScenarioError, load_scenario, missing_media
+from bajka.ports import Animator, Illustrator, Imaginer, IntentResolver, Listener, ShoutMeter, Voice
+from bajka.safety import SafeImaginer, SafeReplyResolver
+from bajka.scenario import Scenario, ScenarioError, load_scenario, missing_media
 
 if TYPE_CHECKING:
     import tkinter as tk
@@ -129,6 +132,50 @@ def build_mobile(env: Mapping[str, str], backend: str, resolver: IntentResolver)
     return MobileServer(audience, settings)
 
 
+@dataclass(frozen=True)
+class LiveImages:
+    """Moduły rysowania na żywo; puste, gdy scenariusz nie ma scen rysowanych na żywo."""
+
+    imaginer: Imaginer | None = None
+    illustrator: Illustrator | None = None
+    animator: Animator | None = None
+    timeout_s: float = 25.0
+
+
+def prepare_session_dir(base: Path | None = None) -> Path:
+    """Nowy katalog na ilustracje seansu. Ilustracje poprzednich seansów usuwamy (prywatność dzieci)."""
+    base = base or Path(tempfile.gettempdir()) / "bajka"
+    shutil.rmtree(base, ignore_errors=True)
+    base.mkdir(parents=True, exist_ok=True)
+    return Path(tempfile.mkdtemp(prefix="seans_", dir=base))
+
+
+def build_live_images(
+    env: Mapping[str, str],
+    scenario: Scenario,
+    session_dir: Callable[[], Path] = prepare_session_dir,
+) -> LiveImages:
+    if not scenario.needs_live_images:
+        return LiveImages()
+    from bajka.illustrate import AzureIllustrator, ImageSettings
+    from bajka.imagine import AzureImaginer, ImagineSettings
+    from bajka.motion import FfmpegAnimator, MotionSettings
+
+    images = ImageSettings.from_env(env)
+    imagine = ImagineSettings.from_env(env)
+    motion = MotionSettings.from_env(env)
+    if shutil.which("ffmpeg") is None:
+        raise ConfigError("Sceny rysowane na żywo potrzebują ffmpeg w PATH (Windows: winget install --id Gyan.FFmpeg -e)")
+    directory = session_dir()
+    log.info("Ilustracje seansu: %s", directory)
+    return LiveImages(
+        imaginer=SafeImaginer(AzureImaginer.from_settings(imagine, scenario.hero)),  # filtr regulaminu §3 ust. 8
+        illustrator=AzureIllustrator.from_settings(images, directory, scenario.style, scenario.references),
+        animator=FfmpegAnimator.from_settings(motion, directory),
+        timeout_s=float(images.timeout_s),
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s")
     args = parse_args(argv)
@@ -150,6 +197,7 @@ def main(argv: list[str] | None = None) -> int:
         listener, voice = build_speech(env, args.text, backend)
         resolver = build_resolver(env, backend, not args.no_llm, scenario.hero)
         mobile = build_mobile(env, backend, resolver) if mobile_enabled(args, env) else None
+        live = build_live_images(env, scenario)
     except (ConfigError, FoundryError, VoiceNotFoundError, OSError) as exc:
         log.error("%s", exc)
         return 2
@@ -173,7 +221,18 @@ def main(argv: list[str] | None = None) -> int:
     root = tk.Tk()
     player = VlcPlayer(root, fullscreen=not args.windowed)
     engine = StoryEngine(
-        scenario, player, listener, voice, resolver, max_reprompts=max_reprompts, meter=meter, audience=audience
+        scenario,
+        player,
+        listener,
+        voice,
+        resolver,
+        max_reprompts=max_reprompts,
+        meter=meter,
+        audience=audience,
+        imaginer=live.imaginer,
+        illustrator=live.illustrator,
+        animator=live.animator,
+        image_timeout_s=live.timeout_s,
     )
     try:
         run_window(root, player, engine)

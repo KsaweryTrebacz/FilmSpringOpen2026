@@ -131,7 +131,14 @@ python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure
 python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos bohatera (Azure TTS)
 python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
 python -m bajka.player scenarios/clips/intro.mp4 scenarios/clips/intro_idle.mp4   # klip → pętla (VLC)
+python -m bajka.imagine scenarios/rysowanie_na_zywo.yaml "złota korona"   # pomysł → kwestia + opis obrazu
+python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml "a fox"     # opis → ilustracja (Azure AI Foundry)
+python -m bajka.motion obraz.png                                         # ilustracja → klip z ruchem kamery
 ```
+
+Sceny z pytaniem otwartym (`kind: open`) rysują pomysł dziecka na żywo; mechanikę pokazuje
+[`scenarios/rysowanie_na_zywo.yaml`](scenarios/rysowanie_na_zywo.yaml), a zasady i dobór modeli
+[projekt flow filmu](docs/superpowers/specs/2026-10-16-flow-filmu-design.md).
 
 Każde demo wypisuje czas odpowiedzi, co pomaga stroić `BAJKA_INITIAL_SILENCE_MS`, `BAJKA_END_SILENCE_MS`
 i prompt. Bez kluczy w `.env` demo kończy się komunikatem, których zmiennych brakuje.

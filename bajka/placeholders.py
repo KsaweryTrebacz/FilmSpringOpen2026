@@ -17,14 +17,16 @@ COLORS = ("darkgreen", "midnightblue", "saddlebrown", "darkred", "indigo", "dark
 
 
 def planned_clips(scenario: Scenario) -> list[tuple[Path, str, bool]]:
-    """(ścieżka, kolor, czy z dźwiękiem) — klip sceny ma ton, pętla oczekiwania jest cicha."""
-    clips = []
+    """(ścieżka, kolor, czy z dźwiękiem) — klipy scen i zapasowe mają ton, pętle (oczekiwanie, rysowanie) są ciche."""
+    clips: dict[Path, tuple[Path, str, bool]] = {}
     for index, scene in enumerate(scenario.scenes.values()):
         color = COLORS[index % len(COLORS)]
-        clips.append((scene.clip, color, True))
-        if scene.idle is not None:
-            clips.append((scene.idle, color, False))
-    return clips
+        tracks = [(scene.clip, True), (scene.idle, False), (scene.drawing, False)]
+        tracks += [(path, True) for path in scene.fallback_clips]
+        for path, with_tone in tracks:
+            if path is not None and path not in clips:  # wspólna pętla rysowania tylko raz
+                clips[path] = (path, color, with_tone)
+    return list(clips.values())
 
 
 def ffmpeg_command(target: Path, color: str, seconds: float, with_tone: bool) -> list[str]:
