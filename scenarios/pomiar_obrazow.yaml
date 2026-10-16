@@ -1,0 +1,23 @@
+# Pomiar dnia 1: 10 typowych scen z pomysłami dzieci w świecie „Klubu Ciekawskich”.
+# python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml --batch scenarios/pomiar_obrazow.yaml --out pomiar/gpt-image-2
+# Sceny 01–03 pokazują Lilę (dziewczynkę): sprawdzają, czy filtr Azure nie blokuje ilustrowanego dziecka.
+- name: "01_lila_mostek"
+  prompt: "Lila, a 7-year-old explorer girl in yellow rain boots and dungarees with a big magnifying glass, crossing a rainbow bridge over a stream"
+- name: "02_lila_fiku_las"
+  prompt: "Lila and Fiku, a red squirrel with a question-mark shaped tail and a green scarf, listening to an owl in a friendly forest"
+- name: "03_lila_lupa"
+  prompt: "Lila looking through her big magnifying glass at a tiny ladybug on a flower"
+- name: "04_ul_wstazki"
+  prompt: "a beehive on a flower meadow decorated for a party with rainbow ribbons"
+- name: "05_ul_balony"
+  prompt: "a beehive on a flower meadow decorated with colorful balloons and paper lanterns"
+- name: "06_smok_rozowy"
+  prompt: "a friendly pink dragon with tiny wings sitting next to a beehive and smiling"
+- name: "07_bzyczka_korona"
+  prompt: "Bzyczka, a small cheerful bee, wearing a golden crown made of flower petals"
+- name: "08_tort_miodowy"
+  prompt: "a huge honey cake with candles on a picnic blanket in a sunny meadow"
+- name: "09_wiaterek"
+  prompt: "Fiufiu, a playful little wind cloud with a face, gently blowing dandelion seeds"
+- name: "10_jaskinia_krysztaly"
+  prompt: "a cozy cave lit by a lantern, full of glowing colorful crystals"
