@@ -14,16 +14,24 @@ i własne demo, więc dwie osoby mogą commitować równolegle na `main` bez wch
 | [`bajka/stt.py`](../bajka/stt.py) — mowa dziecka → tekst | `Listener` | A | `python -m bajka.stt --repeat 3` | `tests/test_stt.py` |
 | [`bajka/intent.py`](../bajka/intent.py) — tekst → wybór + kwestia bohatera | `IntentResolver` | A | `python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"` | `tests/test_intent.py` |
 | [`bajka/console.py`](../bajka/console.py) — zastępstwo mikrofonu i głosu do prób | `Listener`, `Voice` | A | `python -m bajka scenarios/las_czy_jaskinia.yaml --text --windowed` | `tests/test_console.py` |
+| [`bajka/foundry.py`](../bajka/foundry.py) — modele Foundry Local na NPU/GPU/CPU | — | A | `python -m bajka.foundry --device NPU` | `tests/test_foundry.py` |
+| [`bajka/local_stt.py`](../bajka/local_stt.py) — mowa dziecka → tekst lokalnie (Whisper) | `Listener` | A | `python -m bajka.local_stt --repeat 3` | `tests/test_local_stt.py` |
+| [`bajka/local_intent.py`](../bajka/local_intent.py) — tekst → wybór lokalnie (Phi) | `IntentResolver` | A | `python -m bajka.local_intent scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik` | `tests/test_local_intent.py` |
+| [`bajka/keywords.py`](../bajka/keywords.py) — tekst → wybór po słowach kluczowych, zapas dla LLM | `IntentResolver` | A | `python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik` | `tests/test_keywords.py` |
 | [`bajka/tts.py`](../bajka/tts.py) — kwestia bohatera → głos | `Voice` | B | `python -m bajka.tts "Idziemy do lasu?"` | `tests/test_tts.py` |
+| [`bajka/local_tts.py`](../bajka/local_tts.py) — kwestia bohatera → głos Windows, offline | `Voice` | B | `python -m bajka.local_tts "Cześć!"` | `tests/test_local_tts.py` |
 | [`bajka/player.py`](../bajka/player.py) — VLC w pełnoekranowym oknie | `Player` | B | `python -m bajka.player KLIP PĘTLA` | ręcznie (wymaga VLC) |
 | [`bajka/placeholders.py`](../bajka/placeholders.py) — klipy-zaślepki | — | B | `python -m bajka.placeholders scenarios/las_czy_jaskinia.yaml` | `tests/test_placeholders.py` |
 
 Wszystkie moduły działają na poziomie szkieletu (testy na atrapach). Najbliższe kroki:
 
-- **A:** sprawdzić `python -m bajka.stt` z dziećmi i w hałasie, dostroić `BAJKA_INITIAL_SILENCE_MS` /
-  `BAJKA_END_SILENCE_MS`; stroić prompt w `intent.py` na prawdziwych wypowiedziach przez `python -m bajka.intent`.
+- **A:** `pip install -e ".[dev,local]"`, pobrać modele (`python -m bajka.foundry --device NPU`, potem
+  `python -m bajka.local_stt` i `python -m bajka.local_intent`); sprawdzić Whisper z dziećmi i w hałasie,
+  dostroić `BAJKA_VAD_THRESHOLD` / `BAJKA_END_SILENCE_MS`; stroić prompt w `intent.py` i `keywords`
+  w scenariuszu na prawdziwych wypowiedziach.
 - **B:** zainstalować VLC 64-bit (`winget install --id VideoLAN.VLC -e`) i sprawdzić przejście klip → pętla;
-  dobrać głos i tempo bohatera (`BAJKA_VOICE`, `BAJKA_VOICE_RATE`) przez `python -m bajka.tts`.
+  dodać polski głos Windows i dobrać wysokość i tempo Lili (`BAJKA_WINDOWS_VOICE_PITCH`, `BAJKA_WINDOWS_VOICE_RATE`)
+  przez `python -m bajka.local_tts`; przygotować klipy z [listy w scenariuszu](../scenarios/klub_ciekawskich.md#lista-klipów-do-produkcji).
 
 ## Zasady modułu
 
@@ -48,7 +56,12 @@ Zmieniajcie je małymi, osobnymi commitami, od razu wypychajcie i dajcie znać d
 - `bajka/ports.py` — kontrakty; zmiana sygnatury wymaga zmian po obu stronach,
 - `bajka/scenario.py` — model scenariusza; używają go `intent.py` (A) i `placeholders.py` (B),
 - `bajka/engine.py` i `bajka/app.py` — składają moduły; rozwijacie je razem,
-- `bajka/config.py`, `tests/conftest.py`, `pyproject.toml` (wszystkie zależności już są), `.env.example`, `README.md`.
+- `bajka/config.py`, `bajka/audio.py`, `tests/conftest.py`, `pyproject.toml`, `.env.example`, `README.md`,
+- scenariusze w `scenarios/` (np. [`klub_ciekawskich.yaml`](../scenarios/klub_ciekawskich.yaml) — test
+  `tests/test_klub_ciekawskich.py` pilnuje grafu i rozpoznawania typowych odpowiedzi).
+
+Moduły lokalnego AI (`local_*`, `foundry.py`, `keywords.py`) korzystają z promptu z `intent.py` (A) i odtwarzania
+z `audio.py` — szczegóły w [LOKALNE_AI.md](LOKALNE_AI.md).
 
 ## Git
 

@@ -6,13 +6,23 @@ w wybraną stronę. Bez myszki i klawiatury.
 
 Pracujemy w dwie osoby na niezależnych modułach — kto co robi i zasady: [docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md).
 
+Domyślnie całe AI działa **lokalnie na Windows** (Foundry Local z Whisper i Phi na NPU/GPU/CPU, głos
+z syntezatora Windows) — bez chmury i bez kluczy: [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md).
+Usługi Azure zostają jako alternatywa (`--backend azure`).
+
+Gotowa bajka edukacyjna: **„Klub Ciekawskich: Bzyczka szuka domu”** — [scenariusz z dialogami](scenarios/klub_ciekawskich.md)
+i [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml).
+
 ## Jak to działa
 
-1. VLC odtwarza klip, w którym bohater zadaje pytanie (np. „las czy jaskinia?”).
-2. Startuje cicha pętla oczekiwania, a Azure AI Speech słucha mikrofonu i sam wykrywa koniec wypowiedzi.
-3. Azure OpenAI (GPT-4o-mini) rozpoznaje intencję dziecka i pisze reakcję bohatera.
-4. Azure TTS wypowiada reakcję, potem startuje klip wybranej ścieżki.
+1. VLC odtwarza klip, w którym bohater zadaje pytanie (np. „mostek czy las?”).
+2. Startuje cicha pętla oczekiwania, a mikrofon słucha; koniec wypowiedzi wykrywa detektor ciszy.
+3. Whisper (Foundry Local) zamienia mowę na tekst; Phi (Foundry Local) rozpoznaje intencję dziecka
+   i pisze reakcję bohatera. Gdy model zawiedzie, wybór rozpoznają słowa kluczowe ze scenariusza.
+4. Syntezator Windows wypowiada reakcję, potem startuje klip wybranej ścieżki.
 5. Cisza albo niejasna odpowiedź: bohater dopytuje (domyślnie 2 razy), potem sam wybiera ścieżkę domyślną.
+
+W trybie `--backend azure` kroki 2–4 wykonują Azure AI Speech i Azure OpenAI.
 
 Mikrofon jest wyłączony, gdy bohater mówi, więc nie słyszy sam siebie. Awaria STT, LLM albo TTS
 nie zatrzymuje bajki: zamiast tego wybierana jest ścieżka domyślna albo kwestia ze scenariusza.
@@ -23,28 +33,35 @@ nie zatrzymuje bajki: zamiast tego wybierana jest ścieżka domyślna albo kwest
 - Python 3.11+ w wersji 64-bit
 - VLC 3.x 64-bit: `winget install --id VideoLAN.VLC -e`
 - ffmpeg, tylko do klipów-zaślepek: `winget install --id Gyan.FFmpeg -e`
-- Azure: zasób AI Speech oraz zasób Azure OpenAI z wdrożeniem modelu `gpt-4o-mini`
+- Tryb lokalny (domyślny): Windows 11, polski głos w Ustawienia → Czas i język → Mowa; najlepiej Copilot+ PC z NPU
+- Tryb `azure`: zasób AI Speech oraz zasób Azure OpenAI z wdrożeniem modelu `gpt-4o-mini`
 
 ## Instalacja
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
-Copy-Item .env.example .env   # uzupełnij klucze Azure
+pip install -e ".[dev,local]"
+Copy-Item .env.example .env   # tryb lokalny działa bez zmian; klucze tylko dla --backend azure
 ```
 
 ## Uruchomienie
 
 ```powershell
 # klipy-zaślepki (kolorowe plansze), dopóki nie ma animacji
-python -m bajka.placeholders scenarios/las_czy_jaskinia.yaml
+python -m bajka.placeholders scenarios/klub_ciekawskich.yaml
 
-# próba bez mikrofonu: odpowiedzi wpisujesz w konsoli, kwestie bohatera są wypisywane
-python -m bajka scenarios/las_czy_jaskinia.yaml --text --windowed
+# próba bez mikrofonu i bez żadnego AI: odpowiedzi z konsoli, wybór po słowach kluczowych
+python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed
 
-# pokaz: pełny ekran, mikrofon i głos bohatera
-python -m bajka scenarios/las_czy_jaskinia.yaml
+# próba bez mikrofonu z lokalnym modelem językowym (Phi w Foundry Local)
+python -m bajka scenarios/klub_ciekawskich.yaml --text --windowed
+
+# pokaz: pełny ekran, mikrofon i głos bohaterki, wszystko lokalnie
+python -m bajka scenarios/klub_ciekawskich.yaml
+
+# to samo na usługach Azure
+python -m bajka scenarios/klub_ciekawskich.yaml --backend azure
 ```
 
 `Esc` zamyka aplikację. W trybie `--text` kliknij okno konsoli, żeby wpisać odpowiedź.
@@ -54,6 +71,11 @@ python -m bajka scenarios/las_czy_jaskinia.yaml
 Każdy moduł ma własne demo, które działa bez reszty aplikacji:
 
 ```powershell
+python -m bajka.foundry --device NPU                 # katalog modeli Foundry Local i ich warianty
+python -m bajka.local_stt --repeat 3                 # mikrofon → tekst (Whisper lokalnie)
+python -m bajka.local_tts "Cześć! Jestem Lila Lupka!"  # tekst → głos bohaterki (Windows)
+python -m bajka.local_intent scenarios/klub_ciekawskich.yaml "tam gdzie ciemno" --scene kuferek   # wypowiedź → wybór (Phi)
+python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik   # wypowiedź → wybór (słowa kluczowe)
 python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure STT)
 python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos bohatera (Azure TTS)
 python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
@@ -65,8 +87,9 @@ i prompt. Bez kluczy w `.env` demo kończy się komunikatem, których zmiennych 
 
 ## Scenariusz
 
-Bajka to graf scen w YAML ([przykład](scenarios/las_czy_jaskinia.yaml)). Ścieżki klipów są
-względne wobec pliku scenariusza. Scena bez `choices` kończy bajkę.
+Bajka to graf scen w YAML ([pełna bajka](scenarios/klub_ciekawskich.yaml),
+[najprostszy przykład](scenarios/las_czy_jaskinia.yaml)). Ścieżki klipów są względne wobec pliku
+scenariusza. Scena bez `choices` kończy bajkę.
 
 | Pole | Opis |
 |---|---|
@@ -81,6 +104,7 @@ względne wobec pliku scenariusza. Scena bez `choices` kończy bajkę.
 | `choices.<id>.description` | Znaczenie wyboru dla LLM, np. „pójść do mrocznego lasu” |
 | `choices.<id>.next` | Scena, która nastąpi po tym wyborze |
 | `choices.<id>.reply` | Statyczna reakcja bohatera, gdy LLM nie odpowie |
+| `choices.<id>.keywords` | Opcjonalnie: słowa, po których wybór rozpozna się bez LLM (identyfikator wyboru liczy się zawsze) |
 
 ## Wskazówki do klipów
 
@@ -100,6 +124,12 @@ względne wobec pliku scenariusza. Scena bez `choices` kończy bajkę.
 | `bajka/stt.py` | Azure AI Speech: rozpoznawanie mowy z mikrofonu (`SttSettings`, `AzureListener`) |
 | `bajka/tts.py` | Azure AI Speech: głos bohatera, odtwarzanie do końca (`TtsSettings`, `AzureVoice`) |
 | `bajka/intent.py` | Azure OpenAI: intencja + kwestia bohatera (`LlmSettings`, `AzureIntentResolver`) |
+| `bajka/foundry.py` | Foundry Local: modele lokalne na NPU/GPU/CPU, serwer zgodny z OpenAI |
+| `bajka/local_stt.py` | Whisper lokalnie + wykrywanie wypowiedzi (`LocalSttSettings`, `LocalListener`) |
+| `bajka/local_intent.py` | Phi lokalnie: intencja + kwestia bohatera (`LocalLlmSettings`, `LocalIntentResolver`) |
+| `bajka/local_tts.py` | Głos z syntezatora Windows (`WindowsTtsSettings`, `WindowsVoice`) |
+| `bajka/keywords.py` | Wybór po słowach kluczowych, offline (`KeywordIntentResolver`, `FallbackResolver`) |
+| `bajka/audio.py` | Wspólne odtwarzanie WAV do końca wypowiedzi |
 | `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter |
 | `bajka/console.py` | Tryb `--text` do prób bez mikrofonu |
 | `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg) |
@@ -122,3 +152,7 @@ python -m pytest
 - `rozpoznawanie anulowane: ... 401` albo `synteza anulowana: ... 401`: zły `AZURE_SPEECH_KEY` lub `AZURE_SPEECH_REGION`.
 - Dziecko musi długo czekać albo jest ucinane: dostrój `BAJKA_INITIAL_SILENCE_MS` i `BAJKA_END_SILENCE_MS`.
 - Krzaki zamiast polskich znaków w konsoli: `$env:PYTHONUTF8 = "1"`.
+- `Brak pakietu foundry-local-sdk` albo `Brak pakietów WinRT`: `pip install -e ".[local]"`.
+- `Brak głosu Windows dla pl-PL`: dodaj polski głos w Ustawienia → Czas i język → Mowa.
+- `Foundry Local nie zna modelu …`: sprawdź aliasy przez `python -m bajka.foundry` i popraw `FOUNDRY_CHAT_MODEL` / `FOUNDRY_STT_MODEL`.
+- Dziecko jest ucinane albo hałas uruchamia nasłuch (tryb lokalny): dostrój `BAJKA_VAD_THRESHOLD` i `BAJKA_END_SILENCE_MS`.
