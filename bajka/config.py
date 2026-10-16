@@ -36,3 +36,13 @@ def get_int(env: Mapping[str, str], name: str, default: int) -> int:
         return int(value)
     except ValueError as exc:
         raise ConfigError(f"{name} musi być liczbą całkowitą, jest: {value!r}") from exc
+
+
+def get_float(env: Mapping[str, str], name: str, default: float) -> float:
+    value = env.get(name)
+    if not value:
+        return default
+    try:
+        return float(value.replace(",", "."))
+    except ValueError as exc:
+        raise ConfigError(f"{name} musi być liczbą, jest: {value!r}") from exc

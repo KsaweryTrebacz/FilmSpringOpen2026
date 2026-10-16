@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from bajka.config import ConfigError, get_int, load_env, require
+from bajka.config import ConfigError, get_float, get_int, load_env, require
 
 
 def test_require_passes_when_all_values_are_present():
@@ -39,3 +39,14 @@ def test_load_env_reads_dotenv_from_current_directory(tmp_path, monkeypatch):
         assert load_env()["BAJKA_TEST_VAR"] == "z-pliku"
     finally:
         os.environ.pop("BAJKA_TEST_VAR", None)
+
+
+def test_get_float_accepts_dot_and_comma():
+    assert get_float({}, "TEMPO", 0.9) == 0.9
+    assert get_float({"TEMPO": "1.2"}, "TEMPO", 0.9) == 1.2
+    assert get_float({"TEMPO": "0,8"}, "TEMPO", 0.9) == 0.8
+
+
+def test_get_float_rejects_non_numeric_value():
+    with pytest.raises(ConfigError, match="TEMPO"):
+        get_float({"TEMPO": "szybko"}, "TEMPO", 0.9)

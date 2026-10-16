@@ -18,6 +18,7 @@ class Choice:
     description: str  # znaczenie wyboru dla LLM, np. "pójść do mrocznego lasu"
     next: str  # identyfikator kolejnej sceny
     reply: str  # statyczna kwestia bohatera, gdy LLM nie odpowie
+    keywords: tuple[str, ...] = ()  # słowa, po których wybór rozpozna się bez LLM (bajka/keywords.py)
 
 
 @dataclass(frozen=True)
@@ -94,6 +95,7 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
             description=_require_str(c, "description", f"{where}, wybór '{cid}'"),
             next=_require_str(c, "next", f"{where}, wybór '{cid}'"),
             reply=_require_str(c, "reply", f"{where}, wybór '{cid}'"),
+            keywords=_optional_words(c, "keywords", f"{where}, wybór '{cid}'"),
         )
         for cid, c in raw_choices.items()
     }
@@ -117,6 +119,16 @@ def _require_str(data: object, key: str, where: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ScenarioError(f"{where}: brak pola '{key}' (niepusty tekst)")
     return value.strip()
+
+
+def _optional_words(data: object, key: str, where: str) -> tuple[str, ...]:
+    value = data.get(key) if isinstance(data, dict) else None
+    if value is None:
+        return ()
+    # YAML zamienia "3" na liczbę, więc liczby też przyjmujemy jako słowa.
+    if not isinstance(value, list) or not all(isinstance(v, (str, int)) and str(v).strip() for v in value):
+        raise ScenarioError(f"{where}: '{key}' musi być listą niepustych słów")
+    return tuple(str(v).strip() for v in value)
 
 
 def _validate_graph(scenario: Scenario) -> None:

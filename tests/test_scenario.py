@@ -71,3 +71,17 @@ def test_bundled_example_scenario_is_valid():
     assert scenario.start == "intro"
     assert set(scenario.scene("intro").choices) == {"las", "jaskinia"}
     assert scenario.scene("intro").clip == ROOT / "scenarios" / "clips" / "intro.mp4"
+
+
+def test_keywords_are_optional_and_numbers_become_words(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["keywords"] = ["drzewa", 3]
+    scenario = parse_scenario(scenario_dict, base_dir=Path("."))
+
+    assert scenario.scene("intro").choices["las"].keywords == ("drzewa", "3")
+    assert scenario.scene("intro").choices["jaskinia"].keywords == ()
+
+
+def test_keywords_must_be_a_list_of_words(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["keywords"] = "drzewa"
+    with pytest.raises(ScenarioError, match="keywords"):
+        parse_scenario(scenario_dict, base_dir=Path("."))
