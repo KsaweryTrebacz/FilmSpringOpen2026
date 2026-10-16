@@ -57,7 +57,8 @@ i dlaczego. Prawdziwe zegarki to wizja z pitchu, nie kod demo.
   i `scenarios/ilustracje/kandydaci/` w `.gitignore`.
 - **Dokumenty:**
   - README, `docs/ONBOARDING.md`, `docs/PODZIAL_PRACY.md`, `docs/ZGODNOSC_Z_REGULAMINEM.md`,
-    `docs/DO_ZROBIENIA.md` przestają mówić o rysowaniu na żywo i o chmurze w scenach na żywo.
+    `docs/DO_ZROBIENIA.md` i `docs/LOKALNE_AI.md` przestają mówić o rysowaniu na żywo i o chmurze w scenach na żywo.
+  - Scenariusz filmowy `scenarios/klub_ciekawskich.md`: planowana scena SC. 7b (`ozdoby`, obraz na żywo) wycofana.
   - Zrobione razem z tym specem: spec darmowego rysowania (Cloudflare) jest usunięty, a projekt flow filmu
     i plan „obraz na żywo” mają na górze notkę, że rysowanie na żywo usunięto.
 
@@ -94,8 +95,9 @@ i dlaczego. Prawdziwe zegarki to wizja z pitchu, nie kod demo.
   - pole filmu `mood: spokojny | zywy` — czego widownia oczekuje od filmu (opcjonalne; bez niego film się
     nie dopasowuje),
   - pole sceny `variants:` z kluczami `spokojna` i/lub `zywa` i ścieżkami klipów (względnymi jak `clip`).
-    Inne klucze to `ScenarioError`. Klipy wersji wchodzą do `missing_media` i do klipów zastępczych
-    `bajka.placeholders`.
+    Inne klucze to `ScenarioError`, tak samo `variants` w scenariuszu bez `mood`. Klipy wersji wchodzą do
+    `missing_media` i do klipów zastępczych `bajka.placeholders`; na Windows zaślepki mają na planszy nazwę pliku
+    (czcionka Arial), żeby na próbie było widać, która wersja gra.
 - **Reguła wyboru wersji** (funkcja czysta `pick_variant(mood, state)`):
 
   | Film (`mood`) | Stan sali | Wersja |
@@ -118,6 +120,7 @@ i dlaczego. Prawdziwe zegarki to wizja z pitchu, nie kod demo.
   | Zdarzenie | Kiedy | Dane |
   |---|---|---|
   | `scena` | start sceny | id sceny, odtwarzany klip, wersja |
+  | `odniesienie` | po klipie pierwszej sceny | tętno punktu odniesienia |
   | `wersja` | przed każdą sceną z `variants`, także gdy gra zwykły klip | scena, tętno, punkt odniesienia, stan sali, wybrana wersja albo `zwykla` |
   | `glosy` | koniec rundy na telefonach albo krzykomierzu | scena, źródło (`telefony` / `krzykomierz`), wyniki opcji |
   | `decyzja` | wybór ścieżki | scena, wybrana opcja, sposób (`wiekszosc` / `okrzyk` / `odpowiedz` / `domyslna`) |
@@ -132,6 +135,8 @@ i dlaczego. Prawdziwe zegarki to wizja z pitchu, nie kod demo.
   - `GET /state` — bieżąca scena, przebyta ścieżka z podpisami decyzji, ostatnie głosy, historia tętna
     z ostatnich 120 s, punkt odniesienia, progi, stan sali, dziennik ostatnich 20 decyzji,
   - `POST /pulse` — sterowanie symulatorem: `{"target": bpm}`, `{"preset": nazwa}` albo `{"script": "demo"}`.
+    Serwer najpierw wczytuje treść zapytania, a dopiero potem odpowiada (inaczej Windows zrywa połączenie).
+  - Adres w konsoli to `http://127.0.0.1:PORT/`, nie `localhost` (na Windows `localhost` najpierw próbuje IPv6).
   - Panel sam co sekundę czyta tętno, więc wykres rusza się także w trakcie klipów.
 - **Strona** (po polsku, ciemna, bez zewnętrznych bibliotek i bez internetu; odświeża `/state` co 0,5 s):
   - **drzewo scen** (SVG, warstwy według odległości od startu): sceny odwiedzone, bieżąca i przyszłe,
