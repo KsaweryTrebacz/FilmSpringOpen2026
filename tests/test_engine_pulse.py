@@ -104,13 +104,33 @@ def test_pulse_error_plays_the_regular_clip(scenario_dict):
     assert calls[-1] == ("play", "las.mp4")
 
 
-def test_failed_baseline_means_no_adaptation(scenario_dict):
+def test_scene_right_after_a_failed_baseline_read_plays_the_regular_clip(scenario_dict):
     pulse = ScriptedPulse(RuntimeError("zegarek milczy"))
 
     calls = run(adaptive_scenario(scenario_dict), pulse)
 
     assert calls[-1] == ("play", "las.mp4")
     assert pulse.reads == 1
+
+
+def test_failed_first_read_is_retried_after_the_next_scene(scenario_dict):
+    scenario_dict["mood"] = "spokojny"
+    scenario_dict["scenes"]["las"].update(
+        {
+            "idle": "las_idle.mp4",
+            "question": "Idziemy dalej?",
+            "reprompt": "Dalej?",
+            "default": "las",
+            "choices": {"las": {"description": "iść dalej", "next": "jaskinia", "reply": "Dalej!"}},
+        }
+    )
+    scenario_dict["scenes"]["jaskinia"]["variants"] = {"spokojna": "jaskinia_spokojna.mp4"}
+    pulse = ScriptedPulse(RuntimeError("zegarek milczy"), 90.0, 110.0)
+
+    calls = run(parse_scenario(scenario_dict, base_dir=Path("film")), pulse)
+
+    assert calls[-1] == ("play", "jaskinia_spokojna.mp4")  # odniesienie 90 z drugiego odczytu, po scenie „las”
+    assert pulse.reads == 3
 
 
 def test_without_pulse_the_film_does_not_adapt(scenario_dict):

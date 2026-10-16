@@ -86,8 +86,9 @@ i dlaczego. Prawdziwe zegarki to wizja z pitchu, nie kod demo.
   | `znudzona` | tętno ≤ punkt odniesienia × `BAJKA_PULSE_BORED` |
   | `w normie` | pomiędzy |
 
-- **Punkt odniesienia:** silnik odczytuje tętno raz, zaraz po klipie pierwszej sceny (sala dopiero usiadła),
-  i trzyma tę wartość do końca seansu. Wcześniej film się nie dopasowuje.
+- **Punkt odniesienia:** silnik odczytuje tętno zaraz po klipie pierwszej sceny (sala dopiero usiadła)
+  i trzyma tę wartość do końca seansu. Gdy ten odczyt się nie uda, próbuje ponownie po kolejnych scenach:
+  punktem odniesienia jest pierwszy udany odczyt (decyzja zespołu). Wcześniej film się nie dopasowuje.
 
 ## 5. Wersje scen
 
