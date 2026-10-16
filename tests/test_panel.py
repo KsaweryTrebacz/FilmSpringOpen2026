@@ -308,3 +308,34 @@ def test_second_panel_cannot_take_a_port_that_is_already_listening(server, scena
 
     with pytest.raises(OSError):
         second.start()
+
+
+def post_as(url, content_type, body=b'{"target": 150}'):
+    request = urllib.request.Request(url, data=body, headers={"Content-Type": content_type}, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return response.status, json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        with error:
+            return error.code, json.loads(error.read())
+
+
+@pytest.mark.parametrize("content_type", ["text/plain", "application/x-www-form-urlencoded", "text/plain; charset=utf-8"])
+def test_pulse_commands_need_json_content_type_so_a_cross_site_form_cannot_drive_the_simulator(
+    server, content_type
+):
+    # Formularz z innej strony może wysłać tylko text/plain albo urlencoded, nigdy application/json.
+    _, url, simulator = server
+
+    status, answer = post_as(url + "pulse", content_type)
+
+    assert status == 415
+    assert "application/json" in answer["error"]
+    assert simulator.target == 90.0
+
+
+def test_pulse_commands_accept_json_with_charset(server):
+    _, url, simulator = server
+
+    assert post_as(url + "pulse", "application/json; charset=utf-8") == (200, {"ok": True, "target": 150.0})
+    assert simulator.target == 150.0

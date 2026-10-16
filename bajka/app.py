@@ -162,7 +162,6 @@ def build_mobile(env: Mapping[str, str], backend: str, resolver: IntentResolver)
     return MobileServer(audience, settings)
 
 
-
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s")
     args = parse_args(argv)

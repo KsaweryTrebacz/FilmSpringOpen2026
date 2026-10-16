@@ -221,6 +221,11 @@ class _Handler(BaseHTTPRequestHandler):
         if urlparse(self.path).path != "/pulse":
             self._json(404, {"error": "nie ma takiej strony"})
             return
+        if self.headers.get_content_type() != "application/json":
+            # Formularz z obcej strony potrafi wysłać tylko text/plain albo urlencoded: nie dajemy mu sterować tętnem.
+            self.close_connection = True
+            self._json(415, {"error": "oczekiwano Content-Type: application/json"})
+            return
         pulse = self.server.pulse
         if pulse is None:
             self._json(409, {"error": "symulator tętna jest wyłączony"})
