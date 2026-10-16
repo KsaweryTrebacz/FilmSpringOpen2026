@@ -146,11 +146,11 @@ def prepare_session_dir(base: Path | None = None) -> Path:
     """Nowy katalog na ilustracje seansu. Ilustracje poprzednich seansów usuwamy (prywatność dzieci)."""
     base = base or Path(tempfile.gettempdir()) / "bajka"
     base.mkdir(parents=True, exist_ok=True)
-    for previous in base.glob("seans_*"):
-        try:
-            shutil.rmtree(previous)
-        except OSError as exc:  # np. plik zablokowany przez inny program: nie przerywamy seansu, ale zostawiamy ślad
-            log.warning("Nie udało się usunąć ilustracji poprzedniego seansu %s: %s", previous, exc)
+    for previous in list(base.glob("seans_*")):
+        # Usuwamy wszystko, co się da, nawet gdy jeden plik jest zablokowany (np. otwarty w VLC), i zostawiamy ślad.
+        shutil.rmtree(previous, ignore_errors=True)
+        if previous.exists():
+            log.warning("Nie udało się usunąć wszystkich ilustracji poprzedniego seansu %s", previous)
     return Path(tempfile.mkdtemp(prefix="seans_", dir=base))
 
 

@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import pytest
@@ -99,14 +100,27 @@ def test_new_session_dir_leaves_unrelated_files_alone(tmp_path):
 def test_failed_cleanup_is_logged_and_does_not_stop_the_show(tmp_path, monkeypatch, caplog):
     old = prepare_session_dir(tmp_path / "bajka")
 
-    def locked(path):
-        raise PermissionError("plik używany przez inny proces")
+    def locked(path, ignore_errors=False):
+        return None  # nic nie usunięto, jak przy zablokowanym pliku
 
     monkeypatch.setattr("bajka.app.shutil.rmtree", locked)
 
     new = prepare_session_dir(tmp_path / "bajka")
 
     assert new.is_dir() and new != old
+    assert "Nie udało się usunąć" in caplog.text
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="blokada otwartego pliku działa tylko na Windows")
+def test_locked_picture_does_not_keep_the_other_pictures(tmp_path, caplog):
+    old = prepare_session_dir(tmp_path / "bajka")
+    for name in ("a.png", "b.png", "c.png", "d.mp4"):
+        (old / name).write_bytes(b"obraz")
+
+    with open(old / "a.png", "rb"):
+        prepare_session_dir(tmp_path / "bajka")
+        assert sorted(path.name for path in old.iterdir()) == ["a.png"]
+
     assert "Nie udało się usunąć" in caplog.text
 
 
