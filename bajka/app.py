@@ -145,8 +145,12 @@ class LiveImages:
 def prepare_session_dir(base: Path | None = None) -> Path:
     """Nowy katalog na ilustracje seansu. Ilustracje poprzednich seansów usuwamy (prywatność dzieci)."""
     base = base or Path(tempfile.gettempdir()) / "bajka"
-    shutil.rmtree(base, ignore_errors=True)
     base.mkdir(parents=True, exist_ok=True)
+    for previous in base.glob("seans_*"):
+        try:
+            shutil.rmtree(previous)
+        except OSError as exc:  # np. plik zablokowany przez inny program: nie przerywamy seansu, ale zostawiamy ślad
+            log.warning("Nie udało się usunąć ilustracji poprzedniego seansu %s: %s", previous, exc)
     return Path(tempfile.mkdtemp(prefix="seans_", dir=base))
 
 
@@ -193,11 +197,11 @@ def main(argv: list[str] | None = None) -> int:
         backend = choose_backend(args, env)
         max_reprompts = get_int(env, "BAJKA_MAX_REPROMPTS", 2)
         log.info("Tryb: %s%s", backend, ", bez modelu językowego" if args.no_llm else "")
+        live = build_live_images(env, scenario)  # szybkie sprawdzenie kluczy i ffmpeg przed ładowaniem modeli
         meter = build_meter(env, args.text)
         listener, voice = build_speech(env, args.text, backend)
         resolver = build_resolver(env, backend, not args.no_llm, scenario.hero)
         mobile = build_mobile(env, backend, resolver) if mobile_enabled(args, env) else None
-        live = build_live_images(env, scenario)
     except (ConfigError, FoundryError, VoiceNotFoundError, OSError) as exc:
         log.error("%s", exc)
         return 2

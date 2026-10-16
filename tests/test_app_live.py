@@ -84,6 +84,32 @@ def test_new_session_dir_removes_pictures_of_previous_sessions(tmp_path):
     assert not old.exists()
 
 
+def test_new_session_dir_leaves_unrelated_files_alone(tmp_path):
+    base = tmp_path / "bajka"
+    base.mkdir()
+    (base / "notatki.txt").write_text("nie ruszać", encoding="utf-8")
+    (base / "inne").mkdir()
+
+    prepare_session_dir(base)
+
+    assert (base / "notatki.txt").is_file()
+    assert (base / "inne").is_dir()
+
+
+def test_failed_cleanup_is_logged_and_does_not_stop_the_show(tmp_path, monkeypatch, caplog):
+    old = prepare_session_dir(tmp_path / "bajka")
+
+    def locked(path):
+        raise PermissionError("plik używany przez inny proces")
+
+    monkeypatch.setattr("bajka.app.shutil.rmtree", locked)
+
+    new = prepare_session_dir(tmp_path / "bajka")
+
+    assert new.is_dir() and new != old
+    assert "Nie udało się usunąć" in caplog.text
+
+
 def test_main_with_open_scene_and_no_image_keys_exits_with_code_2(tmp_path, monkeypatch, live_dict, caplog):
     monkeypatch.chdir(tmp_path)  # w katalogu testu nie ma pliku .env
     for name in FULL_ENV:
@@ -92,6 +118,25 @@ def test_main_with_open_scene_and_no_image_keys_exits_with_code_2(tmp_path, monk
         path.touch()
     scenario_file = tmp_path / "bajka.yaml"
     scenario_file.write_text(yaml.safe_dump(live_dict, allow_unicode=True), encoding="utf-8")
+
+    assert main([str(scenario_file), "--text", "--no-llm"]) == 2
+    assert "AZURE_IMAGE_ENDPOINT" in caplog.text
+
+
+def test_missing_image_keys_are_reported_before_loading_speech_and_models(tmp_path, monkeypatch, live_dict, caplog):
+    monkeypatch.chdir(tmp_path)
+    for name in FULL_ENV:
+        monkeypatch.delenv(name, raising=False)
+    for path, _, _ in planned_clips(parse_scenario(live_dict, base_dir=tmp_path)):
+        path.touch()
+    scenario_file = tmp_path / "bajka.yaml"
+    scenario_file.write_text(yaml.safe_dump(live_dict, allow_unicode=True), encoding="utf-8")
+
+    def must_not_load(*args, **kwargs):
+        raise AssertionError("mowa i modele ładowane przed sprawdzeniem kluczy obrazów")
+
+    monkeypatch.setattr("bajka.app.build_speech", must_not_load)
+    monkeypatch.setattr("bajka.app.build_resolver", must_not_load)
 
     assert main([str(scenario_file), "--text", "--no-llm"]) == 2
     assert "AZURE_IMAGE_ENDPOINT" in caplog.text
