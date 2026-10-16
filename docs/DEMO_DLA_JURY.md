@@ -64,8 +64,8 @@ Wersję sceny film wybiera w chwili, gdy scena się zaczyna. Sala musi więc by�
    ze spokojną wersją. Dla `wiaterek` niezawodny moment to pytanie w `kuferek` albo scena `most` / `las`, czyli
    zanim panel pokaże `wiaterek`. Nie czekajcie do końca tych scen. `las` zagra wersję spokojną tylko wtedy,
    gdy sala jest pobudzona już w chwili jego startu.
-3. **Powrót do normy.** „Spokojna sala” wraca do tętna wyjściowego. Po scenie `wiaterek` pokaże to wykres,
-   a `swieto` zagra wtedy zwykłą wersję.
+3. **Powrót do normy.** „Spokojna sala” wraca do tętna wyjściowego. Kliknijcie ją przed sceną `swieto`
+   (z zapasem co najmniej 10 sekund), jeśli chcecie pokazać, że wtedy gra zwykła wersja.
 4. **„▶ Przebieg demo”.** Tętno stoi w miejscu przez 20 sekund, potem rośnie i wraca do normy. Sala jest
    pobudzona mniej więcej od 30. do 80. sekundy po kliknięciu. Scena ze spokojną wersją musi zacząć się w tym oknie,
    a to trudno trafić. Ręczny przycisk „Sala się ekscytuje” łatwiej wcisnąć na scenie w dobrym momencie.
@@ -88,7 +88,7 @@ Wersję sceny film wybiera w chwili, gdy scena się zaczyna. Sala musi więc by�
 
 | Pytanie | Odpowiedź |
 |---|---|
-| Czy zbieracie dane dzieci? | Nie. Nic nie nagrywamy i nie zapisujemy: nagrania z telefonów są rozpoznawane w pamięci i od razu znikają. Na laptopie pokazowym rozpoznawanie mowy działa lokalnie (tryb `--backend azure` wysłałby dźwięk do Azure, więc na pokazie go nie używamy). Tętno w demo jest symulowane |
+| Czy zbieracie dane dzieci? | Nie zapisujemy niczego. Telefon nagrywa głos tylko w trakcie pytania; nagranie jest rozpoznawane w pamięci laptopa i od razu znika. Rozpoznawanie mowy działa lokalnie na laptopie (tryb `--backend azure` wysłałby nagranie do Azure, więc na pokazie go nie używamy). Tętno w demo jest symulowane |
 | Skąd naprawdę weźmiecie tętno? | Z zegarka sparowanego z telefonem: Health Connect (Android), HealthKit (iOS) albo standard Bluetooth „Heart Rate”. Do komputera trafia tylko średnia sali |
 | A RODO? | Tętno to dane o zdrowiu (art. 9). Tylko za wyraźną zgodą opiekunów, dobrowolnie, w trakcie seansu i bez zapisywania |
 | Ile to kosztuje kino? | Jeden laptop (na przykład Copilot+ PC) i Wi-Fi. Modele AI działają lokalnie, bez opłat za chmurę |

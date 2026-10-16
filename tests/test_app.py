@@ -200,6 +200,8 @@ def test_build_panel_connects_pulse_simulator_and_panel_state(scenario):
 # Zmienne środowiskowe, które z komputera dewelopera zmieniłyby wynik testów uruchamiających main()
 ENV_VARS_THAT_CHANGE_MAIN = (
     "BAJKA_PANEL",
+    "BAJKA_PANEL_HOST",
+    "BAJKA_PANEL_PORT",
     "BAJKA_MOBILE",
     "BAJKA_BACKEND",
     "BAJKA_PULSE_VIEWERS",
