@@ -106,15 +106,29 @@ Próba z telefonami bez filmu: `python -m bajka.mobile scenarios/klub_ciekawskic
 (Enter otwiera kolejną rundę, w konsoli widać odpowiedzi i głosy). Pod adresem `…/?tekst` aplikacja ma też pole
 do wpisania odpowiedzi — na próby bez mówienia.
 
-## Pomysły na przyszłość
+## Film, który czuje salę (tętno i panel dla jury)
 
-**Tętno widzów z zegarka** (tylko pomysł, niezaimplementowany). Aplikacja mobilna mogłaby odczytywać tętno
-z zegarka sparowanego z telefonem — przez Health Connect (Android), HealthKit (iOS) albo standardową usługę
-Bluetooth „Heart Rate” (w Chrome na Androidzie przez Web Bluetooth) — i wysyłać do komputera z filmem tylko
-uśrednione, anonimowe tempo całej sali. Film mógłby wtedy dopasowywać się do emocji widowni: przy szybkim tętnie
-wydłużyć wspólny oddech z Wiaterkiem Fiufiu albo zwolnić tempo, a przy spokojnym — dodać więcej ruchu i okrzyków.
-Dane o zdrowiu to szczególna kategoria danych osobowych (RODO, art. 9), więc wymagałoby to wyraźnej zgody
-opiekunów, udziału wyłącznie dobrowolnego, przetwarzania tylko w trakcie seansu i żadnego zapisywania.
+Film dopasowuje się do widowni nie tylko głosami. Scenariusz mówi, czego widzowie oczekują od filmu
+(`mood: spokojny` albo `mood: zywy`), a wybrane sceny mają drugą wersję montażu (`variants`). Gdy tętno sali odbiega
+od nastroju filmu (na spokojnym filmie sala się ekscytuje), scena gra wersję, która przywraca nastrój: dłuższe ujęcia,
+wolniejszy montaż. Punktem odniesienia jest tętno sali tuż po pierwszej scenie
+([projekt](docs/superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
+
+```powershell
+python -m bajka scenarios/klub_ciekawskich.yaml --mobile --panel                     # telefony widzów + panel dla jury
+python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed --panel   # próba bez mikrofonu
+```
+
+**Panel dla jury** otwiera się w przeglądarce (adres w konsoli, domyślnie `http://127.0.0.1:8090/`; tablet jury
+w tej samej sieci: `BAJKA_PANEL_HOST=0.0.0.0`). Pokazuje drzewo scen z przebytą ścieżką, głosy z telefonów albo
+krzykomierza, wykres tętna sali z pasmem normy i dziennik: jednym zdaniem, co film zrobił i dlaczego.
+Przebieg pokazu krok po kroku: [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md).
+
+**Tętno jest na razie symulowane** (`bajka/pulse.py`): suwak, gotowe stany sali i „Przebieg demo” w panelu.
+Wizja: aplikacja mobilna czyta tętno z zegarka sparowanego z telefonem — przez Health Connect (Android), HealthKit
+(iOS) albo standardową usługę Bluetooth „Heart Rate” — i wysyła do komputera z filmem tylko uśrednione, anonimowe
+tempo całej sali. Dane o zdrowiu to szczególna kategoria danych osobowych (RODO, art. 9), więc wymagałoby to
+wyraźnej zgody opiekunów, udziału wyłącznie dobrowolnego, przetwarzania tylko w trakcie seansu i żadnego zapisywania.
 
 ## Sprawdzanie modułów osobno
 
@@ -133,6 +147,7 @@ python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos bohatera
 python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
 python -m bajka.player scenarios/clips/intro.mp4 scenarios/clips/intro_idle.mp4   # klip → pętla (VLC)
 python -m bajka.pulse --script                       # symulator tętna sali: spokojnie, ekscytacja, uspokojenie
+python -m bajka.panel scenarios/klub_ciekawskich.yaml   # panel dla jury bez filmu (symulator tętna)
 ```
 
 Każde demo wypisuje czas odpowiedzi, co pomaga stroić `BAJKA_INITIAL_SILENCE_MS`, `BAJKA_END_SILENCE_MS`
@@ -195,6 +210,8 @@ scenariusza. Scena bez `choices` kończy bajkę.
 | `bajka/console.py` | Tryb `--text` do prób bez mikrofonu |
 | `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg) |
 | `bajka/pulse.py` | Tętno sali: symulator na pokaz (`SimulatedPulse`) i stan sali (`hall_state`) |
+| `bajka/panel.py` | Panel dla jury: stan seansu ze zdarzeń silnika i serwer HTTP (`PanelState`, `PanelServer`) |
+| `bajka/panel_app/` | Strona panelu: drzewo scen, głosy, wykres tętna, dziennik decyzji, symulator |
 | `bajka/app.py` | Złożenie całości i uruchomienie |
 
 Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne ustawienia

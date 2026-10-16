@@ -66,6 +66,14 @@ Rozpoznanie idzie od najtańszego do najmądrzejszego kroku:
 
 Gdy model zawiedzie, wybór i tak rozpoznają słowa kluczowe. Program nie zgaduje, gdy nie wie: wtedy dopytuje.
 
+## Film, który czuje salę
+
+Oprócz głosów film może słuchać **tętna sali**. Scenariusz mówi, czego widownia oczekuje od filmu (`mood`), a wybrane
+sceny mają drugą wersję montażu (`variants`). Gdy sala odbiega od nastroju filmu (na spokojnym filmie tętno skacze),
+scena gra wersję spokojniejszą. Na pokazie tętno pochodzi z symulatora sterowanego z **panelu dla jury**: strony
+w przeglądarce, która pokazuje drzewo scen, głosy, wykres tętna i powód każdej decyzji filmu. Prawdziwe zegarki
+widzów to wizja na przyszłość ([projekt](superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
+
 ## Tryby działania
 
 | Tryb | Co robi | Przykład |
@@ -73,6 +81,7 @@ Gdy model zawiedzie, wybór i tak rozpoznają słowa kluczowe. Program nie zgadu
 | `local` (domyślny) | Rozpoznawanie mowy, model językowy i głos postaci na komputerze; bez kluczy i internetu po pierwszym pobraniu modeli | `python -m bajka SCENARIUSZ` |
 | `azure` | To samo przez usługi Azure | `--backend azure` |
 | `--mobile` | Odpowiedzi z telefonów widzów | `python -m bajka SCENARIUSZ --mobile` |
+| `--panel` | Panel dla jury i symulowane tętno sali (wersje scen) | `python -m bajka SCENARIUSZ --panel` |
 | `--no-llm` | Bez modelu językowego, tylko słowa kluczowe | na słabszym komputerze i do prób |
 | `--text` | Próba bez mikrofonu i głośnika (konsola) | `--text --no-llm --windowed` |
 
@@ -82,11 +91,12 @@ Gdy model zawiedzie, wybór i tak rozpoznają słowa kluczowe. Program nie zgadu
 |---|---|
 | Scenariusz | `bajka/scenario.py` — wczytanie i walidacja grafu scen |
 | Silnik | `bajka/engine.py` — cykl scen, kanały odpowiedzi, dopytywanie, ścieżki awaryjne; `bajka/app.py` — złożenie całości |
-| Interfejsy | `bajka/ports.py` — `Player`, `Listener`, `Voice`, `IntentResolver`, `Audience`, `ShoutMeter` |
+| Interfejsy | `bajka/ports.py` — `Player`, `Listener`, `Voice`, `IntentResolver`, `Audience`, `ShoutMeter`, `AudiencePulse`, `ShowObserver` |
 | Obraz | `bajka/player.py` (VLC), `bajka/placeholders.py` (klipy zastępcze) |
 | Odpowiedzi widowni | `bajka/mobile.py` + `bajka/mobile_app/` (telefony), `bajka/vote.py` (krzykomierz), `bajka/local_stt.py`, `bajka/stt.py` (mikrofon), `bajka/console.py` (próby) |
 | Rozumienie | `bajka/keywords.py`, `bajka/local_intent.py`, `bajka/intent.py`, `bajka/foundry.py`, `bajka/safety.py` |
 | Głos postaci | `bajka/local_tts.py` (Windows), `bajka/tts.py` (Azure) |
+| Tętno i panel | `bajka/pulse.py` (symulator tętna, stan sali), `bajka/panel.py` + `bajka/panel_app/` (panel dla jury) |
 
 Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m bajka.keywords`, `python -m bajka.vote`,
 `python -m bajka.mobile` (pełna lista w README). Testy (`python -m pytest`) działają bez sieci, mikrofonu i VLC.
@@ -113,6 +123,9 @@ Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m ba
 | **Scena `vote`** | Scena decyzji, którą bez telefonów rozstrzyga krzykomierz |
 | **Backend** | Skąd bierzemy AI: `local` (komputer) albo `azure` (chmura) |
 | **Zaślepka** | Kolorowy klip zastępczy, dopóki nie ma prawdziwego wideo |
+| **Nastrój filmu** (`mood`) | Czego widownia oczekuje od filmu: `spokojny` albo `zywy` |
+| **Wersja sceny** (`variants`) | Druga wersja montażu sceny, grana, gdy tętno sali odbiega od nastroju filmu |
+| **Punkt odniesienia** | Tętno sali tuż po pierwszej scenie; z nim porównujemy kolejne odczyty |
 
 ## Gdzie dalej
 
@@ -122,4 +135,6 @@ Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m ba
 | [PODZIAL_PRACY.md](PODZIAL_PRACY.md) | Kto rozwija który moduł, zasady modułów i pracy w Git |
 | [LOKALNE_AI.md](LOKALNE_AI.md) | Foundry Local, Whisper, Phi, NPU, głos Windows |
 | [Projekt flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) | Produkcja klipów i dobór modeli (rysowanie na żywo wycofane) |
+| [Film, który czuje salę](superpowers/specs/2026-10-16-film-czuje-sale-design.md) | Tętno sali, wersje scen, panel dla jury |
+| [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md) | Przebieg pokazu przed jury |
 | [DO_ZROBIENIA.md](DO_ZROBIENIA.md) | Co zostało do zrobienia |

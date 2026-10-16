@@ -10,6 +10,7 @@ import argparse
 import logging
 import threading
 from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -21,12 +22,14 @@ from bajka.keywords import FallbackResolver, KeywordIntentResolver, KeywordsFirs
 from bajka.local_tts import VoiceNotFoundError
 from bajka.ports import IntentResolver, Listener, ShoutMeter, Voice
 from bajka.safety import SafeReplyResolver
-from bajka.scenario import ScenarioError, load_scenario, missing_media
+from bajka.scenario import Scenario, ScenarioError, load_scenario, missing_media
 
 if TYPE_CHECKING:
     import tkinter as tk
 
     from bajka.mobile import MobileServer
+    from bajka.panel import PanelServer, PanelState
+    from bajka.pulse import PulseSettings, SimulatedPulse
 
     from bajka.player import VlcPlayer
 
@@ -54,6 +57,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--mobile",
         action="store_true",
         help="odpowiedzi widowni z aplikacji mobilnej (mikrofony telefonów); także BAJKA_MOBILE=1 w .env",
+    )
+    parser.add_argument(
+        "--panel",
+        action="store_true",
+        help="panel dla jury w przeglądarce i symulator tętna sali (wersje scen według tętna); także BAJKA_PANEL=1",
     )
     return parser.parse_args(argv)
 
@@ -111,6 +119,31 @@ def mobile_enabled(args: argparse.Namespace, env: Mapping[str, str]) -> bool:
     return args.mobile or (env.get("BAJKA_MOBILE") or "0").strip().lower() in ("1", "tak", "true")
 
 
+def panel_enabled(args: argparse.Namespace, env: Mapping[str, str]) -> bool:
+    return args.panel or (env.get("BAJKA_PANEL") or "0").strip().lower() in ("1", "tak", "true")
+
+
+@dataclass(frozen=True)
+class Panel:
+    """Panel dla jury z symulatorem tętna sali: silnik dostaje tętno i opowiada panelowi, co robi."""
+
+    server: PanelServer
+    state: PanelState
+    pulse: SimulatedPulse
+    pulse_settings: PulseSettings
+
+
+def build_panel(env: Mapping[str, str], scenario: Scenario) -> Panel:
+    from bajka.panel import PanelServer, PanelSettings, PanelState, scenario_graph
+    from bajka.pulse import PulseSettings, SimulatedPulse
+
+    pulse_settings = PulseSettings.from_env(env)
+    pulse = SimulatedPulse(pulse_settings)
+    state = PanelState(scenario, pulse_settings)
+    server = PanelServer(state, scenario_graph(scenario), pulse, PanelSettings.from_env(env))
+    return Panel(server=server, state=state, pulse=pulse, pulse_settings=pulse_settings)
+
+
 def build_mobile(env: Mapping[str, str], backend: str, resolver: IntentResolver) -> MobileServer:
     """Serwer aplikacji mobilnej: nagrania z telefonów rozpoznaje ten sam backend co resztę bajki."""
     from bajka.mobile import MobileAudience, MobileServer, MobileSettings
@@ -147,6 +180,7 @@ def main(argv: list[str] | None = None) -> int:
         backend = choose_backend(args, env)
         max_reprompts = get_int(env, "BAJKA_MAX_REPROMPTS", 2)
         log.info("Tryb: %s%s", backend, ", bez modelu językowego" if args.no_llm else "")
+        panel = build_panel(env, scenario) if panel_enabled(args, env) else None  # tylko ustawienia, bez sieci
         meter = build_meter(env, args.text)
         listener, voice = build_speech(env, args.text, backend)
         resolver = build_resolver(env, backend, not args.no_llm, scenario.hero)
@@ -171,6 +205,17 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         audience = mobile.audience
         log.info("Widzowie: otwórzcie %s w telefonie. Kod QR na ekran kina: %sqr", url, url)
+    if panel is not None:
+        try:
+            url = panel.server.start()
+        except OSError as exc:
+            log.error("Nie udało się uruchomić panelu dla jury: %s", exc)
+            if mobile is not None:
+                mobile.stop()
+            return 2
+        log.info("Panel dla jury: otwórzcie %s w przeglądarce (ten komputer albo tablet jury)", url)
+        if not scenario.mood:
+            log.info("Scenariusz nie ma pola 'mood': panel pokazuje drzewo i głosy, a sceny grają zwykłe wersje")
     root = tk.Tk()
     player = VlcPlayer(root, fullscreen=not args.windowed)
     engine = StoryEngine(
@@ -182,12 +227,17 @@ def main(argv: list[str] | None = None) -> int:
         max_reprompts=max_reprompts,
         meter=meter,
         audience=audience,
+        pulse=panel.pulse if panel else None,
+        pulse_settings=panel.pulse_settings if panel else None,
+        observer=panel.state if panel else None,
     )
     try:
         run_window(root, player, engine)
     finally:
         if mobile is not None:
             mobile.stop()
+        if panel is not None:
+            panel.server.stop()
     return 0
 
 

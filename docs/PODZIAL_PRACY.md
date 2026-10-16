@@ -27,6 +27,7 @@ i własne demo, więc dwie osoby mogą commitować równolegle na `main` bez wch
 | [`bajka/player.py`](../bajka/player.py) — VLC w pełnoekranowym oknie | `Player` | B | `python -m bajka.player KLIP PĘTLA` | ręcznie (wymaga VLC) |
 | [`bajka/placeholders.py`](../bajka/placeholders.py) — klipy-zaślepki | — | B | `python -m bajka.placeholders scenarios/las_czy_jaskinia.yaml` | `tests/test_placeholders.py` |
 | [`bajka/pulse.py`](../bajka/pulse.py) — tętno sali (na pokazie z symulatora) i stan sali | `AudiencePulse` | C | `python -m bajka.pulse --script` | `tests/test_pulse.py` |
+| [`bajka/panel.py`](../bajka/panel.py) + [`bajka/panel_app/`](../bajka/panel_app/) — panel dla jury: drzewo scen, głosy, tętno, dziennik | `ShowObserver` | C | `python -m bajka.panel scenarios/klub_ciekawskich.yaml` | `tests/test_panel.py` |
 
 Wszystkie moduły działają na poziomie szkieletu (testy na atrapach). Najbliższe kroki:
 

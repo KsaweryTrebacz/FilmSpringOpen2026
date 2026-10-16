@@ -1,13 +1,27 @@
 import argparse
 import sys
 import threading
+from dataclasses import replace
+from types import SimpleNamespace
 
 import pytest
 import yaml
 
-from bajka.app import build_meter, build_resolver, choose_backend, main, mobile_enabled, parse_args, run_window
+from bajka.app import (
+    build_meter,
+    build_panel,
+    build_resolver,
+    choose_backend,
+    main,
+    mobile_enabled,
+    panel_enabled,
+    parse_args,
+    run_window,
+)
 from bajka.config import ConfigError
 from bajka.keywords import KeywordIntentResolver
+from bajka.ports import AudiencePulse, ShowObserver
+from bajka.pulse import PulseSettings
 
 LLM_VARS = ("AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY", "AZURE_OPENAI_DEPLOYMENT")
 SPEECH_VARS = ("AZURE_SPEECH_KEY", "AZURE_SPEECH_REGION")
@@ -163,3 +177,66 @@ def test_escape_stops_the_story_before_closing_player_and_window():
     run_window(FakeRoot(events), FakePlayer(), FakeEngine())
 
     assert events == ["silnik zatrzymany", "odtwarzacz zatrzymany", "okno zamknięte"]
+
+
+# Panel dla jury i tętno sali
+
+
+def test_panel_is_enabled_by_flag_or_env():
+    assert not panel_enabled(parse_args(["b.yaml"]), {})
+    assert panel_enabled(parse_args(["b.yaml", "--panel"]), {})
+    assert panel_enabled(parse_args(["b.yaml"]), {"BAJKA_PANEL": "tak"})
+
+
+def test_build_panel_connects_pulse_simulator_and_panel_state(scenario):
+    panel = build_panel({"BAJKA_PULSE_START_BPM": "80"}, scenario)
+
+    assert isinstance(panel.pulse, AudiencePulse)
+    assert isinstance(panel.state, ShowObserver)
+    assert panel.pulse_settings.start_bpm == 80.0
+    assert panel.pulse.read().bpm == pytest.approx(80.0, abs=2)
+
+
+def run_main_with_spies(tmp_path, monkeypatch, scenario_dict, *flags):
+    monkeypatch.chdir(tmp_path)
+    write_media(tmp_path, scenario_dict)
+    path = write_scenario(tmp_path / "bajka.yaml", scenario_dict)
+    created, events = {}, []
+
+    class SpyEngine:
+        def __init__(self, *args, **kwargs):
+            created.update(kwargs)
+
+    class SpyServer:
+        def start(self):
+            events.append("panel uruchomiony")
+            return "http://127.0.0.1:8090/"
+
+        def stop(self):
+            events.append("panel zatrzymany")
+
+    real_build_panel = build_panel
+    monkeypatch.setattr("bajka.app.build_panel", lambda env, s: replace(real_build_panel(env, s), server=SpyServer()))
+    monkeypatch.setattr("bajka.app.StoryEngine", SpyEngine)
+    monkeypatch.setattr("bajka.app.run_window", lambda root, player, engine: events.append("film"))
+    monkeypatch.setattr("tkinter.Tk", lambda: object())  # bez okna i bez VLC
+    monkeypatch.setitem(sys.modules, "bajka.player", SimpleNamespace(VlcPlayer=lambda root, fullscreen=True: object()))
+
+    assert main([str(path), "--text", "--no-llm", "--windowed", *flags]) == 0
+    return created, events
+
+
+def test_main_with_panel_starts_it_and_gives_pulse_and_observer_to_the_engine(tmp_path, monkeypatch, scenario_dict):
+    created, events = run_main_with_spies(tmp_path, monkeypatch, scenario_dict, "--panel")
+
+    assert events == ["panel uruchomiony", "film", "panel zatrzymany"]
+    assert isinstance(created["pulse"], AudiencePulse)
+    assert isinstance(created["observer"], ShowObserver)
+    assert created["pulse_settings"] == PulseSettings()
+
+
+def test_main_without_panel_runs_the_film_without_pulse(tmp_path, monkeypatch, scenario_dict):
+    created, events = run_main_with_spies(tmp_path, monkeypatch, scenario_dict)
+
+    assert events == ["film"]
+    assert created["pulse"] is None and created["observer"] is None

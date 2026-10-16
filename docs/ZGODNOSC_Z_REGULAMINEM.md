@@ -84,13 +84,13 @@ Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
 | Dzieci i opiekunowie | Telefon należy zwykle do opiekuna, który dołącza i zezwala na mikrofon; przed seansem krótka informacja dla opiekunów (plansza przy wejściu albo słowo prowadzącego) | **ZESPÓŁ** |
 | Nadużycia | Jedna odpowiedź na telefon w rundzie, limit rozmiaru nagrania, odpowiedzi tylko w otwartej rundzie; kwestie modelu filtrowane (`bajka/safety.py`) | **OK** |
 | Odpowiedź bez mówienia | Dziecko, które nie chce albo nie może mówić, dotyka opcji | **OK** |
-| Pomysł na przyszłość: tętno z zegarka | Dane o zdrowiu (RODO art. 9) — tylko za wyraźną zgodą opiekunów, dobrowolnie, uśrednione i bez zapisywania; na razie wyłącznie pomysł w README | — |
+| Tętno widowni | W demo wyłącznie symulowane (`bajka/pulse.py`), bez danych prawdziwych osób. Prawdziwa wersja z zegarków to dane o zdrowiu (RODO art. 9): wyraźna zgoda opiekunów, udział dobrowolny, tylko średnia całej sali, przetwarzanie w trakcie seansu, bez zapisywania | **OK** (demo) |
 
 ## Pitch wobec kryteriów jury (§4 ust. 5)
 
 | Kryterium | Argument |
 |---|---|
-| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci. Bez telefonów decyzje rozstrzyga krzykomierz |
+| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci. Bez telefonów decyzje rozstrzyga krzykomierz. Film czuje też salę: gdy tętno widowni (w demo symulowane) odbiega od nastroju filmu, scena gra inną wersję montażu, a panel pokazuje jury każdą decyzję |
 | **Adekwatność do zadania** | „Przyszłość odbioru dzieł audiowizualnych”: widz przestaje być bierny — współdecyduje o filmie. Nawiązujemy do tradycji: w czechosłowackim Kinoautomacie (Expo 67) widzowie głosowali przyciskami; u nas głosują głosem, a postać reaguje na nich |
 | **Oryginalność** | Własny świat i postacie, film dla najmłodszych z pierwszym w życiu doświadczeniem kina jako wspólnej zabawy |
 | **Kreatywność** | Mechaniki zaprojektowane pod salę kinową: okrzyki, odpowiedzi chórem, wspólny oddech, liczenie; pomyłki widowni stają się częścią nauki |

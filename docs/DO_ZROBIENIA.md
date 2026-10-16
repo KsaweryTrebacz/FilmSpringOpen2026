@@ -1,6 +1,6 @@
 # Do zrobienia
 
-Stan na 16.10.2026 (226 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
+Stan na 16.10.2026 (307 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
 Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md).
 
 ## Kod i podpięcie (przed pokazem)
@@ -8,6 +8,8 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [x] Rysowanie na żywo usunięte z projektu (16.10): wszystkie animacje filmu są przygotowane wcześniej.
   W zamian [film, który czuje salę](superpowers/specs/2026-10-16-film-czuje-sale-design.md): tętno widowni,
   wersje scen i panel dla jury.
+- [x] Film, który czuje salę: symulowane tętno sali, spokojne wersje scen `las`, `wiaterek` i `swieto`,
+  panel dla jury (`--panel`) i [przebieg pokazu](DEMO_DLA_JURY.md).
 
 ## Testy na prawdziwym sprzęcie (nic z tego nie było jeszcze uruchomione)
 
@@ -22,6 +24,8 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
   - Wi-Fi bez izolacji urządzeń, port 8443 otwarty w zaporze Windows,
   - kilka telefonów naraz i czas rozpoznania odpowiedzi.
 - [ ] Kalibracja krzykomierza na sali: `python -m bajka.vote`.
+- [ ] Próba z panelem na laptopie pokazowym: `--mobile --panel`, panel na ekranie laptopa albo tablecie jury
+  (`BAJKA_PANEL_HOST=0.0.0.0`), „Przebieg demo” i ręczne „Sala się ekscytuje” przed sceną `wiaterek`.
 - [ ] Próba generalna całego filmu obiema ścieżkami: z telefonami (`--mobile`) i bez.
 
 ## Produkcja filmu
@@ -30,6 +34,8 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
   znanych pszczółek z animacji.
 - [ ] 18 klipów z [listy w scenariuszu](../scenarios/klub_ciekawskich.md#lista-klipów-do-produkcji). Minimum na pokaz:
   ilustracje z ruchem kamery dla wszystkich scen i jedna scena w pełnej animacji (SC. 4, Wiaterek).
+- [ ] Spokojne wersje montażu trzech scen (dłuższe ujęcia, wolniejsze tempo): `03b_las_spokojna.mp4`,
+  `04_wiaterek_spokojna.mp4`, `07_swieto_spokojna.mp4` (pola `variants` w scenariuszu).
 - [ ] Nagrania dialogów (głos Lili zbliżony do syntezatora), własna muzyka i piosenki.
 - [ ] Plansza z kodem QR (`…/qr`), sygnał „Świecąca Lupka” w pętlach oczekiwania.
 - [ ] Napisy końcowe z nazwiskami i informacją o AI.
@@ -48,10 +54,12 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [ ] Prezentacja oparta na kryteriach jury (innowacyjność, adekwatność, oryginalność, kreatywność) —
   argumenty w [raporcie zgodności](ZGODNOSC_Z_REGULAMINEM.md#pitch-wobec-kryteriów-jury-4-ust-5).
 - [ ] Demo na żywo z jury jako widownią, najlepiej na telefonach jurorów.
+- [ ] Pokaz według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md): drzewo scen, głosy i tętno sali na panelu.
 
 ## Po hackathonie
 
-- [ ] Tętno widzów z zegarka (pomysł opisany w [README](../README.md#pomysły-na-przyszłość)).
+- [ ] Prawdziwe tętno z zegarków widzów zamiast symulatora (Health Connect, HealthKit albo Bluetooth „Heart Rate”
+  w aplikacji mobilnej), za zgodą opiekunów; wizja w [README](../README.md#film-który-czuje-salę-tętno-i-panel-dla-jury).
 - [ ] Natywna aplikacja z Phi Silica i dostrajaniem LoRA ([LOKALNE_AI.md](LOKALNE_AI.md)).
 - [ ] Testy uruchamiane automatycznie na GitHubie (GitHub Actions z `pytest`).
 - [ ] Limity w serwerze aplikacji mobilnej (limit czasu połączeń HTTP, limit liczby telefonów). W sieci lokalnej to
