@@ -12,7 +12,7 @@ except SystemExit as exc:  # np. błędne argumenty: kod wyjścia bez zmian
 except BaseException:  # Ctrl+C albo awaria: ślad błędu na stderr, a proces i tak kończymy twardo
     traceback.print_exc()
     code = 1
-# Wątki rysowania (pula w silniku) nie są demonami: zwykłe wyjście czekałoby na obraz w toku (do 25 s + ffmpeg),
+# Wątki w tle, które nie są demonami, wstrzymałyby zwykłe wyjście do swojego końca,
 # a okno i mikrofon zostałyby w tle po Esc albo po wyjątku. Zamykamy proces od razu, po zapisaniu logów.
 sys.stdout.flush()
 sys.stderr.flush()

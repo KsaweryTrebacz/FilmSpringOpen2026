@@ -16,7 +16,7 @@ komputerze z Windows, bez chmury i bez nagrywania widzów.
 1. **Scenariusz jako graf scen.** Plik YAML opisuje sceny, ich klipy wideo, pytania, możliwe odpowiedzi i to,
    dokąd prowadzi każda odpowiedź. Zmiana historii = zmiana pliku, bez zmian w kodzie.
 2. **Silnik, który nigdy nie staje.** Prowadzi widza po grafie, a każdy błąd (mikrofon, model, głos, sieć) obsługuje
-   po cichu: dopytuje, wybiera ścieżkę domyślną albo pokazuje klip zapasowy. Pokaz ma trwać, cokolwiek się zepsuje.
+   po cichu: dopytuje albo wybiera ścieżkę domyślną. Pokaz ma trwać, cokolwiek się zepsuje.
 3. **Wymienne moduły.** Odtwarzacz, rozpoznawanie mowy, rozumienie odpowiedzi i głos postaci
    to osobne moduły, które rozmawiają z silnikiem tylko przez umówione interfejsy (`bajka/ports.py`). Każdy można
    wymienić — np. lokalne AI na usługi w chmurze — i testować bez reszty programu.

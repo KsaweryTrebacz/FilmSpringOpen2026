@@ -23,7 +23,7 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 
 ## §3 ust. 8 — treści
 
-Film słuchają małe dzieci, a część kwestii Lili pisze na żywo model językowy. Dlatego zabezpieczenia są w czterech
+Film słuchają małe dzieci, a część kwestii Lili pisze na żywo model językowy. Dlatego zabezpieczenia są w trzech
 warstwach:
 
 1. **Scenariusz** — wszystkie kwestie stałe są napisane i sprawdzone przez ludzi. Nie ma przemocy ani straszenia.

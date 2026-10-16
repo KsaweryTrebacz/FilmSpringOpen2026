@@ -120,9 +120,10 @@ python -m bajka scenarios/klub_ciekawskich.yaml --mobile --panel                
 python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed --panel   # próba bez mikrofonu
 ```
 
-**Panel dla jury** otwiera się w przeglądarce (adres w konsoli, domyślnie `http://127.0.0.1:8090/`; tablet jury
-w tej samej sieci: `BAJKA_PANEL_HOST=0.0.0.0`). Pokazuje drzewo scen z przebytą ścieżką, głosy z telefonów albo
-krzykomierza, wykres tętna sali z pasmem normy i dziennik: jednym zdaniem, co film zrobił i dlaczego.
+**Panel dla jury** to strona, którą otwieracie sami w przeglądarce pod adresem z konsoli (domyślnie
+`http://127.0.0.1:8090/`; tablet jury w tej samej sieci: `BAJKA_PANEL_HOST=0.0.0.0`). Pokazuje drzewo scen
+z przebytą ścieżką, głosy z telefonów albo krzykomierza, wykres tętna sali z pasmem normy i dziennik: jednym zdaniem,
+co film zrobił i dlaczego.
 Przebieg pokazu krok po kroku: [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md).
 
 **Tętno jest na razie symulowane** (`bajka/pulse.py`): suwak, gotowe stany sali i „Przebieg demo” w panelu.

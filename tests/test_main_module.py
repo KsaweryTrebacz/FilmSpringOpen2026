@@ -7,12 +7,12 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def test_process_ends_at_once_even_if_a_drawing_thread_is_still_running():
-    """Wątki rysowania nie są demonami: bez twardego wyjścia Esc czekałby na obraz w toku (do 25 s + ffmpeg)."""
+def test_process_ends_at_once_even_if_a_background_thread_is_still_running():
+    """Wątek w tle, który nie jest demonem, nie może wstrzymać wyjścia: bez twardego wyjścia Esc czekałby na jego koniec."""
     script = (
         "import runpy, threading, time\n"
         "import bajka.app\n"
-        "threading.Thread(target=time.sleep, args=(30,)).start()  # rysowanie w toku\n"
+        "threading.Thread(target=time.sleep, args=(30,)).start()  # wątek w tle\n"
         "bajka.app.main = lambda argv=None: 7\n"
         "runpy.run_module('bajka', run_name='__main__')\n"
     )
@@ -51,12 +51,12 @@ def test_logs_are_written_before_the_hard_exit():
     ],
 )
 def test_process_ends_at_once_also_when_main_raises(failure, code, on_stderr):
-    """Ctrl+C albo awaria: wątek rysowania w toku nie może trzymać procesu (i mikrofonu) przy życiu."""
+    """Ctrl+C albo awaria: wątek w tle nie może trzymać procesu (i mikrofonu) przy życiu."""
     script = (
         "import runpy, threading, time\n"
         "import bajka.app\n"
         "def main(argv=None):\n"
-        "    threading.Thread(target=time.sleep, args=(30,)).start()  # rysowanie w toku\n"
+        "    threading.Thread(target=time.sleep, args=(30,)).start()  # wątek w tle\n"
         f"    raise {failure}\n"
         "bajka.app.main = main\n"
         "runpy.run_module('bajka', run_name='__main__')\n"

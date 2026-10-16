@@ -79,7 +79,8 @@ Wersję sceny film wybiera w chwili, gdy scena się zaczyna. Sala musi więc by�
 - **Telefony się nie łączą:** sprawdźcie Wi-Fi, port 8443 i ostrzeżenie o certyfikacie w telefonie („Zaawansowane,
   Przejdź do strony”, potem zgoda na mikrofon). Bez telefonów sceny z głosowaniem (`powitanie`, `kuferek`,
   `wiaterek`, `pomocnik`, `swieto`) rozstrzyga krzykomierz, a pozostałe (`most`, `las`, `laka`) bajka rozpoznaje
-  z mikrofonu laptopa. Telefony, które dołączą później, liczą się od następnej decyzji.
+  z mikrofonu laptopa. Telefon, który dołączy w trakcie pytania, jeszcze na nie odpowie, a późniejsze
+  liczą się od następnej decyzji.
 - **Scena zagrała wersję zwykłą:** kliknięcie było za późno albo przed punktem odniesienia. Film leci dalej.
   Jeśli punkt odniesienia był już zapisany, kliknijcie „Sala się ekscytuje” w trakcie sceny `pomocnik` albo `laka`,
   a `swieto` zagra wersję spokojną.
