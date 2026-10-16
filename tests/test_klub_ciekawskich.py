@@ -1,5 +1,6 @@
 """Scenariusz „Klub Ciekawskich”: poprawny graf i typowe odpowiedzi dzieci rozpoznawane bez modelu językowego."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -25,13 +26,27 @@ def test_every_scene_is_reachable_and_story_has_two_endings():
     assert {s.id for s in SCENARIO.scenes.values() if s.is_ending} == {"koniec_taniec", "koniec_piosenka"}
 
 
-def test_hero_is_lila_and_addresses_child_without_gendered_forms():
+LIVE_LINES = [line for s in SCENARIO.scenes.values() for line in (s.question, s.reprompt, s.fallback)] + [
+    line for s in SCENARIO.scenes.values() for c in s.choices.values() for line in (c.reply, c.call)
+]
+# Czas przeszły zdradza płeć: "zrobiłeś/zrobiłaś", "zrobiliście/zrobiłyście", "obudziliśmy/obudziłyśmy".
+GENDERED_PAST = re.compile(r"\w+(łeś|łaś|liście|łyście|liśmy|łyśmy)\b")
+
+
+def test_hero_is_lila_and_talks_to_a_cinema_audience():
     assert "Lila Lupka" in SCENARIO.hero
-    lines = [s.reprompt for s in SCENARIO.scenes.values()] + [
-        c.reply for s in SCENARIO.scenes.values() for c in s.choices.values()
-    ]
-    for gendered in ("zrobiłeś", "zrobiłaś", "pomogłeś", "pomogłaś", "wybrałeś", "wybrałaś"):
-        assert not any(gendered in line for line in lines)
+    assert "widownia" in SCENARIO.hero
+
+
+def test_live_lines_have_no_gendered_forms():
+    assert [line for line in LIVE_LINES if GENDERED_PAST.search(line)] == []
+
+
+def test_decisions_in_the_cinema_are_shouted_and_every_option_is_called():
+    voting = {s.id for s in SCENARIO.scenes.values() if s.vote}
+
+    assert voting == {"powitanie", "kuferek", "wiaterek", "pomocnik", "swieto"}
+    assert all(c.call for s in SCENARIO.scenes.values() if s.vote for c in s.choices.values())
 
 
 @pytest.mark.parametrize(
@@ -60,3 +75,11 @@ def test_typical_answers_are_recognized_offline(scene, answer, choice):
 def test_counting_aloud_to_two_is_not_taken_as_an_answer():
     # „jedna, dwie” to liczenie w trakcie — bohaterka dopyta, zamiast uznać to za złą odpowiedź
     assert KeywordIntentResolver().resolve(SCENARIO.scene("laka"), "jedna, dwie").choice_id is None
+
+
+def test_screenplay_dialogue_has_no_gendered_forms_towards_the_audience():
+    screenplay = (Path(__file__).resolve().parents[1] / "scenarios" / "klub_ciekawskich.md").read_text(encoding="utf-8")
+    dialogue = [line for line in screenplay.splitlines() if line.startswith("> **")]
+
+    assert dialogue  # scenariusz ma dialogi w formacie "> **POSTAĆ**: ..."
+    assert [line for line in dialogue if GENDERED_PAST.search(line)] == []

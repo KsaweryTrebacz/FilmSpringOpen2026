@@ -1,276 +1,466 @@
-# Klub Ciekawskich — odcinek 1: „Bzyczka szuka domu”
+# Bzyczka szuka domu
 
-Interaktywna bajka edukacyjna dla dzieci w wieku 4–7 lat, prowadzona wyłącznie głosem (Zero-UI).
-Dziecko jest członkiem Klubu: postacie zwracają się do niego, czekają na odpowiedź i reagują na nią.
+**Interaktywny animowany film krótkometrażowy z cyklu „Klub Ciekawskich”**
 
-- **Plik dla aplikacji:** [`klub_ciekawskich.yaml`](klub_ciekawskich.yaml) — graf scen, pytania, reakcje Lili.
-- **Długość:** ok. 8–10 minut (zależy od dziecka).
-- **Logline:** Pszczółka Bzyczka zgubiła drogę do ula. Lila, Fiku i dziecko ruszają z pomocą: wybierają
-  drogę, rozwiązują zagadki, uspokajają rozbrykany Wiaterek i liczą pszczółki, aż Bzyczka wraca do domu.
+| | |
+|---|---|
+| **Forma** | Krótkometrażowy film kinowy z udziałem widowni na żywo: widzowie decydują okrzykiem i odpowiadają chórem, a bohaterka reaguje na nich w czasie seansu |
+| **Widownia** | Dzieci 4–7 lat z opiekunami, sala kinowa. Działa też dla jednego widza (pokaz dla jury, kiosk) |
+| **Czas** | ok. 12 minut: ok. 8 min animacji i ok. 4 min interakcji (zależy od sali) |
+| **Styl** | Ilustrowana książka 2D: miękka akwarela, ciepłe pastele (zgodnie z [projektem flow filmu](../docs/superpowers/specs/2026-10-16-flow-filmu-design.md)) |
+| **Obraz** | 16:9, 1920×1080, 24 kl./s (kotwice); sceny generowane na żywo 1280×720, skalowane |
+| **Dźwięk** | Stereo; dialogi i muzyka w klipach, cisza w pętlach oczekiwania (wtedy słucha mikrofon) |
+| **Język** | Polski; wersja z napisami dla niesłyszących — opcjonalnie |
+| **Plik dla aplikacji** | [`klub_ciekawskich.yaml`](klub_ciekawskich.yaml) — graf scen, pytania, wezwania i reakcje Lili |
 
-## Cele edukacyjne
+**Logline.** Mała pszczółka zgubiła drogę do domu. Lila, Fiku i cała sala kinowa ruszają z pomocą:
+widzowie okrzykiem wybierają drogę, rozwiązują zagadki, uspokajają rozbrykany wiatr i liczą pszczółki,
+aż Bzyczka wraca do ula.
 
-| Scena | Czego uczymy | Mechanika |
-|---|---|---|
-| Powitanie | Śmiałość, wspólne działanie | Zawołanie hasła „Hop-sa-sa!” |
-| Kuferek | Podejmowanie decyzji | Wybór drogi (rozgałęzienie fabuły) |
-| Tęczowy Mostek | Kolory, rytm i wzór (myślenie matematyczne) | Zagadka „co dalej?” |
-| Szumiący Las | Zwierzęta i ich odgłosy, uważne słuchanie | Zgadywanie po odgłosie |
-| Wiaterek Fiufiu | Emocje, samoregulacja oddechem, empatia | Wspólny spokojny oddech |
-| Pomocnik z Kuferka | Do czego służą przedmioty, rozwiązywanie problemów | Wybór właściwego narzędzia |
-| Kwiatowa Łąka | Liczenie do trzech | Liczenie razem |
-| Święto | Ruch i muzyka, radość ze wspólnego sukcesu | Wybór zakończenia |
+**Streszczenie.** W dziupli starego dębu Lila Lupka i Fiku Fikołek prowadzą Klub Ciekawskich — a członkami
+klubu są widzowie na sali. Do dziupli wpada zapłakana pszczółka Bzyczka: zgubiła drogę do ula na końcu
+Kwiatowej Łąki. Widownia budzi okrzykiem gadający Kuferek Hopsasa, który daje trzy pomocniki i mapę.
+Sala wybiera drogę — przez Tęczowy Mostek albo Szumiący Las — i pomaga pokonać przeszkodę: dopasować
+brakującą deskę albo rozpoznać, kto woła „hu-hu”. W połowie drogi rozbrykany Wiaterek Fiufiu rozdmuchuje
+wszystko, bo nie umie zapanować nad radością; cała sala uczy go spokojnie oddychać. Lornetka pozwala
+dostrzec daleki ul, widzowie liczą pszczółki z rodziny Bzyczki, a na koniec decydują, jak świętować:
+tańcem czy piosenką.
 
-## Zasady koedukacyjne
+**O czym jest ten film.** Razem dajemy radę. Każdy czasem się boi albo ma wielkie emocje — i to jest w porządku,
+a spokojny oddech pomaga. Pomyłka to część uczenia się.
 
-1. **Równe prowadzenie.** Dziewczynka i chłopiec prowadzą klub razem, na zmianę zadają pytania i chwalą.
-2. **Bez stereotypów.** Lila majsterkuje, liczy i jest liderką; Fiku mówi o uczuciach, lubi kwiaty
-   i piecze ciasteczka. Oboje bywają dzielni i oboje czasem się boją — i to jest w porządku.
-3. **Neutralny język wobec dziecka.** Nigdy „zrobiłeś/zrobiłaś”. Mówimy: „Udało się!”, „Brawo!”,
-   „Pomożesz?”, „Świetnie ci idzie!”. Ta zasada jest też w prompcie modelu językowego.
-4. **Każda odpowiedź jest dobra do nauki.** Pomyłka nie zatrzymuje historii: postać łagodnie pokazuje
-   dobrą odpowiedź i chwali za próbę. Cisza też nie: postać dopytuje, a potem sama wybiera.
-5. **Bez straszenia.** Ciemność, wiatr i wysokość są przygodą, nie zagrożeniem.
+## Budowa filmu
 
-## Postacie
+| Część | Sceny | Co się dzieje | Czas |
+|---|---|---|---|
+| **Prolog** | 1 (początek) | Plansza tytułowa, Lila zaprasza widownię do zabawy i pokazuje sygnał „Świecąca Lupka” | 0:30 |
+| **Akt I — Wezwanie** | 1–2 | Bzyczka zgubiła drogę. Widownia budzi Kuferek i wybiera drogę | 3:00 |
+| **Akt II — Droga** | 3a/3b, 4, 5 | Przeszkoda na drodze, kryzys z Wiaterkiem (środek filmu), dostrzeżenie ula | 5:00 |
+| **Akt III — Powrót** | 6, 7, 8a/8b | Ul i rodzina Bzyczki, wybór świętowania, finał i pożegnanie | 3:00 |
+| **Napisy końcowe** | 8 (koniec) | Napisy z informacją o AI | 0:40 |
 
-| Postać | Kim jest | Wygląd | Charakter | Powiedzonko | Głos |
-|---|---|---|---|---|---|
-| **Lila Lupka** | Siedmioletnia odkrywczyni, liderka klubu | Żółte kalosze, ogrodniczki z kieszeniami na śrubki, wielka lupa na sznurku | Ciekawska, cierpliwa, uwielbia zagadki i liczenie | „Zajrzyjmy przez lupkę!” | Ciepły, dziewczęcy, spokojne tempo. Lila odpowiada dziecku na żywo (TTS) |
-| **Fiku Fikołek** | Rudy wiewiórek, przyjaciel Lili | Puszysty ogon w kształcie znaku zapytania, zielony szalik, fartuszek piekarza | Wesoły i ruchliwy, wrażliwy, mówi otwarcie, gdy się boi | „Fiku-miku, fikołek!” (i robi fikołka) | Wysoki, energiczny, chłopięcy |
-| **Kuferek Hopsasa** | Gadający kufer podróżnik | Kolorowy, oklejony naklejkami z podróży, wieko jak usta | Rymuje, budzi się na hasło, zawsze ma trzy pomocniki | „Hopsasa, co tu mam? Trzy pomocniki dla was dam!” | Głęboki, ciepły, wesoły (jak dobry dziadek) |
-| **Wiaterek Fiufiu** | Mały, puszysty obłoczek-wietrzyk | Biały obłoczek z różowymi policzkami | Gdy się cieszy albo złości, dmucha za mocno i wszystko fruwa. Nie jest zły — uczy się spokoju | „Fiu-fiu-fiuuu! Ojej, znowu za mocno!” | Szybki, świszczący, trochę zadyszany |
-| **Pszczółka Bzyczka** | Gość odcinka | Malutka, w pasiastym sweterku, z koszyczkiem na pyłek | Nieśmiała, wdzięczna | „Bzz-dziękuję!” | Cienki, delikatny, z „bzz” na początku zdań |
-
-**Pomocniki z Kuferka** (pojawiają się w scenie 2 i wracają w scenie 5): **Mapa Rozkładanka** (pokazuje drogę),
-**Latarka Świetliczka** (świeci w ciemności), **Lornetka Patrzałka** (przybliża to, co daleko).
-
-**Motto klubu** (mówione na początku i na końcu, najlepiej z gestem): „Patrzymy (dłonie jak lornetka przy oczach),
-myślimy (palec przy skroni), pomagamy (ręce do przodu)!”
-
-## Mapa scen
+Rozgałęzienia są dwa: droga (mostek albo las) i finał (taniec albo piosenka), czyli cztery wersje filmu.
+W zagadkach dobra i zła odpowiedź prowadzą do tej samej sceny — zmienia się tylko reakcja Lili. Dzięki temu
+animujemy 10 scen zamiast drzewa kilkudziesięciu klipów.
 
 ```mermaid
 flowchart TD
-    powitanie["1. Powitanie<br/>zawołaj Hop-sa-sa"] --> kuferek["2. Kuferek<br/>mostek czy las?"]
-    kuferek -->|most| most["3a. Tęczowy Mostek<br/>jaka deska pasuje?"]
-    kuferek -->|las| las["3b. Szumiący Las<br/>kto woła hu-hu?"]
-    most --> wiaterek["4. Wiaterek Fiufiu<br/>spokojny oddech"]
+    powitanie["SC. 1 Dziupla<br/>okrzyk: Hop-sa-sa"] --> kuferek["SC. 2 Kuferek<br/>okrzyk: mostek czy las?"]
+    kuferek -->|most| most["SC. 3a Tęczowy Mostek<br/>chórem: jaka deska?"]
+    kuferek -->|las| las["SC. 3b Szumiący Las<br/>chórem: kto woła hu-hu?"]
+    most --> wiaterek["SC. 4 Wiaterek Fiufiu<br/>wspólny oddech, okrzyk: tak!"]
     las --> wiaterek
-    wiaterek --> pomocnik["5. Pomocnik<br/>mapa, latarka czy lornetka?"]
-    pomocnik --> laka["6. Kwiatowa Łąka<br/>ile pszczółek?"]
-    laka --> swieto["7. Święto<br/>taniec czy piosenka?"]
-    swieto -->|taniec| koniec_taniec["8a. Koniec: taniec"]
-    swieto -->|piosenka| koniec_piosenka["8b. Koniec: piosenka"]
+    wiaterek --> pomocnik["SC. 5 Pomocnik<br/>okrzyk: mapa, latarka czy lornetka?"]
+    pomocnik --> laka["SC. 6 Ul na łące<br/>chórem: ile pszczółek?"]
+    laka --> swieto["SC. 7 Święto<br/>okrzyk: taniec czy piosenka?"]
+    swieto -->|taniec| koniec_taniec["SC. 8a Finał: taniec"]
+    swieto -->|piosenka| koniec_piosenka["SC. 8b Finał: piosenka"]
 ```
 
-Dobre i złe odpowiedzi w zagadkach prowadzą do tej samej kolejnej sceny — różni się tylko reakcja Lili.
-Dzięki temu animujemy 10 scen, a nie drzewo kilkudziesięciu klipów.
+## Bohaterowie
 
-## Jak czytać sceny
+Wszystkie postacie, ich imiona i wygląd są oryginalne. Projektując je, nie wzorujemy się na postaciach
+z innych filmów i seriali (zob. [zgodność z regulaminem](../docs/ZGODNOSC_Z_REGULAMINEM.md)).
 
-- **KLIP** — animacja z dialogami. Kończy się pytaniem do dziecka, po którym postać patrzy w kamerę.
-- **PĘTLA** — cicha animacja oczekiwania (mikrofon słucha, więc bez dźwięku!). Pierwsza klatka pętli =
-  ostatnia klatka klipu.
-- **REAKCJE** — to mówi Lila na żywo po odpowiedzi dziecka (syntezator mowy). Teksty są w pliku YAML;
-  model językowy może je sformułować po swojemu, ale sens zostaje.
-- `[pauza 2 s]` — miejsce w klipie, w którym dziecko ma coś zrobić razem z postaciami (bez nasłuchu).
+| Postać | Kim jest | Wygląd | Charakter | Przemiana w filmie | Głos |
+|---|---|---|---|---|---|
+| **Lila Lupka** | Siedmioletnia odkrywczyni, liderka klubu | Żółte kalosze, ogrodniczki z kieszeniami na śrubki, wielka lupa na sznurku | Ciekawska, cierpliwa, uwielbia zagadki, liczenie i majsterkowanie. Powiedzonko: „Zajrzyjmy przez lupkę!” | Uczy się oddawać decyzję innym: zamiast rozstrzygać sama, pyta widownię | Ciepły, dziewczęcy, spokojne tempo. **Mówi też na żywo (syntezator)** |
+| **Fiku Fikołek** | Rudy wiewiórek, przyjaciel Lili | Puszysty ogon w kształcie znaku zapytania, zielony szalik, fartuszek piekarza | Wesoły i ruchliwy, wrażliwy, piecze żołędziowe ciasteczka. Powiedzonko: „Fiku-miku, fikołek!” (i fikołek) | Od „trochę się boję” do „z wami się nie boję” | Wysoki, energiczny, chłopięcy |
+| **Pszczółka Bzyczka** | Zagubiona pszczółka | Malutka, w miętowym sweterku w miodowe paski, różowe policzki, koszyczki na pyłek przy nóżkach | Nieśmiała, mówi cicho, z „bzz” przed zdaniami | Od pochlipywania do głośnego „Bzz-dziękuję!” i prowadzenia świętowania | Cienki, delikatny |
+| **Wiaterek Fiufiu** | Mały obłoczek-wietrzyk | Biały, puszysty, z różowymi policzkami; rośnie, gdy się emocjonuje | Gdy się cieszy albo złości, dmucha za mocno. Nie jest zły. Powiedzonko: „Fiu-fiu-fiuuu! Ojej, znowu za mocno!” | Od wichury emocji do spokojnego oddechu | Szybki, świszczący, zadyszany |
+| **Kuferek Hopsasa** | Gadający kufer podróżnik | Kolorowy, oklejony naklejkami z podróży, wieko jak usta | Budzi się na okrzyk, rymuje, zawsze ma trzy pomocniki: „Hopsasa, co tu mam? Trzy pomocniki dla was dam!” | — (stały pomocnik) | Głęboki, ciepły, wesoły |
+
+**Pomocniki z Kuferka:** Mapa Rozkładanka (pokazuje drogę), Latarka Świetliczka (świeci w ciemności),
+Lornetka Patrzałka (przybliża to, co daleko).
+
+**Motto klubu** z gestami: „Patrzymy (dłonie jak lornetka przy oczach), myślimy (palec przy skroni),
+pomagamy (ręce do przodu)!”
+
+## Zasady pisania
+
+1. **Do widowni w liczbie mnogiej, bez czasu przeszłego**: „Pomożecie?”, „Brawo, świetnie wam idzie!”.
+   Nigdy „zrobiłeś/zrobiłaś” ani „zrobiliście”. Tak mówią postacie w klipach i Lila na żywo; pilnuje tego test
+   `tests/test_klub_ciekawskich.py`.
+2. **Bez stereotypów.** Lila majsterkuje i prowadzi; Fiku mówi o uczuciach i piecze. Oboje bywają dzielni
+   i oboje czasem się boją.
+3. **Pomyłka uczy.** Zła odpowiedź nie zatrzymuje filmu: postać łagodnie pokazuje dobrą odpowiedź i chwali próbę.
+4. **Tylko prawdziwe fakty** o świecie (lista na końcu). Fantazja dotyczy postaci, nie wiedzy.
+5. **Bez straszenia.** Wiatr, wysokość i las to przygoda, nie zagrożenie.
+
+## Seans w kinie: jak działa interakcja
+
+**Sygnał „Świecąca Lupka”.** We wszystkich pętlach oczekiwania w prawym dolnym rogu świeci i pulsuje lupa Lili.
+W prologu Lila tłumaczy: „Kiedy zaświeci się lupka, teraz mówicie wy!”. Dzięki temu dzieci wiedzą, kiedy
+krzyczeć, a kiedy oglądać.
+
+| Rodzaj interakcji | Kiedy | Jak działa |
+|---|---|---|
+| **Okrzyk** (krzykomierz) | Decyzje: SC. 1, 2, 4, 5, 7 | Lila wzywa po kolei do każdej opcji („Kto chce przez Tęczowy Mostek? Krzyczymy… Mostek!”). Po każdym wezwaniu mikrofon mierzy głośność sali; wygrywa najgłośniejsza opcja. Cisza albo remis → kolejna runda; po dwóch Lila wybiera sama |
+| **Odpowiedź chórem** (rozpoznawanie mowy) | Zagadki: SC. 3a, 3b, 6 | Sala wykrzykuje odpowiedź. Whisper zamienia ją na tekst, a model Phi (albo słowa kluczowe ze scenariusza) rozpoznaje wybór; Lila reaguje na żywo |
+| **Wspólne działanie** (bez nasłuchu) | W klipach | Motto z gestami, wspólny oddech, liczenie paluszkami, taniec i piosenka. Postacie robią to razem z widownią — `[pauza]` w scenariuszu |
+
+**Przygotowanie sali:**
+- Mikrofon pod ekranem, skierowany na widownię, z dala od głośników.
+- Przed seansem kalibracja krzykomierza: `python -m bajka.vote` (gwar sali i próbny okrzyk, podpowiedź progów).
+- Głośność dialogów umiarkowana — małe dzieci są wrażliwe na hałas.
+- Pierwsze uruchomienie modeli zawsze przed seansem (pobieranie), potem wszystko działa bez internetu.
+
+**Prywatność i bezpieczeństwo:** głosu widowni nie nagrywamy ani nie zapisujemy. Kwestie Lili pisane na żywo
+przechodzą przez filtr (`bajka/safety.py`); podejrzana kwestia zamienia się w sprawdzoną kwestię ze scenariusza.
 
 ---
 
-## Scena 1 — Powitanie (`powitanie`)
+## Scenariusz
 
-**KLIP** `01_powitanie.mp4` (~50 s). Wnętrze dziupli w starym dębie: półki ze słoikami, mapa na ścianie,
-w kącie śpi chrapiący Kuferek.
+Oznaczenia: **KLIP** — animacja z dialogami, kończy się pytaniem do widowni; **PĘTLA** — cicha animacja
+oczekiwania (pierwsza klatka = ostatnia klatka klipu) ze Świecącą Lupką; **INTERAKCJA** — co mówi Lila na żywo.
+Pytanie na końcu klipu Lila wypowiada tymi samymi słowami co pole `question` w YAML.
 
-> **LILA** (macha do kamery): Cześć! Jestem Lila Lupka!
-> **FIKU** (robi fikołka i ląduje obok): A ja jestem Fiku Fikołek! Fiku-miku, fikołek!
-> **LILA:** Witamy w Klubie Ciekawskich! Pamiętasz nasze motto? Powiedz z nami!
-> **LILA I FIKU** (z gestami): Patrzymy, myślimy, pomagamy! `[pauza 2 s]`
+### SC. 1 — WNĘTRZE. DZIUPLA KLUBU CIEKAWSKICH — DZIEŃ (`powitanie`)
+
+**KLIP** `01_powitanie.mp4` · ok. 70 s
+
+*Plansza tytułowa na tle akwarelowego dębu: „Klub Ciekawskich — Bzyczka szuka domu”. Kamera wjeżdża w dziuplę:
+półki ze słoikami guzików, mapa na ścianie, w kącie chrapie kolorowy kufer. Ciepłe, bursztynowe światło.*
+
+> **LILA** *(wychodzi zza półki, macha do kamery)*: Dzień dobry, kino! Jestem Lila Lupka!
+>
+> **FIKU** *(fikołek przez cały kadr, ląduje obok)*: A ja Fiku Fikołek! Fiku-miku, fikołek!
+>
+> **LILA**: Witamy w Klubie Ciekawskich! Dzisiaj wy też jesteście w klubie. *(podnosi lupę, lupa świeci)*
+> Kiedy zaświeci się moja lupka, teraz mówicie wy!
+>
+> **FIKU**: Sprawdźmy! Powiedzcie z nami nasze motto!
+>
+> **LILA I FIKU** *(z gestami)*: Patrzymy, myślimy, pomagamy! `[pauza 2 s]`
+>
 > *(Do dziupli wpada, kręcąc się w powietrzu, malutka pszczółka.)*
-> **BZYCZKA** (pochlipując): Bzz… Dzień dobry… Jestem Bzyczka. Zgubiłam drogę do mojego ula na Kwiatowej Łące…
-> **FIKU** (przytula ją ogonem): Oj, rozumiem cię. Ja też kiedyś się zgubiłem i było mi bardzo smutno.
-> **LILA:** Pomożemy ci, Bzyczko! Klub Ciekawskich zawsze pomaga. Ale najpierw musimy obudzić Kuferek Hopsasa.
-> **FIKU** (do kamery, szeptem): Kuferek budzi się tylko wtedy, gdy wszyscy razem zawołają hasło…
-> **LILA** (do kamery): Zawołasz z nami Kuferek? Powiedz głośno: „Hop-sa-sa”!
+>
+> **BZYCZKA** *(pochlipując)*: Bzz… Dzień dobry… Jestem Bzyczka. Zgubiłam drogę do mojego ula na Kwiatowej Łące…
+>
+> **FIKU** *(otula ją ogonem)*: Oj, rozumiem cię. Ja też kiedyś się zgubiłem i było mi bardzo smutno.
+>
+> **LILA**: Pomożemy ci, Bzyczko! Ale najpierw musimy obudzić Kuferek Hopsasa.
+>
+> **FIKU** *(szeptem, do kamery)*: Kuferek budzi się tylko, kiedy wszyscy razem zawołają hasło…
+>
+> **LILA** *(do kamery)*: Zawołacie z nami Kuferek? Wszyscy razem, głośno, „Hop-sa-sa”!
 
 **PĘTLA** `01_powitanie_idle.mp4`: Lila i Fiku z dłońmi przy uszach nasłuchują, Kuferek pochrapuje (bez dźwięku).
 
-**REAKCJE**
-- Dziecko woła „Hopsasa” (albo „hop”, „tak”): *„Hop-sa-sa! Słyszysz? Kuferek się budzi!”* → scena 2
-- Cisza: *„Kuferek śpi jak suseł! Zawołajmy głośniej, razem ze mną. Hop-sa-sa!”* (najwyżej 2 razy), potem
-  Lila sama: *„Nic nie szkodzi, zawołam go sama. Hop-sa-sa! Słyszysz? Kuferek się budzi!”*
+**INTERAKCJA — okrzyk.** Lila: *„Na trzy krzyczymy «Hop-sa-sa». Raz… dwa… trzy!”*
+- Głośny okrzyk: *„Hop-sa-sa! Słyszycie? Kuferek się budzi!”* → SC. 2
+- Za cicho: *„Kuferek śpi jak suseł! Jeszcze głośniej, wszyscy razem!”*; po dwóch rundach Lila sama:
+  *„Nic nie szkodzi, zawołam go sama. Hop-sa-sa! Słyszycie? Kuferek się budzi!”*
 
-## Scena 2 — Kuferek Hopsasa (`kuferek`)
+### SC. 2 — WNĘTRZE. DZIUPLA — CHWILĘ PÓŹNIEJ (`kuferek`)
 
-**KLIP** `02_kuferek.mp4` (~45 s). Kuferek ziewa, otwiera wieko, z wnętrza bije kolorowe światło.
+**KLIP** `02_kuferek.mp4` · ok. 45 s
 
-> **KUFEREK:** Ooo, hopsasa! Kto mnie woła? Lila, Fiku i… ty! Witaj w klubie!
-> **KUFEREK** (śpiewnie): Hopsasa, co tu mam? Trzy pomocniki dla was dam!
+*Kuferek ziewa i otwiera wieko; z wnętrza bije tęczowe światło. Zbliżenia na trzy wyskakujące przedmioty.*
+
+> **KUFEREK**: Ooo, hopsasa! Kto mnie woła? Lila, Fiku i… cała sala! Witajcie w klubie!
+>
+> **KUFEREK** *(śpiewnie)*: Hopsasa, co tu mam? Trzy pomocniki dla was dam!
+>
 > *(Z kufra wyskakują po kolei trzy przedmioty, każdy z dźwiękiem „pling”.)*
-> **KUFEREK:** Mapa Rozkładanka — pokaże drogę! Latarka Świetliczka — zaświeci w ciemności!
+>
+> **KUFEREK**: Mapa Rozkładanka — pokaże drogę! Latarka Świetliczka — zaświeci w ciemności!
 > I Lornetka Patrzałka — przybliży to, co daleko!
-> **LILA** (rozkłada mapę, przygląda się przez lupkę): Zajrzyjmy przez lupkę… Do Kwiatowej Łąki prowadzą dwie drogi!
-> **FIKU** (pokazuje łapką): Jedna przez Tęczowy Mostek nad strumykiem… a druga przez Szumiący Las!
-> **BZYCZKA:** Bzz… Ja nie pamiętam, którędy przyleciałam…
-> **LILA** (do kamery): Którędy lecimy do Kwiatowej Łąki? Przez Tęczowy Mostek czy przez Szumiący Las?
+>
+> **LILA** *(rozkłada mapę, patrzy przez lupkę)*: Zajrzyjmy przez lupkę… Do Kwiatowej Łąki prowadzą dwie drogi!
+>
+> **FIKU** *(pokazuje łapką)*: Jedna przez Tęczowy Mostek nad strumykiem… a druga przez Szumiący Las!
+>
+> **BZYCZKA**: Bzz… Ja nie pamiętam, którędy przyleciałam…
+>
+> **LILA** *(do kamery)*: Którędy lecimy do Kwiatowej Łąki? Przez Tęczowy Mostek czy przez Szumiący Las?
 
-**PĘTLA** `02_kuferek_idle.mp4`: mapa na pierwszym planie, na niej mieni się mostek i kołyszą drzewka.
+**PĘTLA** `02_kuferek_idle.mp4`: mapa na cały ekran; mostek i las delikatnie się mienią (podświetlenie
+odpowiada wezwaniom Lili — najpierw mostek, potem las).
 
-**REAKCJE**
-- „Mostek”, „tęcza”, „przez wodę”: *„Na Tęczowy Mostek! Ciekawe, jakie ma kolory!”* → scena 3a
-- „Las”, „przez drzewa”: *„Do Szumiącego Lasu! Posłuchamy, kto tam mieszka!”* → scena 3b
-- Cisza: *„Mapa pokazuje dwie drogi. Tęczowy Mostek albo Szumiący Las. Którą wybierasz?”*, potem Lila
-  wybiera mostek.
+**INTERAKCJA — okrzyk.** Lila: *„Kto chce przez Tęczowy Mostek? Krzyczymy… Mostek!”*, potem
+*„A kto przez Szumiący Las? Krzyczymy… Las!”*
+- Wygrywa mostek: *„Wygrywa Tęczowy Mostek! Ciekawe, jakie ma kolory!”* → SC. 3a
+- Wygrywa las: *„Wygrywa Szumiący Las! Posłuchamy, kto tam mieszka!”* → SC. 3b
+- Cisza albo remis: *„Nie słychać, która droga wygrywa! Jeszcze jedna runda, głośniej!”*; potem Lila wybiera mostek.
 
-## Scena 3a — Tęczowy Mostek (`most`)
+### SC. 3a — PLENER. TĘCZOWY MOSTEK NAD STRUMYKIEM — DZIEŃ (`most`)
 
-**KLIP** `03a_most.mp4` (~40 s). Drewniany mostek nad szemrzącym strumykiem. Deski są kolorowe:
-czerwona, niebieska, czerwona, niebieska — a potem dziura.
+**KLIP** `03a_most.mp4` · ok. 40 s
 
-> **FIKU** (zatrzymuje się, ogon mu drży): Ojej… Brakuje jednej deski. Trochę się boję…
-> **LILA** (kładzie mu rękę na ramieniu): To nic, Fiku. Każdy czasem się boi. Razem coś wymyślimy.
-> **FIKU** (uśmiecha się): Z wami się nie boję!
-> **LILA** (przez lupkę, wskazując kolejne deski): Zajrzyjmy przez lupkę. Deski idą po kolei:
-> czerwona… niebieska… czerwona… niebieska… *(każda deska podświetla się po kolei)*
-> **KUFEREK** (z tyłu, z wieka wysuwa dwie deski): Mam tu dwie zapasowe! Czerwoną i niebieską!
-> **LILA** (do kamery): Jaka deska pasuje do dziury, czerwona czy niebieska?
+*Plan ogólny: drewniany mostek nad szemrzącym strumykiem, nasycone kolory. Deski: czerwona, niebieska,
+czerwona, niebieska — a potem dziura. Czerwień i błękit są rozróżnialne także dla widzów z daltonizmem
+czerwono-zielonym.*
 
-**PĘTLA** `03a_most_idle.mp4`: obie deski unoszą się obok dziury, delikatnie się kołyszą; wzór desek mruga po kolei.
+> **FIKU** *(zatrzymuje się, ogon mu drży)*: Ojej… Brakuje jednej deski. Trochę się boję…
+>
+> **LILA** *(kładzie mu rękę na ramieniu)*: Każdy czasem się boi, Fiku. Razem coś wymyślimy.
+>
+> **FIKU** *(do kamery, uśmiecha się)*: Z wami się nie boję!
+>
+> **LILA** *(przez lupkę; każda deska podświetla się po kolei)*: Deski idą po kolei. Czerwona… niebieska…
+> czerwona… niebieska…
+>
+> **KUFEREK** *(wysuwa z wieka dwie deski)*: Mam dwie zapasowe! Czerwoną i niebieską!
+>
+> **LILA** *(do kamery)*: Jaka deska pasuje do dziury, czerwona czy niebieska?
 
-**REAKCJE**
-- „Czerwona”: *„Czerwona! Brawo, wzór się zgadza. Czerwona, niebieska, czerwona!”* → scena 4
-- „Niebieska”: *„Niebieska była przed chwilą, więc teraz kolej na czerwoną. Wkładamy czerwoną i pasuje!”* → scena 4
-- Cisza: *„Popatrz na deski. Czerwona, niebieska, czerwona, niebieska… a teraz?”*
+**PĘTLA** `03a_most_idle.mp4`: obie deski unoszą się obok dziury; wzór desek mruga po kolei (wolno — najwyżej
+dwa błyski na sekundę).
 
-## Scena 3b — Szumiący Las (`las`)
+**INTERAKCJA — odpowiedź chórem.**
+- „Czerwona!”: *„Czerwona! Brawo, wzór się zgadza. Czerwona, niebieska, czerwona!”* → SC. 4
+- „Niebieska!”: *„Niebieska była przed chwilą, więc teraz kolej na czerwoną. Wkładamy czerwoną i pasuje!”* → SC. 4
+- Cisza: *„Popatrzcie na deski. Czerwona, niebieska, czerwona, niebieska… a teraz?”*
 
-**KLIP** `03b_las.mp4` (~40 s). Las w zielonym świetle, liście szumią. Z dziupli wysokiego drzewa dobiega „hu-hu”.
+### SC. 3b — PLENER. SZUMIĄCY LAS — DZIEŃ (`las`)
 
-> **LILA** (przykłada palec do ust): Ćśś… W lesie trzeba uważnie słuchać.
+**KLIP** `03b_las.mp4` · ok. 40 s
+
+*Las w chłodnym, zielonym świetle przesianym przez liście. Z dziupli wysokiego drzewa dobiega „hu-hu”.*
+
+> **LILA** *(palec przy ustach)*: Ćśś… W lesie trzeba uważnie słuchać.
+>
 > *(Cisza, szum liści, potem wyraźnie: „Hu-hu… hu-hu…”)*
-> **FIKU** (podskakuje): Ja wiem, ja wiem! To na pewno żaba!
-> **BZYCZKA:** Bzz… Hmm… A ja nie jestem pewna…
-> **LILA** (mruga do kamery): Fiku, nie spieszmy się. Zapytajmy kogoś, kto zawsze nam pomaga!
-> **LILA** (do kamery): Kto tak woła „hu-hu”? Sowa czy żaba?
+>
+> **FIKU** *(podskakuje)*: Ja wiem, ja wiem! To na pewno żaba!
+>
+> **BZYCZKA**: Bzz… Hmm… A ja nie jestem pewna…
+>
+> **LILA** *(mruga do kamery)*: Fiku, nie spieszmy się. Zapytajmy naszą widownię!
+>
+> **LILA** *(do kamery)*: Kto tak woła „hu-hu”? Sowa czy żaba?
 
-**PĘTLA** `03b_las_idle.mp4`: w dziupli drzewa mrugają dwa duże oczy (sowa jeszcze niewidoczna), liście się kołyszą.
+**PĘTLA** `03b_las_idle.mp4`: w dziupli drzewa mrugają dwa duże, zaspane oczy; liście się kołyszą.
 
-**REAKCJE**
-- „Sowa”, „hu-hu”: *„Sowa! Masz rację, sowa woła hu-hu. A żaba robi kum-kum!”* → scena 4
-- „Żaba”: *„Żaba robi kum-kum! A hu-hu woła sowa. Zobacz, siedzi tam na gałęzi!”* → scena 4
-- Cisza: *„Posłuchaj jeszcze raz. Hu-hu, hu-hu. To sowa czy żaba?”*
+**INTERAKCJA — odpowiedź chórem.**
+- „Sowa!” albo „hu-hu”: *„Sowa! Macie rację. Sowy w dzień zwykle śpią, a my ją chyba budzimy!”* → SC. 4
+- „Żaba!”: *„Żaba robi kum-kum! A hu-hu woła sowa. Zobaczcie, siedzi tam na gałęzi!”* → SC. 4
+- Cisza: *„Posłuchajcie jeszcze raz. Hu-hu, hu-hu. To sowa czy żaba?”*
 
-> W scenie 4 sowa może mignąć w tle z obu ścieżek — animatorzy nie muszą robić osobnej wersji.
+> W SC. 4 zaspana sowa może mignąć w tle w obu wersjach — nie trzeba robić osobnych klipów.
 
-## Scena 4 — Wiaterek Fiufiu (`wiaterek`)
+### SC. 4 — PLENER. ŚCIEŻKA NA SKRAJU ŁĄKI — DZIEŃ (`wiaterek`)
 
-**KLIP** `04_wiaterek.mp4` (~55 s). Ścieżka na skraju łąki. Nagle nadlatuje mały obłoczek.
+**KLIP** `04_wiaterek.mp4` · ok. 55 s · *środek filmu i jego emocjonalny szczyt*
 
-> **FIUFIU** (radośnie, coraz szybciej): Fiu-fiu-fiuuu! Przygoda? Ja też chcę! Ja też, ja też!
-> *(Dmucha tak mocno, że Bzyczka kręci się w powietrzu, Fiku łapie się za ogon, mapa fruwa.)*
-> **FIKU** (trzymając czapkę): Hej, Fiufiu, za mocno!
-> **FIUFIU** (zatrzymuje się, smutnieje): Ojej, znowu za mocno… Kiedy bardzo się cieszę, nie umiem przestać dmuchać…
-> **LILA** (łagodnie): Fiufiu, to normalne, że czasem emocje są wielkie jak wichura.
-> Znamy na to sposób. Spokojny oddech!
-> **LILA** (do kamery, pokazując): Zrób to z nami. Wielki wdech nosem… `[pauza 3 s]` …i powolny wydech buzią:
-> fffuuu… `[pauza 3 s]` Jeszcze raz: wdech… `[pauza 3 s]` …i wydech: fffuuu… `[pauza 3 s]`
-> *(Fiufiu oddycha razem z nimi, z każdym oddechem robi się mniejszy i spokojniejszy, mapa łagodnie opada.)*
-> **LILA** (do kamery): Pomożesz Fiufiu się uspokoić? Weź ze mną wielki wdech nosem… i powolny wydech buzią. Udało się?
+*Paleta jaśnieje, robi się powietrznie. Nadlatuje mały obłoczek; z każdym zdaniem rośnie.*
 
-**PĘTLA** `04_wiaterek_idle.mp4`: Fiufiu powoli „oddycha” (rośnie i maleje w rytmie ok. 4 s), Lila i Fiku oddychają z nim.
+> **FIUFIU** *(radośnie, coraz szybciej)*: Fiu-fiu-fiuuu! Przygoda? Ja też chcę! Ja też, ja też!
+>
+> *(Dmucha tak mocno, że Bzyczka kręci się w powietrzu, mapa fruwa, Fiku trzyma się źdźbła trawy.)*
+>
+> **FIKU**: Hej, Fiufiu, za mocno!
+>
+> **FIUFIU** *(zatrzymuje się, smutnieje)*: Ojej, znowu za mocno… Kiedy bardzo się cieszę, nie umiem przestać…
+>
+> **LILA** *(łagodnie)*: Fiufiu, każdy czasem ma emocje wielkie jak wichura. Znamy na to sposób. Spokojny oddech!
+>
+> **LILA** *(do kamery, pokazując)*: Oddychajcie z nami. Wielki wdech nosem… `[pauza 3 s]` …i powolny wydech buzią,
+> fffuuu… `[pauza 4 s]` Jeszcze raz. Wdech… `[pauza 3 s]` …i wydech, fffuuu… `[pauza 4 s]`
+>
+> *(Fiufiu oddycha razem z salą; z każdym oddechem maleje, mapa łagodnie opada.)*
+>
+> **LILA** *(do kamery)*: Pomożecie Fiufiu się uspokoić? Wielki wdech nosem… i powolny wydech buzią. Udało się?
 
-**REAKCJE**
-- „Tak”, „już”, „fuuu”, „udało się”: *„Hurra! Fiufiu oddycha spokojnie i już nic nie fruwa. Dziękujemy za pomoc!”* → scena 5
-- Cisza: *„Spróbujmy jeszcze raz. Wdech nosem… i wydech buzią, fffuuu. Udało się?”*, potem
-  *„Fiufiu chyba sam to poczuł. Hurra! Fiufiu oddycha spokojnie…”*
+**PĘTLA** `04_wiaterek_idle.mp4`: Fiufiu powoli „oddycha” (rośnie i maleje co ok. 4 s), Lila i Fiku oddychają z nim.
 
-## Scena 5 — Pomocnik z Kuferka (`pomocnik`)
+**INTERAKCJA — okrzyk.** Lila: *„Jeśli Fiufiu już oddycha spokojnie, krzyknijcie… Tak!”*
+- Głośne „tak”: *„Hurra! Fiufiu oddycha spokojnie i już nic nie fruwa. Dziękujemy za pomoc!”* → SC. 5
+- Za cicho: *„Jeszcze raz, razem. Wdech nosem… i wydech buzią, fffuuu. Udało się? Krzyknijcie «tak»!”*;
+  potem *„Fiufiu chyba sam to poczuł. Hurra!…”*
 
-**KLIP** `05_pomocnik.mp4` (~40 s). Brzeg Kwiatowej Łąki. Na horyzoncie bardzo wysokie drzewo, ula nie widać.
+### SC. 5 — PLENER. BRZEG KWIATOWEJ ŁĄKI — POPOŁUDNIE (`pomocnik`)
 
-> **FIUFIU** (już spokojny, cichutko): Fiu… Dziękuję. Polecę z wami, ale delikatnie.
-> **BZYCZKA** (wypatruje): Bzz… Mój ul jest gdzieś na tym wysokim drzewie… ale to tak daleko! Nic nie widzę…
-> **FIKU:** Kuferku, pomocy!
-> **KUFEREK** (otwiera wieko): Hopsasa, co tu mam? Trzy pomocniki dla was dam!
-> Mapa Rozkładanka, Latarka Świetliczka i Lornetka Patrzałka!
-> **LILA** (do kamery): Który pomocnik pomoże zobaczyć ul daleko na drzewie? Mapa, latarka czy lornetka?
+**KLIP** `05_pomocnik.mp4` · ok. 40 s
 
-**PĘTLA** `05_pomocnik_idle.mp4`: trzy pomocniki unoszą się nad Kuferkiem i po kolei delikatnie świecą.
+*Złote światło popołudnia. Łąka ciągnie się aż po horyzont; na samym końcu, pod wysoką lipą, majaczy coś
+malutkiego.*
 
-**REAKCJE**
-- „Lornetka”: *„Lornetka! Przybliża to, co jest daleko. Widzę ul!”* → scena 6
-- „Latarka”: *„Latarka świeci w ciemności, a teraz jest jasno. Weźmy lornetkę… Jest ul!”* → scena 6
-- „Mapa”: *„Mapa pokazała nam drogę! A żeby zobaczyć daleko, weźmy lornetkę… Jest ul!”* → scena 6
-- Cisza: *„Mapa pokazuje drogę, latarka świeci w ciemności, a lornetka przybliża. Który pomocnik wybierasz?”*
+> **FIUFIU** *(spokojny, cichutko)*: Fiu… Dziękuję. Polecę z wami, ale delikatnie.
+>
+> **BZYCZKA** *(wypatruje)*: Bzz… Mój ul stoi na samym końcu łąki, pod wielką lipą… ale to tak daleko! Nic nie widzę…
+>
+> **FIKU**: Kuferku, pomocy!
+>
+> **KUFEREK** *(otwiera wieko)*: Hopsasa, co tu mam? Trzy pomocniki dla was dam! Mapa, latarka i lornetka!
+>
+> **LILA** *(do kamery)*: Który pomocnik pomoże zobaczyć ul daleko na końcu łąki? Mapa, latarka czy lornetka?
 
-## Scena 6 — Kwiatowa Łąka (`laka`)
+**PĘTLA** `05_pomocnik_idle.mp4`: trzy pomocniki unoszą się nad Kuferkiem i świecą po kolei (mapa, latarka, lornetka —
+w kolejności wezwań).
 
-**KLIP** `06_laka.mp4` (~40 s). Widok przez lornetkę (okrągła ramka), potem lot nad kwiatami do ula.
+**INTERAKCJA — okrzyk.** Lila wzywa po kolei: *„Kto wybiera Mapę Rozkładankę? Krzyczymy… Mapa!”*,
+*„Kto wybiera Latarkę Świetliczkę? Krzyczymy… Latarka!”*, *„A kto wybiera Lornetkę Patrzałkę? Krzyczymy… Lornetka!”*
+- Lornetka: *„Lornetka! Przybliża to, co jest daleko. Widzę ul!”* → SC. 6
+- Latarka: *„Latarka świeci w ciemności, a teraz jest jasno. Weźmy lornetkę… Jest ul!”* → SC. 6
+- Mapa: *„Mapa pokazała nam drogę! A żeby zobaczyć daleko, weźmy lornetkę… Jest ul!”* → SC. 6
+- Cisza albo remis: *„Mapa pokazuje drogę, latarka świeci w ciemności, a lornetka przybliża. Jeszcze raz, głośniej!”*
 
-> **BZYCZKA** (radośnie): Bzz! To mój ul! Jestem w domu!
-> *(Z ula wylatują po kolei trzy pszczółki — każda z dźwiękiem „bzzz” i błyskiem. Na ekranie zostają wszystkie trzy.)*
-> **BZYCZKA:** To moje siostry i mój brat! Przyleciały mnie przywitać!
-> **FIKU** (podskakuje): Tyle pszczółek! Ja się chyba pogubię w liczeniu…
-> **LILA:** Policzymy razem! Pokaż paluszkiem każdą pszczółkę. `[pauza 3 s]`
-> **LILA** (do kamery): Ile pszczółek wyleciało z ula, żeby przywitać Bzyczkę?
+### SC. 6 — PLENER. UL NA KOŃCU KWIATOWEJ ŁĄKI — POPOŁUDNIE (`laka`)
 
-**PĘTLA** `06_laka_idle.mp4`: trzy pszczółki krążą powoli w stałych miejscach (łatwe do policzenia), kwiaty się kołyszą.
+**KLIP** `06_laka.mp4` · ok. 40 s
 
-**REAKCJE**
-- „Trzy”: *„Trzy! Jedna, dwie, trzy pszczółki. Brawo, świetnie liczysz!”* → scena 7
-- Inna liczba: *„Policzmy razem jeszcze raz. Jedna, dwie, trzy! Trzy pszczółki. Super, że liczysz ze mną!”* → scena 7
-- Cisza albo liczenie w trakcie („jedna, dwie…”): *„Policzmy razem paluszkiem. Jedna, dwie… ile ich jest?”*
+*Widok przez lornetkę (okrągła ramka), potem lot nad kwiatami pod lipę. Ul jest drewniany, kolorowy.*
 
-## Scena 7 — Święto (`swieto`)
+> **BZYCZKA** *(radośnie)*: Bzz! To mój ul! Jestem w domu!
+>
+> *(Z ula wylatują po kolei trzy pszczółki — każda z „bzzz” i błyskiem. Zostają duże, wyraźne, w stałych miejscach.)*
+>
+> **BZYCZKA**: To moje dwie siostry i mój brat! Przyleciały mnie przywitać!
+>
+> **FIKU** *(łapie się za głowę)*: Tyle pszczółek! Chyba się pogubię w liczeniu…
+>
+> **LILA**: Policzymy razem! Pokażcie paluszkami każdą pszczółkę. `[pauza 3 s]`
+>
+> **LILA** *(do kamery)*: Ile pszczółek wyleciało z ula, żeby przywitać Bzyczkę?
 
-**KLIP** `07_swieto.mp4` (~30 s). Pszczoły, Fiufiu, Kuferek, Lila i Fiku na łące pełnej kwiatów.
+**PĘTLA** `06_laka_idle.mp4`: trzy pszczółki krążą powoli wokół swoich miejsc (łatwe do policzenia), kwiaty się kołyszą.
 
-> **BZYCZKA:** Bzz-dziękuję! Bez waszej pomocy nigdy bym nie trafiła do domu!
-> **FIKU** (robi trzy fikołki): Fiku-miku, fikołek! To trzeba uczcić!
-> **FIUFIU** (delikatnie): Fiu… Ja mogę zrobić leciutki wietrzyk do zabawy!
-> **LILA** (do kamery): Jak świętujemy powrót Bzyczki? Pszczółkowym tańcem czy piosenką o kwiatkach?
+**INTERAKCJA — odpowiedź chórem.**
+- „Trzy!”: *„Trzy! Jedna, dwie, trzy pszczółki. Brawo, świetnie liczycie!”* → SC. 7
+- Inna liczba: *„Policzmy razem jeszcze raz. Jedna, dwie, trzy! Trzy pszczółki. Super, że liczycie ze mną!”* → SC. 7
+- Cisza albo liczenie w trakcie („jedna, dwie…”): *„Policzmy razem paluszkami. Jedna, dwie… ile ich jest?”*
+
+### SC. 7b (planowana) — PLENER. UL — POPOŁUDNIE (`ozdoby`, obraz na żywo)
+
+Scena z [projektu flow filmu](../docs/superpowers/specs/2026-10-16-flow-filmu-design.md) (obszar C, scena `open`):
+Lila pyta, jak udekorujemy ul, a ilustracja powstaje na żywo z pomysłu widowni. Wejdzie do YAML między SC. 6
+a SC. 7, gdy silnik obsłuży `kind: open`. **W kinie** pytanie otwarte do całej sali będzie nieczytelne, więc
+proponujemy: okrzyk spośród trzech pomysłów (KWIATKI! WSTĄŻKI! GWIAZDKI!), a zwycięski pomysł trafia
+do promptu ilustracji. Pytanie w pełni otwarte zostawiamy dla trybu jednego widza (kiosk, jury).
+
+### SC. 7 — PLENER. KWIATOWA ŁĄKA — ZŁOTA GODZINA (`swieto`)
+
+**KLIP** `07_swieto.mp4` · ok. 30 s
+
+*Wszyscy przed ulem: pszczoły, Fiufiu, Kuferek, Lila i Fiku. Ciepłe światło przed zachodem słońca.*
+
+> **BZYCZKA** *(już głośno i pewnie)*: Bzz-dziękuję! Bez waszej pomocy nigdy bym nie trafiła do domu!
+>
+> **FIKU** *(trzy fikołki)*: Fiku-miku, fikołek! To trzeba uczcić!
+>
+> **FIUFIU** *(delikatnie)*: Fiu… Mogę zrobić leciutki wietrzyk do zabawy!
+>
+> **LILA** *(do kamery)*: Jak świętujemy powrót Bzyczki? Pszczółkowym tańcem czy piosenką o kwiatkach?
 
 **PĘTLA** `07_swieto_idle.mp4`: wszyscy kołyszą się w oczekiwaniu, Kuferek przytupuje (bez dźwięku).
 
-**REAKCJE**
-- „Taniec”, „tańczyć”: *„Pszczółkowy taniec! Wstań i machaj rękami jak skrzydełkami. Bzz, bzz!”* → zakończenie 8a
-- „Piosenka”, „śpiewać”: *„Piosenka! Śpiewaj z nami. La, la, la!”* → zakończenie 8b
-- Cisza: *„Taniec pszczółek czy piosenka o kwiatkach? Ty wybierasz!”*, potem Lila wybiera taniec.
+**INTERAKCJA — okrzyk.** Lila: *„Kto chce pszczółkowy taniec? Krzyczymy… Taniec!”*, potem
+*„A kto chce piosenkę o kwiatkach? Krzyczymy… Piosenka!”*
+- Taniec: *„Pszczółkowy taniec! Wstańcie i machajcie rękami jak skrzydełkami. Bzz, bzz!”* → SC. 8a
+- Piosenka: *„Piosenka! Śpiewajcie z nami. La, la, la!”* → SC. 8b
+- Cisza albo remis: *„Nie słychać, co wygrywa! Jeszcze jedna runda, głośniej. Taniec czy piosenka?”*; potem Lila wybiera taniec.
 
-## Zakończenie 8a — Pszczółkowy taniec (`koniec_taniec`)
+### SC. 8a — PLENER. ŁĄKA — ZACHÓD SŁOŃCA (`koniec_taniec`)
 
-**KLIP** `08a_koniec_taniec.mp4` (~60 s). Prosty taniec do powtarzania, z muzyką.
+**KLIP** `08a_koniec_taniec.mp4` · ok. 75 s (z pożegnaniem i napisami)
 
-> **WSZYSCY** (śpiewnie, rytmicznie, z ruchem):
-> Skrzydełka w górę! *(ręce w górę)* Skrzydełka w dół! *(ręce w dół)*
-> Kręcimy się w kółko, bzz, bzz, bzz! *(obrót)* I hop — na kwiatek! *(podskok)* `[powtórzyć 2 razy]`
+*Bzyczka prowadzi taniec, wszyscy powtarzają ruchy. Muzyka oryginalna, rytm marszowy.*
 
-Dalej wspólne **pożegnanie** (takie samo w 8a i 8b).
+> **BZYCZKA**: Bzz! Pszczoły naprawdę tańczą — tak pokazują sobie drogę do kwiatów! Tańczcie z nami!
+>
+> **WSZYSCY** *(rytmicznie, z ruchem)*: Skrzydełka w górę! *(ręce w górę)* Skrzydełka w dół! *(ręce w dół)*
+> Kręcimy się w kółko, bzz, bzz, bzz! *(obrót)* I hop — na kwiatek! *(podskok)* `[2 razy]`
 
-## Zakończenie 8b — Piosenka o kwiatkach (`koniec_piosenka`)
+Dalej **pożegnanie** i **napisy końcowe**.
 
-**KLIP** `08b_koniec_piosenka.mp4` (~60 s). Krótka piosenka, tekst na ekranie przy kwiatkach.
+### SC. 8b — PLENER. ŁĄKA — ZACHÓD SŁOŃCA (`koniec_piosenka`)
 
-> **WSZYSCY** (na prostą melodię, w rytmie marszu):
-> Kwiatek żółty, kwiatek biały, pszczółki z ula przyleciały.
-> Jedna, druga, trzecia — hop! Dzisiaj święto, bzz i stop! `[powtórzyć 2 razy, za drugim razem wolniej]`
+**KLIP** `08b_koniec_piosenka.mp4` · ok. 75 s (z pożegnaniem i napisami)
 
-Dalej wspólne **pożegnanie**.
+*Tekst piosenki pojawia się przy kwiatkach, słowo po słowie. Melodia oryginalna, prosta, w rytmie marszu.*
 
-## Pożegnanie (końcówka obu zakończeń)
+> **WSZYSCY**: Kwiatek żółty, kwiatek biały, pszczółki z ula przyleciały.
+> Jedna, druga, trzecia — hop! Dzisiaj święto, bzz i stop! `[2 razy, za drugim razem wolniej]`
 
-> **LILA:** Co dziś odkryliśmy w Klubie Ciekawskich?
-> **FIKU:** Że trzeba uważnie patrzeć i słuchać!
-> **LILA:** Że liczenie jest super — jedna, dwie, trzy!
-> **FIUFIU:** Fiu… I że kiedy emocje dmuchają jak wiatr, pomaga spokojny oddech.
-> **BZYCZKA:** I że razem można pomóc każdemu! Bzz-dziękuję!
-> **LILA I FIKU** (z gestami): Patrzymy, myślimy, pomagamy!
-> **FIKU:** Do zobaczenia w Klubie Ciekawskich!
-> **WSZYSCY:** Hop-sa-sa!
-> *(Kuferek zamyka wieko, dziupla gaśnie, napis „Klub Ciekawskich”.)*
+Dalej **pożegnanie** i **napisy końcowe**.
+
+### Pożegnanie (koniec SC. 8a i 8b)
+
+> **LILA**: Co już wiemy po dzisiejszej przygodzie w Klubie Ciekawskich?
+>
+> **FIKU**: Że trzeba uważnie patrzeć i słuchać!
+>
+> **LILA**: Że liczenie jest super — jedna, dwie, trzy!
+>
+> **FIUFIU**: Fiu… I że kiedy emocje dmuchają jak wiatr, pomaga spokojny oddech.
+>
+> **BZYCZKA**: I że razem można pomóc każdemu! Bzz-dziękuję!
+>
+> **LILA I FIKU** *(z gestami, do kamery)*: Patrzymy, myślimy, pomagamy!
+>
+> **WSZYSCY**: Do zobaczenia w Klubie Ciekawskich! Hop-sa-sa!
+>
+> *(Kuferek zamyka wieko, dziupla gaśnie; lupa Lili świeci jeszcze chwilę i gaśnie jako ostatnia.)*
+
+### Napisy końcowe
+
+*Na tle akwarelowej łąki o zmierzchu, spokojna wersja melodii z finału. Uzupełnia zespół.*
+
+> **Bzyczka szuka domu**
+> Scenariusz: [imię i nazwisko] · Reżyseria: [imię i nazwisko] · Animacja i ilustracje: [imiona i nazwiska]
+> Głosy: Lila — [ ], Fiku — [ ], Bzyczka — [ ], Fiufiu — [ ], Kuferek — [ ]
+> Muzyka oryginalna: [ ] · Dźwięk: [ ] · Program: [ ]
+>
+> **W rolach głównych: widownia — członkinie i członkowie Klubu Ciekawskich**
+>
+> Reakcje Lili w trakcie seansu tworzy na żywo sztuczna inteligencja działająca na tym komputerze
+> (Foundry Local: Whisper i Phi). [Jeśli użyte: ilustracje generowane z pomocą Azure AI Foundry.]
+> Głosów widowni nie nagrywamy ani nie zapisujemy.
+>
+> Postacie i historia są oryginalnym dziełem zespołu [nazwa zespołu]. Licencje użytego oprogramowania:
+> `docs/ZGODNOSC_Z_REGULAMINEM.md`.
+> Powstało podczas hackathonu „Kino szuka nowej formy. Znajdź ją.” — 21. Plenery Film Spring Open, Kraków 2026.
+> © 2026 [nazwa zespołu]
+
+Ten kadr może też otwierać kolejne doświadczenie (pomysł z projektu flow filmu, P3): montaż ilustracji
+powstałych z pomysłów widowni.
 
 ---
+
+## Kolorystyka i światło
+
+| Część | Paleta | Światło | Po co |
+|---|---|---|---|
+| Prolog, SC. 1–2 (dziupla) | Bursztyn, ciepłe brązy, kolorowe akcenty Kuferka | Ciepłe, punktowe, jak lampka | Bezpieczny dom, początek przygody |
+| SC. 3a (mostek) | Czyste, nasycone kolory podstawowe | Jasne, rozproszone | Kolory i wzór mają być czytelne z ostatniego rzędu |
+| SC. 3b (las) | Chłodne zielenie, mech | Plamy światła przez liście | Uważne słuchanie, lekka tajemniczość bez strachu |
+| SC. 4 (wiaterek) | Pastele, biel, dużo powietrza | Jasne, ruchome | Emocje i oddech; po uspokojeniu ruch w kadrze zwalnia |
+| SC. 5–6 (łąka, ul) | Złoto, zieleń, plamy kwiatów | Popołudnie | Cel w zasięgu, liczenie dużych, wyraźnych postaci |
+| SC. 7–8 (święto) | Ciepły róż i pomarańcz zachodu | Złota godzina, potem zmierzch | Radość, potem spokojne wyciszenie przed wyjściem z kina |
+
+## Dźwięk i muzyka
+
+- **Muzyka i melodie piosenek wyłącznie oryginalne**, skomponowane przez zespół. Bez znanych melodii i gotowych
+  podkładów z sieci (wymóg wyłącznych praw — regulamin §3 ust. 9).
+- Motywy postaci: Fiku — ksylofon, Fiufiu — flet i gwizdek, Kuferek — fagot, Bzyczka — pizzicato skrzypiec.
+- **Pętle oczekiwania bez dźwięku**, bo słucha mikrofon. Muzyka wraca dopiero w kolejnym klipie.
+- Głos Lili w klipach nagrywamy jak najbliżej głosu syntezatora, który mówi na żywo
+  (`BAJKA_WINDOWS_VOICE_PITCH`, `BAJKA_WINDOWS_VOICE_RATE`).
+
+## Dostępność
+
+- Żadnych szybkich błysków: najwyżej 2–3 na sekundę (bezpieczeństwo osób z padaczką fotogenną).
+- Przedmioty do liczenia i wybierania duże i wyraźne, czytelne z końca sali.
+- Kolory w zagadce (czerwony i niebieski) rozróżnialne także przy daltonizmie czerwono-zielonym.
+- Każda interakcja jest też pokazana obrazem (podświetlenie opcji), nie tylko słowami.
+- Opcjonalnie wersja z napisami dla niesłyszących.
+
+## Sprawdzone fakty (regulamin §3 ust. 8: bez treści nieprawdziwych)
+
+| W filmie | Fakt |
+|---|---|
+| Sowa woła „hu-hu” i w dzień zwykle śpi | Polski odgłos sowy to „hu-hu”; większość sów (np. puszczyk) jest aktywna nocą |
+| Żaba robi „kum-kum” | Jeden z polskich odgłosów żaby (obok „rech-rech”); żaby żyją przy wodzie, a las ze strumykiem pasuje |
+| Bzyczka ma dwie siostry i brata | W ulu żyją pszczoły-robotnice (samice) i trutnie (samce) |
+| Koszyczki na pyłek przy nóżkach | Pszczoły miodne noszą pyłek w „koszyczkach” na tylnych nogach |
+| „Pszczoły naprawdę tańczą, żeby pokazać drogę do kwiatów” | Taniec pszczół (np. taniec wywijany) przekazuje kierunek i odległość do pożytku |
+| Ul pod lipą na końcu łąki | Pszczoły chętnie zbierają nektar z lip; ule stoją na łąkach i w sadach |
+| Lornetka przybliża, latarka świeci w ciemności, mapa pokazuje drogę | Prawdziwe zastosowania przedmiotów |
+| Spokojny oddech pomaga przy wielkich emocjach | Powolny wydech to popularna technika uspokajania także u dzieci |
+| Wzór czerwona–niebieska | Prosty wzór naprzemienny (ABAB) |
 
 ## Lista klipów do produkcji
 
@@ -279,36 +469,36 @@ współdzielonym). Do prób: `python -m bajka.placeholders scenarios/klub_ciekaw
 
 | Plik | Co | Dźwięk | Długość |
 |---|---|---|---|
-| `01_powitanie.mp4` | Powitanie, motto, Bzyczka, prośba o „Hop-sa-sa” | tak | ~50 s |
+| `01_powitanie.mp4` | Plansza tytułowa, Świecąca Lupka, motto, Bzyczka, prośba o „Hop-sa-sa” | tak | ~70 s |
 | `01_powitanie_idle.mp4` | Lila i Fiku nasłuchują | **cisza** | 4–6 s (pętla) |
 | `02_kuferek.mp4` | Kuferek, trzy pomocniki, mapa, wybór drogi | tak | ~45 s |
 | `02_kuferek_idle.mp4` | Mapa z mostkiem i lasem | **cisza** | 4–6 s |
 | `03a_most.mp4` | Mostek, wzór kolorów | tak | ~40 s |
 | `03a_most_idle.mp4` | Dwie deski przy dziurze | **cisza** | 4–6 s |
 | `03b_las.mp4` | Las, „hu-hu”, pomyłka Fiku | tak | ~40 s |
-| `03b_las_idle.mp4` | Oczy w dziupli | **cisza** | 4–6 s |
+| `03b_las_idle.mp4` | Zaspane oczy w dziupli | **cisza** | 4–6 s |
 | `04_wiaterek.mp4` | Fiufiu, wspólny oddech | tak | ~55 s |
 | `04_wiaterek_idle.mp4` | Fiufiu „oddycha” | **cisza** | 4–8 s |
-| `05_pomocnik.mp4` | Daleki ul, trzy pomocniki | tak | ~40 s |
+| `05_pomocnik.mp4` | Daleki ul pod lipą, trzy pomocniki | tak | ~40 s |
 | `05_pomocnik_idle.mp4` | Pomocniki świecą po kolei | **cisza** | 4–6 s |
 | `06_laka.mp4` | Ul, trzy pszczółki, liczenie | tak | ~40 s |
 | `06_laka_idle.mp4` | Trzy pszczółki krążą | **cisza** | 4–6 s |
 | `07_swieto.mp4` | Podziękowania, wybór świętowania | tak | ~30 s |
 | `07_swieto_idle.mp4` | Wszyscy się kołyszą | **cisza** | 4–6 s |
-| `08a_koniec_taniec.mp4` | Taniec + pożegnanie | tak | ~60 s |
-| `08b_koniec_piosenka.mp4` | Piosenka + pożegnanie | tak | ~60 s |
+| `08a_koniec_taniec.mp4` | Taniec, pożegnanie, napisy końcowe | tak | ~75 s |
+| `08b_koniec_piosenka.mp4` | Piosenka, pożegnanie, napisy końcowe | tak | ~75 s |
 
-## Wskazówki dla animacji i nagrań
+Opcjonalnie, dla lepszej jakości kinowej: wezwania do okrzyków jako krótkie klipy (Lila wskazuje opcję, która się
+podświetla) — pole `call_clip` w YAML zamiast mówionego przez syntezator `call`.
 
-- **Pętle bez dźwięku** — w tym czasie słucha mikrofon. Muzyka w tle pętli zagłuszyłaby dziecko.
-- **Ostatnia klatka klipu = pierwsza klatka pętli**, wtedy przejście jest niewidoczne.
-- **Pytanie na końcu klipu** mówi zawsze Lila, patrząc w kamerę, i tymi samymi słowami co pole `question`
-  w YAML — na tej podstawie model językowy rozumie odpowiedź dziecka.
-- **Głos Lili w klipach** nagrywamy możliwie podobny do głosu syntezatora (`BAJKA_WINDOWS_VOICE`),
-  bo reakcje na żywo mówi syntezator. Wysokość i tempo dostroicie przez `BAJKA_WINDOWS_VOICE_PITCH`
-  i `BAJKA_WINDOWS_VOICE_RATE`.
-- **Pauzy na wspólne działanie** (`[pauza …]`) zostawiamy w klipie — postacie w tym czasie same coś robią
-  (oddychają, liczą), żeby dziecko miało wzór do naśladowania.
-- **Format:** MP4, H.264 + AAC, 1280×720 lub 1920×1080.
-- **Kolejne odcinki** mogą korzystać z tych samych postaci i mechanik (zawołanie Kuferka, trzy pomocniki,
-  Wiaterek i oddech, liczenie); zmienia się gość i cel wyprawy.
+## Plan na hackathon (prezentacja 18.10.2026, 19:00)
+
+Pełna animacja 10 scen to za dużo na trzy dni. Regulamin (§2 ust. 2) mówi o „zarysie” filmu, więc na pokaz
+wystarczy działający prototyp całego filmu:
+
+1. **Wszystkie sceny jako ilustrowane kotwice**: 1–3 ilustracje na scenę z ruchem kamery (ffmpeg, jak w projekcie
+   flow filmu) i nagranymi dialogami. Pętle oczekiwania to ta sama ilustracja z delikatnym ruchem i Świecącą Lupką.
+2. **Pełna animacja jednej sceny** jako próbka jakości — najlepiej SC. 4 (Wiaterek), bo pokazuje emocje i wspólny oddech.
+3. **Na pokazie dla jury** widownią jest jury: przebieg z okrzykami (krzykomierz) i odpowiedziami chórem działa
+   tak samo jak w kinie.
+4. Brakujące klipy zastępują zaślepki — aplikacja i tak przechodzi cały film.
