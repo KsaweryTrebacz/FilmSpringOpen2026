@@ -344,7 +344,9 @@ class _Handler(BaseHTTPRequestHandler):
             try:
                 data = json.loads(body)
             except ValueError:
-                self._json(400, {"error": "zły JSON"})
+                data = None
+            if not isinstance(data, dict):
+                self._json(400, {"error": "oczekiwano obiektu JSON"})
                 return
             status = self.server.audience.submit(
                 device, round_id, text=str(data.get("text") or "") or None, choice=data.get("choice")

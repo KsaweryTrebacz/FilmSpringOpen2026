@@ -5,7 +5,6 @@ import time
 import urllib.error
 import urllib.request
 import wave
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -15,7 +14,6 @@ from bajka.engine import StoryEngine
 from bajka.keywords import KeywordIntentResolver
 from bajka.mobile import MobileAudience, MobileServer, MobileSettings, join_page, samples_from_wav
 from bajka.ports import Audience, Interpretation
-from bajka.scenario import parse_scenario
 
 FAST = MobileSettings(round_seconds=0.6, resolve_seconds=1.0, https=False, host="127.0.0.1", port=0)
 PHONE_A, PHONE_B = "telefon-aaaa", "telefon-bbbb"
@@ -287,6 +285,8 @@ def test_server_rejects_bad_requests(server):
     _, url = server
 
     assert post(f"{url}api/answer?device=x&round=1", b"{}", "application/json")[0] == 400  # zły identyfikator
+    assert post(f"{url}api/answer?device={PHONE_A}&round=1", b"[1, 2]", "application/json")[0] == 400  # nie obiekt
+    assert post(f"{url}api/answer?device={PHONE_A}&round=1", b"{nie json", "application/json")[0] == 400
     assert post(f"{url}api/answer?device={PHONE_A}&round=1", b'{"text": "las"}', "application/json") == (409, {"status": "closed"})
     with pytest.raises(urllib.error.HTTPError):
         get(url + "../../etc/passwd")
