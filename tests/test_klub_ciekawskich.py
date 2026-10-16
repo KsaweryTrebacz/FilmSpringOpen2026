@@ -83,3 +83,9 @@ def test_screenplay_dialogue_has_no_gendered_forms_towards_the_audience():
 
     assert dialogue  # scenariusz ma dialogi w formacie "> **POSTAĆ**: ..."
     assert [line for line in dialogue if GENDERED_PAST.search(line)] == []
+
+
+def test_every_option_has_a_short_label_for_audience_phones():
+    labels = [c.label for s in SCENARIO.scenes.values() for c in s.choices.values()]
+
+    assert all(labels) and max(map(len, labels)) <= 24

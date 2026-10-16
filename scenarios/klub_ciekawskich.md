@@ -89,24 +89,36 @@ pomagamy (ręce do przodu)!”
 
 ## Seans w kinie: jak działa interakcja
 
-**Sygnał „Świecąca Lupka”.** We wszystkich pętlach oczekiwania w prawym dolnym rogu świeci i pulsuje lupa Lili.
-W prologu Lila tłumaczy: „Kiedy zaświeci się lupka, teraz mówicie wy!”. Dzięki temu dzieci wiedzą, kiedy
-krzyczeć, a kiedy oglądać.
+**Aplikacja mobilna widowni.** Odpowiedzi publiczności zbiera aplikacja na telefony ([opis w README](../README.md#aplikacja-mobilna-widowni)).
+Przed seansem na ekranie wisi plansza z kodem QR („Zeskanuj i dołącz do Klubu Ciekawskich!”); widzowie — dzieci
+razem z opiekunami — otwierają aplikację i zezwalają na mikrofon. Gdy Lila zadaje pytanie, telefon wibruje,
+pokazuje pytanie z opcjami i nagrywa odpowiedź, a komputer z filmem liczy głosy całej sali.
+
+**Sygnał „Świecąca Lupka”.** We wszystkich pętlach oczekiwania w prawym dolnym rogu ekranu świeci i pulsuje
+lupa Lili — ta sama lupka pulsuje w aplikacji na telefonie, gdy telefon słucha. W prologu Lila tłumaczy:
+„Kiedy zaświeci się lupka, teraz mówicie wy!”. Dzięki temu dzieci wiedzą, kiedy mówić, a kiedy oglądać.
 
 | Rodzaj interakcji | Kiedy | Jak działa |
 |---|---|---|
-| **Okrzyk** (krzykomierz) | Decyzje: SC. 1, 2, 4, 5, 7 | Lila wzywa po kolei do każdej opcji („Kto chce przez Tęczowy Mostek? Krzyczymy… Mostek!”). Po każdym wezwaniu mikrofon mierzy głośność sali; wygrywa najgłośniejsza opcja. Cisza albo remis → kolejna runda; po dwóch Lila wybiera sama |
-| **Odpowiedź chórem** (rozpoznawanie mowy) | Zagadki: SC. 3a, 3b, 6 | Sala wykrzykuje odpowiedź. Whisper zamienia ją na tekst, a model Phi (albo słowa kluczowe ze scenariusza) rozpoznaje wybór; Lila reaguje na żywo |
+| **Odpowiedź do telefonu** (aplikacja mobilna) | Każda scena z pytaniem: SC. 1–7 | Dziecko mówi odpowiedź do telefonu (albo dotyka opcji). Komputer rozpoznaje nagrania lokalnie i liczy głosy; wygrywa większość. Remis albo cisza → kolejna runda; po dwóch Lila wybiera sama |
+| **Okrzyk** (krzykomierz) — zapas bez telefonów | Decyzje: SC. 1, 2, 4, 5, 7 | Gdy żaden telefon nie jest połączony: Lila wzywa po kolei do każdej opcji („Kto chce przez Tęczowy Mostek? Krzyczymy… Mostek!”), a mikrofon przy ekranie mierzy głośność sali |
+| **Odpowiedź chórem** — zapas bez telefonów | Zagadki: SC. 3a, 3b, 6 | Gdy żaden telefon nie jest połączony: sala wykrzykuje odpowiedź, a Whisper i model Phi (albo słowa kluczowe) rozpoznają wybór z mikrofonu przy ekranie |
 | **Wspólne działanie** (bez nasłuchu) | W klipach | Motto z gestami, wspólny oddech, liczenie paluszkami, taniec i piosenka. Postacie robią to razem z widownią — `[pauza]` w scenariuszu |
 
+Wezwania do okrzyków (pole `call`) i dopytania mówi Lila tylko w trybie bez telefonów; z aplikacją mobilną
+pytanie z klipu wystarcza, a opcje widać na ekranie telefonu.
+
 **Przygotowanie sali:**
-- Mikrofon pod ekranem, skierowany na widownię, z dala od głośników.
+- Wi-Fi dla widzów w tej samej sieci co komputer z filmem (bez izolacji klientów); plansza z kodem QR (`…/qr`)
+  na ekranie przed seansem; na wejściu krótka informacja dla opiekunów o mikrofonie i prywatności.
+- Mikrofon pod ekranem, skierowany na widownię, z dala od głośników — na wypadek widzów bez telefonów.
 - Przed seansem kalibracja krzykomierza: `python -m bajka.vote` (gwar sali i próbny okrzyk, podpowiedź progów).
 - Głośność dialogów umiarkowana — małe dzieci są wrażliwe na hałas.
 - Pierwsze uruchomienie modeli zawsze przed seansem (pobieranie), potem wszystko działa bez internetu.
 
-**Prywatność i bezpieczeństwo:** głosu widowni nie nagrywamy ani nie zapisujemy. Kwestie Lili pisane na żywo
-przechodzą przez filtr (`bajka/safety.py`); podejrzana kwestia zamienia się w sprawdzoną kwestię ze scenariusza.
+**Prywatność i bezpieczeństwo:** głosu widowni nie zapisujemy — nagrania z telefonów są rozpoznawane w pamięci
+komputera z filmem i od razu usuwane. Kwestie Lili pisane na żywo przechodzą przez filtr (`bajka/safety.py`);
+podejrzana kwestia zamienia się w sprawdzoną kwestię ze scenariusza.
 
 ---
 
@@ -408,7 +420,7 @@ Dalej **pożegnanie** i **napisy końcowe**.
 >
 > Reakcje Lili w trakcie seansu tworzy na żywo sztuczna inteligencja działająca na tym komputerze
 > (Foundry Local: Whisper i Phi). [Jeśli użyte: ilustracje generowane z pomocą Azure AI Foundry.]
-> Głosów widowni nie nagrywamy ani nie zapisujemy.
+> Odpowiedzi z telefonów widzów są rozpoznawane na miejscu i nie są zapisywane.
 >
 > Postacie i historia są oryginalnym dziełem zespołu [nazwa zespołu]. Licencje użytego oprogramowania:
 > `docs/ZGODNOSC_Z_REGULAMINEM.md`.

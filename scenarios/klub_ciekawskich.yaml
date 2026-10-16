@@ -3,9 +3,10 @@
 # Klipy-zaślepki do prób: python -m bajka.placeholders scenarios/klub_ciekawskich.yaml
 # Próba bez mikrofonu i bez AI: python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed
 #
-# Seans w kinie: na sali siedzi wiele dzieci. Sceny `vote: true` rozstrzyga krzykomierz (bajka/vote.py):
-# Lila wzywa po kolei do każdej opcji, wygrywa najgłośniejszy okrzyk. Pozostałe sceny rozpoznają odpowiedź
-# wykrzyczaną chórem (Whisper + model językowy albo słowa kluczowe).
+# Seans w kinie: odpowiedzi widowni zbiera aplikacja mobilna (python -m bajka … --mobile): telefony nagrywają
+# odpowiedzi, a wygrywa większość głosów; `label` to nazwa opcji na ekranie telefonu. Bez telefonów sceny
+# `vote: true` rozstrzyga krzykomierz (bajka/vote.py: Lila wzywa do opcji, wygrywa najgłośniejszy okrzyk),
+# a pozostałe rozpoznają odpowiedź wykrzyczaną chórem (Whisper + model językowy albo słowa kluczowe).
 # Na żywo mówi tylko Lila (głos syntezatora). Do widowni w liczbie mnogiej, bez czasu przeszłego
 # („pomożecie?”, „świetnie wam idzie”), więc bez form zależnych od płci.
 
@@ -31,6 +32,7 @@ scenes:
     vote: true
     choices:
       hopsasa:
+        label: Hop-sa-sa!
         description: dzieci wołają hasło „Hopsasa” albo coś podobnego (np. „hop”, „sasa”) lub zgadzają się zawołać Kuferek
         next: kuferek
         reply: Hop-sa-sa! Słyszycie? Kuferek się budzi!
@@ -48,12 +50,14 @@ scenes:
     vote: true
     choices:
       most:
+        label: Tęczowy Mostek
         description: iść przez Tęczowy Mostek nad strumykiem (most, mostek, tęcza, kolory, woda)
         next: most
         reply: Wygrywa Tęczowy Mostek! Ciekawe, jakie ma kolory!
         call: Kto chce przez Tęczowy Mostek? Krzyczymy… Mostek!
         keywords: [most, mostek, tęcza, tęczowy, kolorowy, strumyk, woda, rzeka]
       las:
+        label: Szumiący Las
         description: iść przez Szumiący Las (las, drzewa, szumi)
         next: las
         reply: Wygrywa Szumiący Las! Posłuchamy, kto tam mieszka!
@@ -70,11 +74,13 @@ scenes:
     default: czerwona
     choices:
       czerwona:
+        label: Czerwona deska
         description: dzieci mówią, że pasuje czerwona deska (dobra odpowiedź, bo kolory idą na zmianę)
         next: wiaterek
         reply: Czerwona! Brawo, wzór się zgadza. Czerwona, niebieska, czerwona!
         keywords: [czerwona, czerwony, czerwone, truskawka]
       niebieska:
+        label: Niebieska deska
         description: dzieci mówią, że pasuje niebieska deska (pomyłka; łagodnie pokaż, że po niebieskiej przychodzi czerwona)
         next: wiaterek
         reply: Niebieska była przed chwilą, więc teraz kolej na czerwoną. Wkładamy czerwoną i pasuje!
@@ -90,11 +96,13 @@ scenes:
     default: sowa
     choices:
       sowa:
+        label: Sowa
         description: dzieci mówią, że to sowa (dobra odpowiedź) albo naśladują „hu-hu”
         next: wiaterek
         reply: Sowa! Macie rację. Sowy w dzień zwykle śpią, a my ją chyba budzimy!
         keywords: [sowa, sówka, sowy, hu, huhu, ptak]
       zaba:
+        label: Żaba
         description: dzieci mówią, że to żaba (pomyłka; łagodnie popraw, że żaba robi kum-kum, a hu-hu woła sowa)
         next: wiaterek
         reply: Żaba robi kum-kum! A hu-hu woła sowa. Zobaczcie, siedzi tam na gałęzi!
@@ -111,6 +119,7 @@ scenes:
     vote: true
     choices:
       spokojnie:
+        label: Tak, udało się!
         description: dzieci mówią, że się udało, oddychają albo dmuchają razem z bohaterką (tak, już, fuu, uff, udało się)
         next: pomocnik
         reply: Hurra! Fiufiu oddycha spokojnie i już nic nie fruwa. Dziękujemy za pomoc!
@@ -128,18 +137,21 @@ scenes:
     vote: true
     choices:
       mapa:
+        label: Mapa Rozkładanka
         description: dzieci wybierają mapę (pokazała drogę, ale nie przybliży ula; łagodnie podsuń lornetkę)
         next: laka
         reply: Mapa pokazała nam drogę! A żeby zobaczyć daleko, weźmy lornetkę… Jest ul!
         call: Kto wybiera Mapę Rozkładankę? Krzyczymy… Mapa!
         keywords: [mapa, mapę, mapy, rozkładanka]
       latarka:
+        label: Latarka Świetliczka
         description: dzieci wybierają latarkę (nie pomoże, bo jest jasno; łagodnie podsuń lornetkę)
         next: laka
         reply: Latarka świeci w ciemności, a teraz jest jasno. Weźmy lornetkę… Jest ul!
         call: Kto wybiera Latarkę Świetliczkę? Krzyczymy… Latarka!
         keywords: [latarka, latarkę, latarki, świetliczka, światło]
       lornetka:
+        label: Lornetka Patrzałka
         description: dzieci wybierają lornetkę (dobra odpowiedź, lornetka przybliża to, co daleko)
         next: laka
         reply: Lornetka! Przybliża to, co jest daleko. Widzę ul!
@@ -156,11 +168,13 @@ scenes:
     default: trzy
     choices:
       trzy:
+        label: Trzy
         description: dzieci mówią, że pszczółek są trzy (dobra odpowiedź; liczy się też „jeden, dwa, trzy”)
         next: swieto
         reply: Trzy! Jedna, dwie, trzy pszczółki. Brawo, świetnie liczycie!
         keywords: [trzy, "3", trzech, trzema, trójka]
       inna_liczba:
+        label: Inna liczba
         description: dzieci podają inną liczbę niż trzy (łagodnie policz z nimi jeszcze raz do trzech)
         next: swieto
         reply: Policzmy razem jeszcze raz. Jedna, dwie, trzy! Trzy pszczółki. Super, że liczycie ze mną!
@@ -177,12 +191,14 @@ scenes:
     vote: true
     choices:
       taniec:
+        label: Pszczółkowy taniec
         description: świętować tańcem pszczółek (taniec, tańczyć, ruch, skakać)
         next: koniec_taniec
         reply: Pszczółkowy taniec! Wstańcie i machajcie rękami jak skrzydełkami. Bzz, bzz!
         call: Kto chce pszczółkowy taniec? Krzyczymy… Taniec!
         keywords: [taniec, tańczyć, tańczymy, tańca, skaczemy, skakać]
       piosenka:
+        label: Piosenka o kwiatkach
         description: świętować piosenką o kwiatkach (piosenka, śpiewać, muzyka)
         next: koniec_piosenka
         reply: Piosenka! Śpiewajcie z nami. La, la, la!
