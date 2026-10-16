@@ -92,7 +92,7 @@ Wersję sceny film wybiera w chwili, gdy scena się zaczyna. Sala musi więc by�
 
 | Pytanie | Odpowiedź |
 |---|---|
-| Czy zbieracie dane dzieci? | Nie zapisujemy niczego. Telefon nagrywa głos tylko w trakcie pytania; nagranie jest rozpoznawane w pamięci laptopa i od razu znika. Rozpoznawanie mowy działa lokalnie na laptopie (tryb `--backend azure` wysłałby nagranie do Azure, więc na pokazie go nie używamy). Tętno w demo jest symulowane |
+| Czy zbieracie dane dzieci? | Nie zapisujemy niczego. Telefon nagrywa głos tylko w trakcie pytania. Nagranie trafia do laptopa, na chwilę do pliku tymczasowego, i jest usuwane zaraz po rozpoznaniu. Na pokazie nic nie idzie do chmury (tryb `--backend azure` wysłałby nagranie do Azure, więc go nie używamy). Tętno w demo jest symulowane |
 | Skąd naprawdę weźmiecie tętno? | Z zegarka sparowanego z telefonem: Health Connect (Android), HealthKit (iOS) albo standard Bluetooth „Heart Rate”. Do komputera trafia tylko średnia sali |
 | A RODO? | Tętno to dane o zdrowiu (art. 9). Tylko za wyraźną zgodą opiekunów, dobrowolnie, w trakcie seansu i bez zapisywania |
 | Ile to kosztuje kino? | Jeden laptop (na przykład Copilot+ PC) i Wi-Fi. Modele AI działają lokalnie, bez opłat za chmurę |

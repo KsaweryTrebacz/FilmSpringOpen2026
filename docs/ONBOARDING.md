@@ -110,7 +110,7 @@ Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m ba
   siatka bezpieczeństwa dla kwestii pisanych przez model.
 - **Treść oddzielona od kodu.** Pytania, opcje, słowa kluczowe, reakcje i klipy żyją w scenariuszu, więc autor
   historii nie potrzebuje programisty.
-- **Prywatność.** Nagrania są przetwarzane w pamięci i nie są zapisywane.
+- **Prywatność.** Nagrania nie są przechowywane: trafiają do komputera z filmem, na chwilę do pliku tymczasowego (dla rozpoznawania mowy) i są usuwane zaraz po rozpoznaniu.
 
 ## Słowniczek
 

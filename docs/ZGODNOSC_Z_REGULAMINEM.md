@@ -78,7 +78,7 @@ Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
 
 | Kwestia | Rozwiązanie | Stan |
 |---|---|---|
-| Gdzie trafia nagranie | Tylko do komputera z filmem w sieci lokalnej, szyfrowane (HTTPS); rozpoznawane w pamięci i od razu usuwane; bez chmury w trybie lokalnym | **OK** |
+| Gdzie trafia nagranie | Tylko do komputera z filmem w sieci lokalnej, szyfrowane (HTTPS); rozpoznawane lokalnie, na chwilę przez plik tymczasowy, usuwany zaraz po rozpoznaniu; bez chmury w trybie lokalnym | **OK** |
 | Kiedy telefon nagrywa | Tylko w trakcie rundy pytania (pulsuje lupka), najwyżej kilka sekund; poza rundami nic nie jest wysyłane | **OK** |
 | Informacja dla widza | Przed dołączeniem aplikacja mówi, że nagranie służy tylko do rozpoznania odpowiedzi i nie jest zapisywane | **OK** |
 | Dzieci i opiekunowie | Telefon należy zwykle do opiekuna, który dołącza i zezwala na mikrofon; przed seansem krótka informacja dla opiekunów (plansza przy wejściu albo słowo prowadzącego) | **ZESPÓŁ** |

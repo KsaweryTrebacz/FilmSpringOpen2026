@@ -100,7 +100,8 @@ Ważne na sali:
   raz pokaże ostrzeżenie o połączeniu, które trzeba zaakceptować („Zaawansowane → Przejdź do strony”). Bez ostrzeżeń:
   własny certyfikat w `BAJKA_MOBILE_CERT` i `BAJKA_MOBILE_KEY`.
 - Ekran aplikacji jest ciemny, żeby telefony nie rozświetlały sali.
-- Nagrania są przetwarzane w pamięci komputera i nie są zapisywane; telefon mówi o tym przed dołączeniem.
+- Nagrania nie są przechowywane: trafiają do komputera z filmem, na chwilę do pliku tymczasowego (dla rozpoznawania
+  mowy) i są usuwane zaraz po rozpoznaniu. W trybie lokalnym nic nie idzie do chmury. Telefon mówi o tym przed dołączeniem.
 
 Próba z telefonami bez filmu: `python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek --no-llm`
 (Enter otwiera kolejną rundę, w konsoli widać odpowiedzi i głosy). Pod adresem `…/?tekst` aplikacja ma też pole
