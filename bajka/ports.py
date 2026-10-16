@@ -73,3 +73,16 @@ class Audience(Protocol):
         Pusta lista oznacza, że nikt nie odpowiedział.
         """
 
+
+@dataclass(frozen=True)
+class Pulse:
+    bpm: float  # średnie tętno sali
+    viewers: int  # od ilu widzów pochodzi średnia (w demo: symulowanych)
+
+
+@runtime_checkable
+class AudiencePulse(Protocol):
+    """Tętno sali: średnia z zegarków widzów (na pokazie z symulatora, bajka/pulse.py)."""
+
+    def read(self) -> Pulse:
+        """Bieżące średnie tętno sali."""

@@ -26,6 +26,7 @@ i własne demo, więc dwie osoby mogą commitować równolegle na `main` bez wch
 | [`bajka/local_tts.py`](../bajka/local_tts.py) — kwestia bohatera → głos Windows, offline | `Voice` | B | `python -m bajka.local_tts "Cześć!"` | `tests/test_local_tts.py` |
 | [`bajka/player.py`](../bajka/player.py) — VLC w pełnoekranowym oknie | `Player` | B | `python -m bajka.player KLIP PĘTLA` | ręcznie (wymaga VLC) |
 | [`bajka/placeholders.py`](../bajka/placeholders.py) — klipy-zaślepki | — | B | `python -m bajka.placeholders scenarios/las_czy_jaskinia.yaml` | `tests/test_placeholders.py` |
+| [`bajka/pulse.py`](../bajka/pulse.py) — tętno sali (na pokazie z symulatora) i stan sali | `AudiencePulse` | C | `python -m bajka.pulse --script` | `tests/test_pulse.py` |
 
 Wszystkie moduły działają na poziomie szkieletu (testy na atrapach). Najbliższe kroki:
 

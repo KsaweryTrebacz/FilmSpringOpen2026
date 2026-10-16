@@ -132,6 +132,7 @@ python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure
 python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos bohatera (Azure TTS)
 python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
 python -m bajka.player scenarios/clips/intro.mp4 scenarios/clips/intro_idle.mp4   # klip → pętla (VLC)
+python -m bajka.pulse --script                       # symulator tętna sali: spokojnie, ekscytacja, uspokojenie
 ```
 
 Każde demo wypisuje czas odpowiedzi, co pomaga stroić `BAJKA_INITIAL_SILENCE_MS`, `BAJKA_END_SILENCE_MS`
@@ -193,6 +194,7 @@ scenariusza. Scena bez `choices` kończy bajkę.
 | `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter |
 | `bajka/console.py` | Tryb `--text` do prób bez mikrofonu |
 | `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg) |
+| `bajka/pulse.py` | Tętno sali: symulator na pokaz (`SimulatedPulse`) i stan sali (`hall_state`) |
 | `bajka/app.py` | Złożenie całości i uruchomienie |
 
 Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne ustawienia
