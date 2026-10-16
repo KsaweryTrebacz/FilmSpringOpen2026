@@ -1,10 +1,10 @@
-"""Silnik bajki: odtwarza sceny, słucha dziecka i wybiera kolejny klip."""
+"""Silnik bajki: odtwarza sceny, słucha dziecka (albo całej widowni) i wybiera kolejny klip."""
 
 from __future__ import annotations
 
 import logging
 
-from bajka.ports import IntentResolver, Interpretation, Listener, Player, Voice
+from bajka.ports import IntentResolver, Interpretation, Listener, Player, ShoutMeter, Voice
 from bajka.scenario import Choice, Scenario, Scene
 
 log = logging.getLogger(__name__)
@@ -26,6 +26,7 @@ class StoryEngine:
         voice: Voice,
         resolver: IntentResolver,
         max_reprompts: int = 2,
+        meter: ShoutMeter | None = None,
     ) -> None:
         self._scenario = scenario
         self._player = player
@@ -33,6 +34,7 @@ class StoryEngine:
         self._voice = voice
         self._resolver = resolver
         self._max_reprompts = max_reprompts
+        self._meter = meter  # bez krzykomierza sceny `vote` rozpoznają wybór z mowy, jak pozostałe
 
     def run(self) -> list[str]:
         """Odtwarza bajkę i zwraca identyfikatory odwiedzonych scen."""
@@ -46,8 +48,41 @@ class StoryEngine:
                 return visited
             if scene.idle is not None:
                 self._player.loop(scene.idle)
-            choice = self._ask(scene)
+            choice = self._vote(scene) if scene.vote and self._meter is not None else self._ask(scene)
             scene = self._scenario.scene(choice.next)
+
+    def _vote(self, scene: Scene) -> Choice:
+        """Runda okrzyków: bohaterka wzywa po kolei do każdej opcji, wygrywa najgłośniejsza."""
+        for attempt in range(self._max_reprompts + 1):
+            winner = self._shout_round(scene)
+            if winner is not None:
+                choice = scene.choices[winner]
+                self._say(choice.reply)
+                return choice
+            if attempt < self._max_reprompts:
+                self._say(scene.reprompt)
+        default = scene.choices[scene.default]
+        log.info("Za cicho albo remis, bohater wybiera sam: %s", default.id)
+        self._say(f"{scene.fallback or DEFAULT_FALLBACK} {default.reply}")
+        return default
+
+    def _shout_round(self, scene: Scene) -> str | None:
+        try:
+            self._meter.calibrate()
+            levels: dict[str, float] = {}
+            for choice in scene.choices.values():
+                if choice.call_clip is not None:
+                    self._player.play(choice.call_clip)
+                    self._player.loop(scene.idle)
+                else:
+                    self._say(choice.call)
+                levels[choice.id] = self._meter.measure()
+            winner = self._meter.winner(levels)
+        except Exception:
+            log.exception("Błąd krzykomierza, traktuję jak ciszę")
+            return None
+        log.info("Okrzyki: %s -> %s", ", ".join(f"{k}={v:.0f}" for k, v in levels.items()), winner)
+        return winner if winner in scene.choices else None
 
     def _ask(self, scene: Scene) -> Choice:
         for attempt in range(self._max_reprompts + 1):

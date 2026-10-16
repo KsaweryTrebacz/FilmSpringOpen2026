@@ -4,7 +4,7 @@ import sys
 import pytest
 import yaml
 
-from bajka.app import build_resolver, choose_backend, main, parse_args
+from bajka.app import build_meter, build_resolver, choose_backend, main, parse_args
 from bajka.config import ConfigError
 from bajka.keywords import KeywordIntentResolver
 
@@ -44,6 +44,14 @@ def test_backend_defaults_to_local_and_can_come_from_env():
     assert choose_backend(parse_args(["b.yaml", "--backend", "local"]), {"BAJKA_BACKEND": "azure"}) == "local"
     with pytest.raises(ConfigError, match="BAJKA_BACKEND"):
         choose_backend(argparse.Namespace(backend=None), {"BAJKA_BACKEND": "chmura"})
+
+
+def test_shout_meter_is_typed_in_text_mode_and_uses_microphone_otherwise():
+    from bajka.console import ConsoleMeter
+    from bajka.vote import MicrophoneMeter
+
+    assert isinstance(build_meter({}, text_mode=True), ConsoleMeter)
+    assert isinstance(build_meter({}, text_mode=False), MicrophoneMeter)  # mikrofon otwiera się dopiero przy pomiarze
 
 
 def test_no_llm_uses_keywords_without_loading_any_model():

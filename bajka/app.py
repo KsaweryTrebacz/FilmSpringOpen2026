@@ -19,7 +19,7 @@ from bajka.foundry import FoundryError
 from bajka.intent import AzureIntentResolver, LlmSettings
 from bajka.keywords import FallbackResolver, KeywordIntentResolver
 from bajka.local_tts import VoiceNotFoundError
-from bajka.ports import IntentResolver, Listener, Voice
+from bajka.ports import IntentResolver, Listener, ShoutMeter, Voice
 from bajka.scenario import ScenarioError, load_scenario, missing_media
 
 if TYPE_CHECKING:
@@ -86,6 +86,17 @@ def build_speech(env: Mapping[str, str], text_mode: bool, backend: str = "azure"
     return AzureListener.from_settings(SttSettings.from_env(env)), AzureVoice.from_settings(TtsSettings.from_env(env))
 
 
+def build_meter(env: Mapping[str, str], text_mode: bool) -> ShoutMeter:
+    """Krzykomierz do scen `vote`: mikrofon na sali albo głośność wpisywana w konsoli przy próbach."""
+    if text_mode:
+        from bajka.console import ConsoleMeter
+
+        return ConsoleMeter()
+    from bajka.vote import MicrophoneMeter, VoteSettings
+
+    return MicrophoneMeter(VoteSettings.from_env(env))
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s: %(message)s")
     args = parse_args(argv)
@@ -103,6 +114,7 @@ def main(argv: list[str] | None = None) -> int:
         backend = choose_backend(args, env)
         max_reprompts = get_int(env, "BAJKA_MAX_REPROMPTS", 2)
         log.info("Tryb: %s%s", backend, ", bez modelu językowego" if args.no_llm else "")
+        meter = build_meter(env, args.text)
         listener, voice = build_speech(env, args.text, backend)
         resolver = build_resolver(env, backend, not args.no_llm, scenario.hero)
     except (ConfigError, FoundryError, VoiceNotFoundError, OSError) as exc:
@@ -118,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
 
     root = tk.Tk()
     player = VlcPlayer(root, fullscreen=not args.windowed)
-    engine = StoryEngine(scenario, player, listener, voice, resolver, max_reprompts=max_reprompts)
+    engine = StoryEngine(scenario, player, listener, voice, resolver, max_reprompts=max_reprompts, meter=meter)
     run_window(root, player, engine)
     return 0
 

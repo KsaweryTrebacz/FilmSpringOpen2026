@@ -44,3 +44,17 @@ class Voice(Protocol):
 class IntentResolver(Protocol):
     def resolve(self, scene: Scene, transcript: str) -> Interpretation:
         """Zamienia wypowiedź dziecka na wybór ze sceny i kwestię bohatera."""
+
+
+@runtime_checkable
+class ShoutMeter(Protocol):
+    """Krzykomierz: mierzy okrzyki widowni w scenach `vote` (seans w kinie)."""
+
+    def calibrate(self) -> None:
+        """Mierzy gwar sali tuż przed rundą okrzyków."""
+
+    def measure(self) -> float:
+        """Mierzy okrzyk zaraz po wezwaniu do jednej opcji i zwraca jego głośność."""
+
+    def winner(self, levels: dict[str, float]) -> str | None:
+        """Zwycięska opcja rundy albo None, gdy było za cicho lub wyszedł remis."""

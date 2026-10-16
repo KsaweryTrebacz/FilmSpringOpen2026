@@ -19,6 +19,8 @@ class Choice:
     next: str  # identyfikator kolejnej sceny
     reply: str  # statyczna kwestia bohatera, gdy LLM nie odpowie
     keywords: tuple[str, ...] = ()  # słowa, po których wybór rozpozna się bez LLM (bajka/keywords.py)
+    call: str = ""  # scena `vote`: wezwanie do okrzyku, np. "Kto za mostkiem? Krzyczymy: MOSTEK!" (TTS)
+    call_clip: Path | None = None  # scena `vote`: to samo wezwanie jako nagrany klip (ma pierwszeństwo przed `call`)
 
 
 @dataclass(frozen=True)
@@ -31,6 +33,7 @@ class Scene:
     fallback: str = ""
     default: str | None = None
     choices: dict[str, Choice] = field(default_factory=dict)
+    vote: bool = False  # widownia wybiera okrzykiem: wygrywa najgłośniej wykrzyczana opcja (seans w kinie)
 
     @property
     def is_ending(self) -> bool:
@@ -79,6 +82,7 @@ def missing_media(scenario: Scenario) -> list[Path]:
         paths.append(scene.clip)
         if scene.idle is not None:
             paths.append(scene.idle)
+        paths.extend(c.call_clip for c in scene.choices.values() if c.call_clip is not None)
     return [path for path in paths if not path.is_file()]
 
 
@@ -96,9 +100,16 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
             next=_require_str(c, "next", f"{where}, wybór '{cid}'"),
             reply=_require_str(c, "reply", f"{where}, wybór '{cid}'"),
             keywords=_optional_words(c, "keywords", f"{where}, wybór '{cid}'"),
+            call=str(c.get("call") or "").strip() if isinstance(c, dict) else "",
+            call_clip=base_dir / c["call_clip"] if isinstance(c, dict) and c.get("call_clip") else None,
         )
         for cid, c in raw_choices.items()
     }
+    vote = bool(data.get("vote", False))
+    if vote:
+        silent = [c.id for c in choices.values() if not c.call and c.call_clip is None]
+        if silent:
+            raise ScenarioError(f"{where}: scena 'vote' wymaga 'call' albo 'call_clip' w wyborach: {', '.join(silent)}")
     clip = base_dir / _require_str(data, "clip", where)
     if not choices:
         return Scene(id=scene_id, clip=clip)
@@ -111,6 +122,7 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
         fallback=str(data.get("fallback") or "").strip(),
         default=_require_str(data, "default", where),
         choices=choices,
+        vote=vote,
     )
 
 
