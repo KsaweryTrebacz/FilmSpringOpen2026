@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import yaml
@@ -66,13 +67,41 @@ def test_live_scenario_needs_ffmpeg(live_scenario, monkeypatch, tmp_path):
 def test_live_scenario_builds_modules_that_fulfil_contracts(live_scenario, monkeypatch, tmp_path):
     monkeypatch.setattr("bajka.app.shutil.which", lambda name: "ffmpeg")
 
-    live = build_live_images({**FULL_ENV, "BAJKA_IMAGE_TIMEOUT_S": "20"}, live_scenario, lambda: tmp_path)
+    live = build_live_images(
+        {**FULL_ENV, "BAJKA_IMAGE_TIMEOUT_S": "20", "BAJKA_MOTION_SECONDS": "4.5"}, live_scenario, lambda: tmp_path
+    )
 
     assert isinstance(live.imaginer, Imaginer)
     assert isinstance(live.imaginer, SafeImaginer)  # kwestie wyobraźni przechodzą przez filtr regulaminu
     assert isinstance(live.illustrator, Illustrator)
     assert isinstance(live.animator, Animator)
     assert live.timeout_s == 20.0
+    assert live.motion_seconds == 4.5  # tyle samo trwa klip, co obraz na ekranie
+
+
+def test_main_hands_the_clip_length_to_the_engine_as_time_on_screen(tmp_path, monkeypatch, live_dict):
+    monkeypatch.chdir(tmp_path)
+    scenario_file = tmp_path / "bajka.yaml"
+    scenario_file.write_text(yaml.safe_dump(live_dict, allow_unicode=True), encoding="utf-8")
+    for path, _, _ in planned_clips(parse_scenario(live_dict, base_dir=tmp_path)):
+        path.touch()
+    live = LiveImages(imaginer=object(), illustrator=object(), animator=object(), timeout_s=7.0, motion_seconds=4.5)
+    created = {}
+
+    class SpyEngine:
+        def __init__(self, *args, **kwargs):
+            created.update(kwargs)
+
+    monkeypatch.setattr("bajka.app.build_live_images", lambda env, scenario: live)
+    monkeypatch.setattr("bajka.app.StoryEngine", SpyEngine)
+    monkeypatch.setattr("bajka.app.run_window", lambda root, player, engine: None)
+    monkeypatch.setattr("tkinter.Tk", lambda: object())  # bez okna i bez VLC
+    monkeypatch.setitem(sys.modules, "bajka.player", SimpleNamespace(VlcPlayer=lambda root, fullscreen=True: object()))
+
+    assert main([str(scenario_file), "--text", "--no-llm", "--windowed"]) == 0
+
+    assert created["generated_seconds"] == 4.5
+    assert created["image_timeout_s"] == 7.0
 
 
 def test_new_session_dir_removes_pictures_of_previous_sessions(tmp_path):

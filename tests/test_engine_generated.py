@@ -1,4 +1,5 @@
 import threading
+import time
 from concurrent.futures import Future
 from pathlib import Path
 
@@ -87,8 +88,22 @@ def cave_story(story, scenario_dict):
     return parse_scenario(scenario_dict, base_dir=Path("film"))
 
 
-def make_engine(scenario, listener, illustrator, answer="las"):
-    player, voice = FakePlayer(), FakeVoice()
+class SlowVoice(FakeVoice):
+    """Kwestia wskazanego tekstu trwa tyle, ile potrzeba na wypowiedzenie jej na głos."""
+
+    def __init__(self, slow_line, seconds):
+        super().__init__()
+        self._slow_line = slow_line
+        self._seconds = seconds
+
+    def say(self, text):
+        if text == self._slow_line:
+            time.sleep(self._seconds)
+        super().say(text)
+
+
+def make_engine(scenario, listener, illustrator, answer="las", voice=None, **engine_options):
+    player, voice = FakePlayer(), voice or FakeVoice()
     engine = StoryEngine(
         scenario,
         player,
@@ -99,6 +114,7 @@ def make_engine(scenario, listener, illustrator, answer="las"):
         illustrator=illustrator,
         animator=FakeAnimator(),
         image_timeout_s=2.0,
+        **engine_options,
     )
     return engine, player, voice
 
@@ -134,6 +150,47 @@ def test_choice_scene_draws_generated_branch_while_question_is_asked(story):
     assert listener.drawing_started_before_answer
     assert illustrator.prompts.count("cave glowing with crystals") == 1  # nie rysujemy drugi raz
     assert ("loop", "cave.mp4") in player.calls
+
+
+def timed_run(engine):
+    started = time.monotonic()
+    visited = engine.run()
+    return visited, time.monotonic() - started
+
+
+def test_generated_scene_stays_on_screen_for_the_requested_time_after_short_narration(story):
+    engine, _, _ = make_engine(
+        story, FakeListener("jaskinia"), NamedIllustrator(), answer="jaskinia", generated_seconds=0.4
+    )
+
+    visited, elapsed = timed_run(engine)
+
+    assert visited == ["intro", "gen_jaskinia", "jaskinia"]
+    assert elapsed >= 0.3  # narracja (w teście natychmiastowa) nie skraca pokazu obrazu
+
+
+def test_narration_counts_towards_the_time_on_screen(story):
+    voice = SlowVoice("Ale tu pięknie świeci!", seconds=0.3)
+    engine, _, _ = make_engine(
+        story, FakeListener("jaskinia"), NamedIllustrator(), answer="jaskinia", voice=voice, generated_seconds=0.4
+    )
+
+    _, elapsed = timed_run(engine)
+
+    assert 0.35 <= elapsed < 0.65  # dochodzi tylko reszta (0,1 s), a nie całe 0,4 s po narracji
+
+
+def test_stop_ends_the_wait_on_the_picture_at_once(story):
+    engine, player, _ = make_engine(
+        story, FakeListener("jaskinia"), NamedIllustrator(), answer="jaskinia", generated_seconds=5.0
+    )
+    threading.Timer(0.1, engine.stop).start()
+
+    visited, elapsed = timed_run(engine)
+
+    assert visited == ["intro", "gen_jaskinia"]
+    assert elapsed < 2.0
+    assert ("play", "jaskinia.mp4") not in player.calls
 
 
 def test_generated_scene_failure_uses_fallback_clip_without_apology(story):

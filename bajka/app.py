@@ -140,6 +140,7 @@ class LiveImages:
     illustrator: Illustrator | None = None
     animator: Animator | None = None
     timeout_s: float = 25.0
+    motion_seconds: float = 6.0  # tyle trwa klip z ilustracji, więc tyle co najmniej pokazujemy scenę generowaną
 
 
 def prepare_session_dir(base: Path | None = None) -> Path:
@@ -177,6 +178,7 @@ def build_live_images(
         illustrator=AzureIllustrator.from_settings(images, directory, scenario.style, scenario.references),
         animator=FfmpegAnimator.from_settings(motion, directory),
         timeout_s=float(images.timeout_s),
+        motion_seconds=motion.seconds,
     )
 
 
@@ -237,6 +239,7 @@ def main(argv: list[str] | None = None) -> int:
         illustrator=live.illustrator,
         animator=live.animator,
         image_timeout_s=live.timeout_s,
+        generated_seconds=live.motion_seconds,
     )
     try:
         run_window(root, player, engine)

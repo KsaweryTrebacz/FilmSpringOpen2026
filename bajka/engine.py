@@ -60,6 +60,7 @@ class StoryEngine:
         illustrator: Illustrator | None = None,
         animator: Animator | None = None,
         image_timeout_s: float = 25.0,
+        generated_seconds: float = 0.0,
         rng: random.Random | None = None,
     ) -> None:
         missing = [name for name, module in (("imaginer", imaginer), ("illustrator", illustrator),
@@ -70,6 +71,7 @@ class StoryEngine:
         self._illustrator = illustrator
         self._animator = animator
         self._image_timeout_s = image_timeout_s
+        self._generated_seconds = generated_seconds  # tyle najmniej zostaje na ekranie obraz sceny generowanej
         self._rng = rng or random.Random()
         self._stopped = threading.Event()
         # Scena generowana może paść przed pytaniem otwartym (inna gałąź): domyślny pomysł jest od początku.
@@ -277,7 +279,12 @@ class StoryEngine:
         self._prefetch((scene.next,))
         clip = self._clip_or_fallback(scene, future, deadline, announce=False)
         self._loop(clip)
+        shown_at = time.monotonic()
         self._say(scene.narration)  # postać mówi na tle zapętlonej ilustracji
+        remaining = self._generated_seconds - (time.monotonic() - shown_at)
+        if remaining > 0:  # krótka narracja albo brak głosu (--text): obraz i tak ma chwilę pobyć
+            self._check_stopped()
+            self._stopped.wait(remaining)  # Esc przerywa czekanie
 
     def _prefetch(self, scene_ids: Iterable[str]) -> None:
         for scene_id in scene_ids:
