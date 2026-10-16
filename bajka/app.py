@@ -20,6 +20,7 @@ from bajka.intent import AzureIntentResolver, LlmSettings
 from bajka.keywords import FallbackResolver, KeywordIntentResolver
 from bajka.local_tts import VoiceNotFoundError
 from bajka.ports import IntentResolver, Listener, ShoutMeter, Voice
+from bajka.safety import SafeReplyResolver
 from bajka.scenario import ScenarioError, load_scenario, missing_media
 
 if TYPE_CHECKING:
@@ -58,15 +59,17 @@ def choose_backend(args: argparse.Namespace, env: Mapping[str, str]) -> str:
 
 
 def build_resolver(env: Mapping[str, str], backend: str, use_llm: bool, hero: str) -> IntentResolver:
-    """Model językowy z zapasem w postaci słów kluczowych albo same słowa kluczowe (`--no-llm`)."""
+    """Model językowy z filtrem kwestii i zapasem w postaci słów kluczowych albo same słowa kluczowe (`--no-llm`)."""
     keywords = KeywordIntentResolver()
     if not use_llm:
         return keywords
     if backend == "azure":
-        return FallbackResolver(AzureIntentResolver.from_settings(LlmSettings.from_env(env), hero), keywords)
-    from bajka.local_intent import LocalIntentResolver, LocalLlmSettings
+        llm: IntentResolver = AzureIntentResolver.from_settings(LlmSettings.from_env(env), hero)
+    else:
+        from bajka.local_intent import LocalIntentResolver, LocalLlmSettings
 
-    return FallbackResolver(LocalIntentResolver.from_settings(LocalLlmSettings.from_env(env), hero), keywords)
+        llm = LocalIntentResolver.from_settings(LocalLlmSettings.from_env(env), hero)
+    return FallbackResolver(SafeReplyResolver(llm), keywords)
 
 
 def build_speech(env: Mapping[str, str], text_mode: bool, backend: str = "azure") -> tuple[Listener, Voice]:
