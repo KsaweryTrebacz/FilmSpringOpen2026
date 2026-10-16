@@ -207,13 +207,12 @@ def main(argv: list[str] | None = None) -> int:
         log.info("Widzowie: otwórzcie %s w telefonie. Kod QR na ekran kina: %sqr", url, url)
     if panel is not None:
         try:
-            url = panel.server.start()
+            panel.server.start()  # adres panelu wypisuje sam PanelServer
         except OSError as exc:
             log.error("Nie udało się uruchomić panelu dla jury: %s", exc)
             if mobile is not None:
                 mobile.stop()
             return 2
-        log.info("Panel dla jury: otwórzcie %s w przeglądarce (ten komputer albo tablet jury)", url)
         if not scenario.mood:
             log.info("Scenariusz nie ma pola 'mood': panel pokazuje drzewo i głosy, a sceny grają zwykłe wersje")
     root = tk.Tk()

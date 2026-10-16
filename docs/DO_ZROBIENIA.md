@@ -1,6 +1,6 @@
 # Do zrobienia
 
-Stan na 16.10.2026 (307 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
+Stan na 16.10.2026 (308 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
 Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md).
 
 ## Kod i podpięcie (przed pokazem)
@@ -8,8 +8,9 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [x] Rysowanie na żywo usunięte z projektu (16.10): wszystkie animacje filmu są przygotowane wcześniej.
   W zamian [film, który czuje salę](superpowers/specs/2026-10-16-film-czuje-sale-design.md): tętno widowni,
   wersje scen i panel dla jury.
-- [x] Film, który czuje salę: symulowane tętno sali, spokojne wersje scen `las`, `wiaterek` i `swieto`,
-  panel dla jury (`--panel`) i [przebieg pokazu](DEMO_DLA_JURY.md).
+- [x] Film, który czuje salę: symulowane tętno sali, panel dla jury (`--panel`) i [przebieg pokazu](DEMO_DLA_JURY.md).
+  Pola `variants` (spokojne wersje) scen `las`, `wiaterek` i `swieto` są w scenariuszu, a same klipy spokojnych
+  wersji jeszcze trzeba przygotować (punkt „Spokojne wersje montażu” niżej).
 
 ## Testy na prawdziwym sprzęcie (nic z tego nie było jeszcze uruchomione)
 

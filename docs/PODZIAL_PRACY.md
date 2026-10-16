@@ -38,6 +38,8 @@ Wszystkie moduły działają na poziomie szkieletu (testy na atrapach). Najbliż
 - **B:** zainstalować VLC 64-bit (`winget install --id VideoLAN.VLC -e`) i sprawdzić przejście klip → pętla;
   dodać polski głos Windows i dobrać wysokość i tempo Lili (`BAJKA_WINDOWS_VOICE_PITCH`, `BAJKA_WINDOWS_VOICE_RATE`)
   przez `python -m bajka.local_tts`; przygotować klipy z [listy w scenariuszu](../scenarios/klub_ciekawskich.md#lista-klipów-do-produkcji).
+- **C:** próba z panelem (`python -m bajka scenarios/klub_ciekawskich.yaml --mobile --panel`), spokojne wersje trzech scen
+  (`las`, `wiaterek`, `swieto`), przebieg pokazu według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md).
 
 ## Zasady modułu
 

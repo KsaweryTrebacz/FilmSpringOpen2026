@@ -197,8 +197,37 @@ def test_build_panel_connects_pulse_simulator_and_panel_state(scenario):
     assert panel.pulse.read().bpm == pytest.approx(80.0, abs=2)
 
 
-def run_main_with_spies(tmp_path, monkeypatch, scenario_dict, *flags):
+# Zmienne środowiskowe, które z komputera dewelopera zmieniłyby wynik testów uruchamiających main()
+ENV_VARS_THAT_CHANGE_MAIN = (
+    "BAJKA_PANEL",
+    "BAJKA_MOBILE",
+    "BAJKA_BACKEND",
+    "BAJKA_PULSE_VIEWERS",
+    "BAJKA_PULSE_START_BPM",
+    "BAJKA_PULSE_EXCITED",
+    "BAJKA_PULSE_BORED",
+)
+
+
+class SpyServer:
+    """Serwer panelu bez sieci: zapisuje, co się z nim działo."""
+
+    def __init__(self, events):
+        self._events = events
+
+    def start(self):
+        self._events.append("panel uruchomiony")
+        return "http://127.0.0.1:8090/"
+
+    def stop(self):
+        self._events.append("panel zatrzymany")
+
+
+def install_spies(tmp_path, monkeypatch, scenario_dict, make_server=SpyServer):
+    """Podmienia panel, silnik, okno i odtwarzacz; zwraca ścieżkę scenariusza, argumenty silnika i zdarzenia."""
     monkeypatch.chdir(tmp_path)
+    for name in ENV_VARS_THAT_CHANGE_MAIN:
+        monkeypatch.delenv(name, raising=False)
     write_media(tmp_path, scenario_dict)
     path = write_scenario(tmp_path / "bajka.yaml", scenario_dict)
     created, events = {}, []
@@ -207,20 +236,19 @@ def run_main_with_spies(tmp_path, monkeypatch, scenario_dict, *flags):
         def __init__(self, *args, **kwargs):
             created.update(kwargs)
 
-    class SpyServer:
-        def start(self):
-            events.append("panel uruchomiony")
-            return "http://127.0.0.1:8090/"
-
-        def stop(self):
-            events.append("panel zatrzymany")
-
     real_build_panel = build_panel
-    monkeypatch.setattr("bajka.app.build_panel", lambda env, s: replace(real_build_panel(env, s), server=SpyServer()))
+    monkeypatch.setattr(
+        "bajka.app.build_panel", lambda env, s: replace(real_build_panel(env, s), server=make_server(events))
+    )
     monkeypatch.setattr("bajka.app.StoryEngine", SpyEngine)
     monkeypatch.setattr("bajka.app.run_window", lambda root, player, engine: events.append("film"))
     monkeypatch.setattr("tkinter.Tk", lambda: object())  # bez okna i bez VLC
     monkeypatch.setitem(sys.modules, "bajka.player", SimpleNamespace(VlcPlayer=lambda root, fullscreen=True: object()))
+    return path, created, events
+
+
+def run_main_with_spies(tmp_path, monkeypatch, scenario_dict, *flags):
+    path, created, events = install_spies(tmp_path, monkeypatch, scenario_dict)
 
     assert main([str(path), "--text", "--no-llm", "--windowed", *flags]) == 0
     return created, events
@@ -240,3 +268,15 @@ def test_main_without_panel_runs_the_film_without_pulse(tmp_path, monkeypatch, s
 
     assert events == ["film"]
     assert created["pulse"] is None and created["observer"] is None
+
+
+def test_main_exits_with_code_2_when_the_panel_cannot_start(tmp_path, monkeypatch, scenario_dict, caplog):
+    class BusyServer(SpyServer):
+        def start(self):
+            raise OSError("port zajęty")
+
+    path, created, events = install_spies(tmp_path, monkeypatch, scenario_dict, make_server=BusyServer)
+
+    assert main([str(path), "--text", "--no-llm", "--windowed", "--panel"]) == 2
+    assert "Nie udało się uruchomić panelu dla jury" in caplog.text
+    assert "film" not in events and created == {}  # okno filmu nie ruszyło, silnik nie powstał
