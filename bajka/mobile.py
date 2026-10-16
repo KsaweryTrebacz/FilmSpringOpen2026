@@ -326,6 +326,16 @@ class _Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "nie ma takiej strony"})
 
     def do_POST(self) -> None:
+        # Najpierw czytamy treść zapytania: odpowiedź bez jej wczytania Windows kończy zerwaniem połączenia (10053).
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = -1
+        body = b""
+        if 0 < length <= MAX_UPLOAD_BYTES:
+            body = self.rfile.read(length)
+        else:
+            self.close_connection = True  # nieprzeczytana treść: nie używamy dalej tego połączenia
         url = urlparse(self.path)
         if url.path != "/api/answer":
             self._json(404, {"error": "nie ma takiej strony"})
@@ -335,14 +345,12 @@ class _Handler(BaseHTTPRequestHandler):
             return
         try:
             round_id = int(parse_qs(url.query).get("round", [""])[0])
-            length = int(self.headers.get("Content-Length") or 0)
         except ValueError:
             self._json(400, {"error": "zły numer rundy"})
             return
-        if not 0 < length <= MAX_UPLOAD_BYTES:
+        if not body:
             self._json(413, {"error": "za duże albo puste nagranie"})
             return
-        body = self.rfile.read(length)
         if (self.headers.get("Content-Type") or "").startswith("application/json"):
             try:
                 data = json.loads(body)

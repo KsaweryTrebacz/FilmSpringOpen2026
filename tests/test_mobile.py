@@ -1,3 +1,4 @@
+import http.client
 import io
 import json
 import threading
@@ -12,7 +13,7 @@ import pytest
 from bajka.config import ConfigError
 from bajka.engine import StoryEngine
 from bajka.keywords import KeywordIntentResolver
-from bajka.mobile import MobileAudience, MobileServer, MobileSettings, join_page, samples_from_wav
+from bajka.mobile import MAX_UPLOAD_BYTES, MobileAudience, MobileServer, MobileSettings, join_page, samples_from_wav
 from bajka.ports import Audience, Interpretation
 
 FAST = MobileSettings(round_seconds=0.6, resolve_seconds=1.0, https=False, host="127.0.0.1", port=0)
@@ -290,6 +291,37 @@ def test_server_rejects_bad_requests(server):
     assert post(f"{url}api/answer?device={PHONE_A}&round=1", b'{"text": "las"}', "application/json") == (409, {"status": "closed"})
     with pytest.raises(urllib.error.HTTPError):
         get(url + "../../etc/passwd")
+
+
+@pytest.mark.parametrize(
+    ("path", "expected"),
+    [
+        ("api/answer?device=x&round=1", 400),  # zły identyfikator telefonu
+        (f"api/answer?device={PHONE_A}&round=abc", 400),  # zły numer rundy
+        (f"api/nie-ma?device={PHONE_A}&round=1", 404),  # nieznany adres
+    ],
+)
+def test_rejected_upload_is_answered_only_after_its_body_was_read(server, path, expected):
+    # Odpowiedź przed wczytaniem treści Windows kończy zerwaniem połączenia (WinError 10053) po stronie telefonu.
+    _, url = server
+
+    status, _ = post(url + path, bytes(MAX_UPLOAD_BYTES), "audio/wav")
+
+    assert status == expected
+
+
+def test_empty_and_oversized_uploads_get_413(server):
+    _, url = server
+    answer = f"api/answer?device={PHONE_A}&round=1"
+
+    assert post(url + answer, b"", "audio/wav")[0] == 413
+    host, port = url.split("//")[1].rstrip("/").split(":")
+    connection = http.client.HTTPConnection(host, int(port), timeout=5)
+    try:  # treści nie wysyłamy: serwer ma odmówić po samym nagłówku Content-Length
+        connection.request("POST", "/" + answer, headers={"Content-Length": str(MAX_UPLOAD_BYTES + 1)})
+        assert connection.getresponse().status == 413
+    finally:
+        connection.close()
 
 
 def test_second_server_cannot_take_a_port_that_is_already_listening(server):
