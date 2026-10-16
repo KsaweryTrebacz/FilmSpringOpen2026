@@ -19,6 +19,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# Lokalne AI bez chmury: Foundry Local (Whisper, Phi na NPU/GPU/CPU przez Windows ML) i głos z Windows.
+local = [
+    "foundry-local-sdk>=2.1",
+    "winrt-runtime>=3.2; sys_platform == 'win32'",
+    "winrt-Windows.Foundation>=3.2; sys_platform == 'win32'",
+    "winrt-Windows.Media.SpeechSynthesis>=3.2; sys_platform == 'win32'",
+    "winrt-Windows.Storage.Streams>=3.2; sys_platform == 'win32'",
+]
 
 [tool.setuptools]
 packages = ["bajka"]
