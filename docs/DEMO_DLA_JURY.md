@@ -36,7 +36,7 @@ Jury jest widownią: mówi do swoich telefonów, a jedna osoba steruje tętnem s
 
 Film rusza zaraz po uruchomieniu, bez przycisku start. Dlatego komendę uruchamiamy dopiero wtedy, gdy jury siedzi.
 
-1. Uruchomcie komendę z punktu 4. W konsoli pojawią się adres panelu (domyślnie `http://127.0.0.1:8090/`)
+1. Uruchomcie komendę z punktu 5. W konsoli pojawią się adres panelu (domyślnie `http://127.0.0.1:8090/`)
    i adres kodu QR dla telefonów (`https://<adres laptopa>:8443/qr`, po słowach „Kod QR na ekran kina”).
 2. Otwórzcie w przeglądarce stronę z kodem QR i pokażcie ją jury: obróćcie ekran laptopa albo na chwilę
    przesuńcie okno przeglądarki na projektor. Potem otwórzcie panel.
