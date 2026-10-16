@@ -43,7 +43,7 @@ scenes:
     kind: generated
     image_prompt: "the little fox walking home through a meadow at sunset, proudly carrying {skarb}"
     narration: Wracam do domu z naszym skarbem. Dziękuję, że pomagasz mi w wyprawie!
-    fallback_clips: [clips/rysowanie/powrot_zapas.mp4]
+    fallback_clips: [clips/rysowanie/powrot_zapas.mp4]   # BEZ dźwięku: gra w pętli pod narracją
     next: jaskinia
 
   las:

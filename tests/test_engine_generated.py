@@ -1,4 +1,5 @@
 import threading
+from concurrent.futures import Future
 from pathlib import Path
 
 import pytest
@@ -128,3 +129,63 @@ def test_generated_scene_failure_uses_fallback_clip_without_apology(story):
     assert ("loop", "jaskinia_zapas.mp4") in player.calls
     assert FALLBACK_VISION_LINE not in voice.lines
     assert voice.lines[-1] == "Ale tu pięknie świeci!"
+
+
+class InlineExecutor:
+    """Zamiast puli wątków: wykonuje zlecenia od razu, w kolejności zlecenia (deterministyczny test kolejki)."""
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def submit(self, fn, *args):
+        future = Future()
+        try:
+            future.set_result(fn(*args))
+        except Exception as exc:
+            future.set_exception(exc)
+        return future
+
+    def shutdown(self, wait=True, cancel_futures=False):
+        pass
+
+
+class QueueingExecutor(InlineExecutor):
+    """Rysunki jaskini „czekają w kolejce” (nie startują), resztę wykonuje od razu."""
+
+    def __init__(self, *args, **kwargs):
+        self.waiting = []
+
+    def submit(self, fn, *args):
+        if args and str(args[0]).startswith("cave"):
+            future = Future()
+            self.waiting.append(future)
+            return future
+        return super().submit(fn, *args)
+
+
+def test_childs_own_drawing_is_queued_before_background_drawing(story, monkeypatch):
+    monkeypatch.setattr("bajka.engine.ThreadPoolExecutor", InlineExecutor)
+    illustrator = NamedIllustrator()
+    engine, _, _ = make_engine(story, FakeListener("las", "wstążkami"), illustrator)
+
+    engine.run()
+
+    own = illustrator.prompts.index("beehive decorated with rainbow ribbons")
+    background = illustrator.prompts.index("party at the beehive decorated with rainbow ribbons")
+    assert own < background
+
+
+def test_dropped_branch_waiting_in_queue_is_cancelled(story, monkeypatch):
+    executors = []
+
+    def make_executor(*args, **kwargs):
+        executors.append(QueueingExecutor())
+        return executors[-1]
+
+    monkeypatch.setattr("bajka.engine.ThreadPoolExecutor", make_executor)
+    engine, _, _ = make_engine(story, FakeListener("las", "wstążkami"), NamedIllustrator())
+
+    engine.run()
+
+    (cave,) = executors[0].waiting  # gałąź jaskini zlecona przy pytaniu, dziecko wybrało las
+    assert cave.cancelled()

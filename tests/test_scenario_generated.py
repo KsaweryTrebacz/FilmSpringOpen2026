@@ -76,7 +76,7 @@ def test_missing_media_and_placeholders_cover_only_fallbacks_of_generated_scene(
     scenario = parse_scenario(generated_dict, base_dir=tmp_path)
 
     assert tmp_path / "final_zapas.mp4" in missing_media(scenario)
-    assert (tmp_path / "final_zapas.mp4", "darkred", True) in planned_clips(scenario)
+    assert (tmp_path / "final_zapas.mp4", "darkred", False) in planned_clips(scenario)  # cichy: pętla pod narracją
 
 
 def test_live_drawing_example_returns_home_with_remembered_treasure():

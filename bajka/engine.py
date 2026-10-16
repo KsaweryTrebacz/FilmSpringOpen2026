@@ -214,12 +214,12 @@ class StoryEngine:
             self._player.play(self._fallback_clip(scene))
             return
         self._memory[scene.remember] = vision.idea
-        self._prefetch((scene.next,))  # następna scena może już korzystać z tego pomysłu
         if scene.drawing is not None:
             self._player.loop(scene.drawing)
         prompt = fill_prompt(scene.image_prompt, {**self._memory, "idea": vision.idea})
         deadline = time.monotonic() + self._image_timeout_s
         future = self._pool.submit(self._render, prompt)
+        self._prefetch((scene.next,))  # dopiero po rysunku dziecka: jego pomysł ma pierwszeństwo w kolejce
         if vision.reply:
             self._say(vision.reply)  # postać mówi, a obraz w tym czasie się rysuje
         self._player.play(self._clip_or_fallback(scene, future, deadline))
@@ -262,7 +262,9 @@ class StoryEngine:
 
     def _drop_prefetched(self, scene_ids: Iterable[str]) -> None:
         for scene_id in scene_ids:
-            self._prefetched.pop(scene_id, None)  # niewybrana gałąź: wynik i tak przepada
+            entry = self._prefetched.pop(scene_id, None)
+            if entry is not None:
+                entry[0].cancel()  # niewybrana gałąź: jeśli jeszcze czeka w kolejce, nie rysujemy jej wcale
 
     def _render(self, prompt: str) -> Path:
         started = time.monotonic()
