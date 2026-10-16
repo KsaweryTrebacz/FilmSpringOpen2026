@@ -6,9 +6,10 @@ pozostałych modułów, więc można go rozwijać i testować osobno. Silnik baj
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from bajka.scenario import Scene
 
@@ -86,3 +87,11 @@ class AudiencePulse(Protocol):
 
     def read(self) -> Pulse:
         """Bieżące średnie tętno sali."""
+
+
+@runtime_checkable
+class ShowObserver(Protocol):
+    """Obserwator seansu: panel dla jury (bajka/panel.py) dostaje zdarzenia z silnika."""
+
+    def event(self, kind: str, data: Mapping[str, Any]) -> None:
+        """Zdarzenie seansu: `scena`, `odniesienie`, `wersja`, `glosy` albo `decyzja` z danymi do pokazania."""

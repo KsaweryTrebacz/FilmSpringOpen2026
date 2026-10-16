@@ -6,8 +6,19 @@ import logging
 import threading
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
-from bajka.ports import Audience, AudiencePulse, IntentResolver, Interpretation, Listener, Player, ShoutMeter, Voice
+from bajka.ports import (
+    Audience,
+    AudiencePulse,
+    IntentResolver,
+    Interpretation,
+    Listener,
+    Player,
+    ShoutMeter,
+    ShowObserver,
+    Voice,
+)
 from bajka.pulse import PulseSettings, hall_state, pick_variant
 from bajka.scenario import Choice, Scenario, Scene
 
@@ -38,8 +49,10 @@ class StoryEngine:
         audience: Audience | None = None,
         pulse: AudiencePulse | None = None,
         pulse_settings: PulseSettings | None = None,
+        observer: ShowObserver | None = None,
     ) -> None:
         self._stopped = threading.Event()
+        self._observer = observer  # panel dla jury; jego błędy nigdy nie zatrzymują filmu
         self._pulse = pulse  # tętno sali; bez niego sceny grają zawsze zwykłą wersję
         self._pulse_settings = pulse_settings or PulseSettings()
         self._baseline: float | None = None  # tętno tuż po pierwszej scenie, punkt odniesienia na cały seans
@@ -68,19 +81,28 @@ class StoryEngine:
         self._check_stopped()
         self._player.loop(clip)
 
-    def _clip_for(self, scene: Scene) -> Path:
-        """Wersja montażu według tętna sali; zwykły klip, gdy tętna nie ma albo sala jest w normie."""
+    def _emit(self, kind: str, **data: Any) -> None:
+        if self._observer is None:
+            return
+        try:
+            self._observer.event(kind, data)
+        except Exception:
+            log.exception("Błąd panelu, film leci dalej")
+
+    def _clip_for(self, scene: Scene) -> tuple[Path, str]:
+        """Klip i nazwa wersji według tętna sali; zwykła wersja, gdy tętna nie ma albo sala jest w normie."""
         if not scene.variants or self._pulse is None or self._baseline is None:
-            return scene.clip
+            return scene.clip, "zwykla"
         bpm = self._read_bpm()
         if bpm is None:
-            return scene.clip
+            return scene.clip, "zwykla"
         state = hall_state(bpm, self._baseline, self._pulse_settings)
         variant = pick_variant(self._scenario.mood, state)
-        chosen = variant if variant in scene.variants else None
+        chosen = variant if variant in scene.variants else "zwykla"
         log.info("Tętno sali %.0f (odniesienie %.0f), sala %s: scena %s w wersji %s",
-                 bpm, self._baseline, state, scene.id, chosen or "zwykłej")  # fmt: skip
-        return scene.variants[chosen] if chosen else scene.clip
+                 bpm, self._baseline, state, scene.id, chosen)  # fmt: skip
+        self._emit("wersja", scene=scene.id, bpm=bpm, baseline=self._baseline, state=state, variant=chosen)
+        return scene.variants.get(chosen, scene.clip), chosen
 
     def _read_bpm(self) -> float | None:
         try:
@@ -98,11 +120,15 @@ class StoryEngine:
                 self._check_stopped()
                 visited.append(scene.id)
                 log.info("Scena: %s", scene.id)
-                self._play(self._clip_for(scene))
+                clip, variant = self._clip_for(scene)
+                self._emit("scena", scene=scene.id, clip=clip.name, variant=variant)
+                self._play(clip)
                 if scene.is_ending:
                     return visited
                 if self._pulse is not None and self._baseline is None:
                     self._baseline = self._read_bpm()  # sala dopiero usiadła
+                    if self._baseline is not None:
+                        self._emit("odniesienie", bpm=self._baseline)
                 if scene.idle is not None:
                     self._loop(scene.idle)
                 scene = self._scenario.scene(self._decide(scene).next)
@@ -116,6 +142,10 @@ class StoryEngine:
         if scene.vote and self._meter is not None:
             return self._vote(scene)
         return self._ask(scene)
+
+    def _decided(self, scene: Scene, choice: Choice, how: str) -> Choice:
+        self._emit("decyzja", scene=scene.id, choice=choice.id, label=choice.display_label, how=how)
+        return choice
 
     def _phones_connected(self) -> bool:
         try:
@@ -131,19 +161,20 @@ class StoryEngine:
             votes = Counter(a.choice_id for a in answers if a.choice_id in scene.choices)
             ranked = votes.most_common(2)
             log.info("Odpowiedzi z telefonów: %d, głosy: %s", len(answers), dict(votes))
+            self._emit("glosy", scene=scene.id, source="telefony", counts={cid: votes[cid] for cid in scene.choices})
             if ranked and (len(ranked) == 1 or ranked[0][1] > ranked[1][1]):
                 choice = scene.choices[ranked[0][0]]
                 # Jedna odpowiedź = osobista reakcja modelu; przy wielu Lila mówi stałą kwestię ze scenariusza.
                 personal = answers[0].reply if len(answers) == 1 else ""
                 self._say(personal or choice.reply)
-                return choice
+                return self._decided(scene, choice, "wiekszosc")
             if attempt < self._max_reprompts:
                 unclear = answers[0].reply if len(answers) == 1 and not votes else ""
                 self._say(unclear or scene.reprompt)
         default = scene.choices[scene.default]
         log.info("Brak decyzji z telefonów, bohater wybiera sam: %s", default.id)
         self._say(f"{scene.fallback or DEFAULT_FALLBACK} {default.reply}")
-        return default
+        return self._decided(scene, default, "domyslna")
 
     def _collect(self, scene: Scene) -> list[Interpretation]:
         try:
@@ -159,13 +190,13 @@ class StoryEngine:
             if winner is not None:
                 choice = scene.choices[winner]
                 self._say(choice.reply)
-                return choice
+                return self._decided(scene, choice, "okrzyk")
             if attempt < self._max_reprompts:
                 self._say(scene.reprompt)
         default = scene.choices[scene.default]
         log.info("Za cicho albo remis, bohater wybiera sam: %s", default.id)
         self._say(f"{scene.fallback or DEFAULT_FALLBACK} {default.reply}")
-        return default
+        return self._decided(scene, default, "domyslna")
 
     def _shout_round(self, scene: Scene) -> str | None:
         try:
@@ -185,6 +216,7 @@ class StoryEngine:
             log.exception("Błąd krzykomierza, traktuję jak ciszę")
             return None
         log.info("Okrzyki: %s -> %s", ", ".join(f"{k}={v:.0f}" for k, v in levels.items()), winner)
+        self._emit("glosy", scene=scene.id, source="krzykomierz", counts={k: round(v) for k, v in levels.items()})
         return winner if winner in scene.choices else None
 
     def _ask(self, scene: Scene) -> Choice:
@@ -195,7 +227,7 @@ class StoryEngine:
                 if interpretation.choice_id is not None:
                     choice = scene.choices[interpretation.choice_id]
                     self._say(interpretation.reply or choice.reply)
-                    return choice
+                    return self._decided(scene, choice, "odpowiedz")
                 retry_line = interpretation.reply or scene.reprompt
             else:
                 retry_line = scene.reprompt
@@ -204,7 +236,7 @@ class StoryEngine:
         default = scene.choices[scene.default]
         log.info("Brak decyzji, bohater wybiera sam: %s", default.id)
         self._say(f"{scene.fallback or DEFAULT_FALLBACK} {default.reply}")
-        return default
+        return self._decided(scene, default, "domyslna")
 
     def _listen(self) -> str | None:
         self._check_stopped()
