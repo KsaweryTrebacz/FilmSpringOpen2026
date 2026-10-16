@@ -5,11 +5,13 @@ from __future__ import annotations
 import argparse
 import logging
 import threading
+from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from bajka.config import ConfigError, Settings, load_settings
+from bajka.config import ConfigError, get_int, load_env
 from bajka.engine import StoryEngine
+from bajka.intent import AzureIntentResolver, LlmSettings
 from bajka.ports import Listener, Voice
 from bajka.scenario import ScenarioError, load_scenario, missing_media
 
@@ -31,15 +33,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def build_speech(settings: Settings, text_mode: bool) -> tuple[Listener, Voice]:
+def build_speech(env: Mapping[str, str], text_mode: bool) -> tuple[Listener, Voice]:
     if text_mode:
         from bajka.console import ConsoleListener, ConsoleVoice
 
         return ConsoleListener(), ConsoleVoice()
-    from bajka.speech import AzureListener, AzureVoice, make_speech_config
+    from bajka.stt import AzureListener, SttSettings
+    from bajka.tts import AzureVoice, TtsSettings
 
-    config = make_speech_config(settings)
-    return AzureListener.from_config(config), AzureVoice.from_settings(config, settings)
+    return AzureListener.from_settings(SttSettings.from_env(env)), AzureVoice.from_settings(TtsSettings.from_env(env))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -47,7 +49,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
         scenario = load_scenario(args.scenario)
-        settings = load_settings(require_speech=not args.text)
+        env = load_env()
+        resolver = AzureIntentResolver.from_settings(LlmSettings.from_env(env), scenario.hero)
+        listener, voice = build_speech(env, args.text)
+        max_reprompts = get_int(env, "BAJKA_MAX_REPROMPTS", 2)
     except (ScenarioError, ConfigError, OSError) as exc:
         log.error("%s", exc)
         return 2
@@ -58,14 +63,11 @@ def main(argv: list[str] | None = None) -> int:
 
     import tkinter as tk
 
-    from bajka.intent import AzureIntentResolver
     from bajka.player import VlcPlayer
 
-    listener, voice = build_speech(settings, args.text)
-    resolver = AzureIntentResolver.from_settings(settings, scenario.hero)
     root = tk.Tk()
     player = VlcPlayer(root, fullscreen=not args.windowed)
-    engine = StoryEngine(scenario, player, listener, voice, resolver, max_reprompts=settings.max_reprompts)
+    engine = StoryEngine(scenario, player, listener, voice, resolver, max_reprompts=max_reprompts)
     run_window(root, player, engine)
     return 0
 

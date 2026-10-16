@@ -1,15 +1,43 @@
-"""Analiza intencji dziecka przez Azure OpenAI (np. wdrożenie GPT-4o-mini)."""
+"""Analiza intencji dziecka przez Azure OpenAI (np. wdrożenie GPT-4o-mini).
+
+Moduł spełnia kontrakt `bajka.ports.IntentResolver`.
+Test promptu bez reszty aplikacji: python -m bajka.intent SCENARIUSZ "wypowiedź dziecka" [--scene ID]
+"""
 
 from __future__ import annotations
 
+import argparse
 import json
+import sys
+import time
+from collections.abc import Mapping
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
-from bajka.config import Settings
+from bajka.config import ConfigError, load_env, require
 from bajka.ports import Interpretation
-from bajka.scenario import Scene
+from bajka.scenario import Scene, ScenarioError, load_scenario
 
 UNKNOWN = "nie_wiem"
+
+
+@dataclass(frozen=True)
+class LlmSettings:
+    endpoint: str
+    api_key: str
+    deployment: str  # nazwa wdrożenia w Azure, nie nazwa modelu
+    api_version: str = "2024-10-21"
+
+    @classmethod
+    def from_env(cls, env: Mapping[str, str]) -> LlmSettings:
+        require(env, "AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY", "AZURE_OPENAI_DEPLOYMENT")
+        return cls(
+            endpoint=env["AZURE_OPENAI_ENDPOINT"],
+            api_key=env["AZURE_OPENAI_API_KEY"],
+            deployment=env["AZURE_OPENAI_DEPLOYMENT"],
+            api_version=env.get("AZURE_OPENAI_API_VERSION") or cls.api_version,
+        )
 
 SYSTEM_PROMPT = """\
 Jesteś bohaterem interaktywnej bajki dla dzieci w wieku 4-8 lat. Twoja postać: {hero}
@@ -78,17 +106,17 @@ class AzureIntentResolver:
         self._temperature = temperature
 
     @classmethod
-    def from_settings(cls, settings: Settings, hero: str) -> AzureIntentResolver:
+    def from_settings(cls, settings: LlmSettings, hero: str) -> AzureIntentResolver:
         from openai import AzureOpenAI
 
         client = AzureOpenAI(
-            azure_endpoint=settings.openai_endpoint,
-            api_key=settings.openai_api_key,
-            api_version=settings.openai_api_version,
+            azure_endpoint=settings.endpoint,
+            api_key=settings.api_key,
+            api_version=settings.api_version,
             timeout=10.0,
             max_retries=1,
         )
-        return cls(client, settings.openai_deployment, hero)
+        return cls(client, settings.deployment, hero)
 
     def resolve(self, scene: Scene, transcript: str) -> Interpretation:
         response = self._client.chat.completions.create(
@@ -99,3 +127,42 @@ class AzureIntentResolver:
             max_tokens=200,
         )
         return parse_interpretation(response.choices[0].message.content or "", scene)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="python -m bajka.intent", description="Test rozpoznawania intencji przez Azure OpenAI."
+    )
+    parser.add_argument("scenario", type=Path, help="plik YAML ze scenariuszem bajki")
+    parser.add_argument("transcript", help="wypowiedź dziecka, np. \"tam gdzie ciemno\"")
+    parser.add_argument("--scene", help="identyfikator sceny z pytaniem (domyślnie scena startowa)")
+    args = parser.parse_args(argv)
+    try:
+        scenario = load_scenario(args.scenario)
+        settings = LlmSettings.from_env(load_env())
+    except (ScenarioError, ConfigError, OSError) as exc:
+        print(exc, file=sys.stderr)
+        return 2
+    scene_id = args.scene or scenario.start
+    scene = scenario.scenes.get(scene_id)
+    if scene is None or scene.is_ending:
+        print(f"Scena '{scene_id}' nie istnieje albo nie ma wyborów", file=sys.stderr)
+        return 2
+
+    resolver = AzureIntentResolver.from_settings(settings, scenario.hero)
+    print(f"Scena: {scene.id} — {scene.question}")
+    print(f"Dziecko: {args.transcript!r}", flush=True)
+    started = time.perf_counter()
+    try:
+        interpretation = resolver.resolve(scene, args.transcript)
+    except Exception as exc:  # demo ma pokazać każdy błąd Azure OpenAI, a nie wywrócić się
+        print(f"Błąd Azure OpenAI: {exc}", file=sys.stderr)
+        return 1
+    print(f"Wybór: {interpretation.choice_id or 'nie rozpoznano (bohater dopyta)'}")
+    print(f"Bohater: {interpretation.reply}")
+    print(f"({time.perf_counter() - started:.1f} s)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
