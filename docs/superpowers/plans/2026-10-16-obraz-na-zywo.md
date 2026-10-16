@@ -1401,7 +1401,8 @@ Expected: `17 passed`
    `python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml "a little fox waving hello in a sunny meadow"`
    Expected: `ilustracje\obraz_xxxxxxxx.png (NN.N s)`. Obejrzyj PNG: akwarela, bez napisów.
 3. **Pomiar bez referencji:**
-   `python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml --batch scenarios/pomiar_obrazow.yaml --out pomiar/bez-referencji`
+   `python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml --batch scenarios/pomiar_obrazow.yaml --retries 0 --out pomiar/bez-referencji`
+   (`--retries 0`: mierzymy sam czas generowania; domyślnie `--batch` ponawia 3 razy, co zawyżyłoby medianę)
    Expected: 10 linii z czasem, na końcu `Mediana: … s, maksimum: … s, udane: N/10`.
    - Jeśli ujęcia 01–03 (Lila) padają z `content_policy_violation`, zespół upraszcza opis Lili w stronę „cartoon character” i powtarza pomiar.
 4. **Karta postaci:**

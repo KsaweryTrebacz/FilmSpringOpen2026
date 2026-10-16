@@ -1,5 +1,6 @@
 # Pomiar dnia 1: 10 typowych scen z pomysłami dzieci w świecie „Klubu Ciekawskich”.
-# python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml --batch scenarios/pomiar_obrazow.yaml --out pomiar/gpt-image-2
+# python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml --batch scenarios/pomiar_obrazow.yaml --retries 0 --out pomiar/gpt-image-2
+# (--retries 0: mierzymy sam czas generowania, bez ponowień przy limicie Azure)
 # Sceny 01–03 pokazują Lilę (dziewczynkę): sprawdzają, czy filtr Azure nie blokuje ilustrowanego dziecka.
 - name: "01_lila_mostek"
   prompt: "Lila, a 7-year-old explorer girl in yellow rain boots and dungarees with a big magnifying glass, crossing a rainbow bridge over a stream"
