@@ -116,8 +116,8 @@ pytanie z klipu wystarcza, a opcje widać na ekranie telefonu.
 - Głośność dialogów umiarkowana — małe dzieci są wrażliwe na hałas.
 - Pierwsze uruchomienie modeli zawsze przed seansem (pobieranie), potem wszystko działa bez internetu.
 
-**Prywatność i bezpieczeństwo:** głosu widowni nie zapisujemy — nagrania z telefonów są rozpoznawane w pamięci
-komputera z filmem i od razu usuwane. Kwestie Lili pisane na żywo przechodzą przez filtr (`bajka/safety.py`);
+**Prywatność i bezpieczeństwo:** głosu widowni nie przechowujemy — nagrania z telefonów trafiają do komputera
+z filmem, na chwilę do pliku tymczasowego, i są usuwane zaraz po rozpoznaniu. Kwestie Lili pisane na żywo przechodzą przez filtr (`bajka/safety.py`);
 podejrzana kwestia zamienia się w sprawdzoną kwestię ze scenariusza.
 
 ---
@@ -418,7 +418,7 @@ Dalej **pożegnanie** i **napisy końcowe**.
 >
 > Reakcje Lili w trakcie seansu tworzy na żywo sztuczna inteligencja działająca na tym komputerze
 > (Foundry Local: Whisper i Phi). [Jeśli użyte: ilustracje generowane z pomocą Azure AI Foundry.]
-> Odpowiedzi z telefonów widzów są rozpoznawane na miejscu i nie są zapisywane.
+> Odpowiedzi z telefonów widzów są rozpoznawane na miejscu, a nagrania są usuwane zaraz po rozpoznaniu i nie są przechowywane.
 >
 > Postacie i historia są oryginalnym dziełem zespołu [nazwa zespołu]. Licencje użytego oprogramowania:
 > `docs/ZGODNOSC_Z_REGULAMINEM.md`.

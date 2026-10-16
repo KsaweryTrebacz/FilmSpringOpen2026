@@ -19,7 +19,7 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 | §3 ust. 10 | Praca może zostać opublikowana na stronie i w mediach społecznościowych organizatora | **ZESPÓŁ** | Wszystko, co pokażemy, musi nadawać się do publikacji: bez nagrań dzieci bez zgody opiekunów, bez cudzych utworów |
 | §4 ust. 5 | Kryteria: innowacyjność, adekwatność do zadania, oryginalność, kreatywność | **OK** | Mapowanie na pitch niżej |
 | §5 ust. 3 | Najlepszy projekt to pomysł wart dalszego rozwijania i testowania z prawdziwą publicznością | **OK** / **ZESPÓŁ** | Projekt jest od początku zbudowany do seansu z widownią; plan testu niżej |
-| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie zapisuje głosu ani wypowiedzi; lokalne AI przetwarza mowę na komputerze, bez wysyłania nagrań do chmury. Głos dzieci z telefonów — szczegóły niżej |
+| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie przechowuje głosu ani wypowiedzi (nagranie z telefonu trafia na chwilę do pliku tymczasowego, usuwanego zaraz po rozpoznaniu); lokalne AI przetwarza mowę na komputerze, bez wysyłania nagrań do chmury. Głos dzieci z telefonów — szczegóły niżej |
 
 ## §3 ust. 8 — treści
 
@@ -40,7 +40,7 @@ warstwach:
 - Ul: wcześniej „na wysokim drzewie”, co bardziej pasuje do dzikiego gniazda. Teraz ul stoi na końcu łąki pod lipą.
 
 **Bez wprowadzania w błąd:** napisy końcowe informują, że reakcje Lili tworzy na żywo sztuczna inteligencja i że
-głosów widowni nie zapisujemy. **POPRAWIONE**
+głosów widowni nie przechowujemy. **POPRAWIONE**
 
 ## §3 ust. 9 — prawa autorskie
 
@@ -80,7 +80,7 @@ Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
 |---|---|---|
 | Gdzie trafia nagranie | Tylko do komputera z filmem w sieci lokalnej, szyfrowane (HTTPS); rozpoznawane lokalnie, na chwilę przez plik tymczasowy, usuwany zaraz po rozpoznaniu; bez chmury w trybie lokalnym | **OK** |
 | Kiedy telefon nagrywa | Tylko w trakcie rundy pytania (pulsuje lupka), najwyżej kilka sekund; poza rundami nic nie jest wysyłane | **OK** |
-| Informacja dla widza | Przed dołączeniem aplikacja mówi, że nagranie służy tylko do rozpoznania odpowiedzi i nie jest zapisywane | **OK** |
+| Informacja dla widza | Przed dołączeniem aplikacja (ekran dołączania i strona z kodem QR) mówi, że nagranie służy tylko do rozpoznania odpowiedzi, trafia na chwilę do pliku tymczasowego, jest usuwane zaraz po rozpoznaniu i nie jest przechowywane | **OK** |
 | Dzieci i opiekunowie | Telefon należy zwykle do opiekuna, który dołącza i zezwala na mikrofon; przed seansem krótka informacja dla opiekunów (plansza przy wejściu albo słowo prowadzącego) | **ZESPÓŁ** |
 | Nadużycia | Jedna odpowiedź na telefon w rundzie, limit rozmiaru nagrania, odpowiedzi tylko w otwartej rundzie; kwestie modelu filtrowane (`bajka/safety.py`) | **OK** |
 | Odpowiedź bez mówienia | Dziecko, które nie chce albo nie może mówić, dotyka opcji | **OK** |

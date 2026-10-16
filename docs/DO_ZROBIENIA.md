@@ -1,6 +1,6 @@
 # Do zrobienia
 
-Stan na 16.10.2026 (308 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
+Stan na 16.10.2026 (324 testy przechodzą, 1 jest pomijany). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
 Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md).
 
 ## Kod i podpięcie (przed pokazem)
@@ -11,6 +11,10 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [x] Film, który czuje salę: symulowane tętno sali, panel dla jury (`--panel`) i [przebieg pokazu](DEMO_DLA_JURY.md).
   Pola `variants` (spokojne wersje) scen `las`, `wiaterek` i `swieto` są w scenariuszu, a same klipy spokojnych
   wersji jeszcze trzeba przygotować (punkt „Spokojne wersje montażu” niżej).
+- [x] Przegląd serwera aplikacji mobilnej (`bajka/mobile.py`, moduł osoby A) po wycofaniu rysowania, 16.10:
+  zajęty port nie jest już współdzielony na Windows (film nie wystartuje, zamiast po cichu oddać telefony zapomnianemu
+  podglądowi), odrzucone zapytania nie zrywają połączeń (WinError 10053), teksty o prywatności mówią o pliku
+  tymczasowym, a przycisk „Dołączam do seansu” działa też, gdy przeglądarka blokuje `localStorage`.
 
 ## Testy na prawdziwym sprzęcie (nic z tego nie było jeszcze uruchomione)
 
@@ -23,7 +27,9 @@ Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne
 - [ ] Aplikacja mobilna na prawdziwych telefonach (Android i iPhone):
   - akceptacja ostrzeżenia o certyfikacie i dostęp do mikrofonu,
   - Wi-Fi bez izolacji urządzeń, port 8443 otwarty w zaporze Windows,
-  - kilka telefonów naraz i czas rozpoznania odpowiedzi.
+  - kilka telefonów naraz i czas rozpoznania odpowiedzi,
+  - telefon z zablokowanymi danymi stron (ciasteczka): przycisk „Dołączam do seansu” ma przejść dalej,
+  - dotąd stronę sprawdzono tylko w przeglądarce na komputerze, bez mikrofonu: dołączanie i odpowiedź dotykiem działają.
 - [ ] Kalibracja krzykomierza na sali: `python -m bajka.vote`.
 - [ ] Próba z panelem na laptopie pokazowym: `--mobile --panel`, panel na ekranie laptopa albo tablecie jury
   (`BAJKA_PANEL_HOST=0.0.0.0`), „Przebieg demo” i ręczne „Sala się ekscytuje” przed sceną `wiaterek`.

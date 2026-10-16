@@ -12,9 +12,10 @@ Jury jest widownią: mówi do swoich telefonów, a jedna osoba steruje tętnem s
    Zastępcze klipy trwają po 4 sekundy i na nich liczymy 3 minuty. Z prawdziwymi klipami pokaz trwa dłużej.
 2. Laptop i telefony w tej samej sieci Wi-Fi, port aplikacji mobilnej (8443) otwarty w zaporze Windows.
 3. Zamknijcie wszystkie podglądy, które mogły zostać po próbach (`python -m bajka.panel`,
-   `python -m bajka.mobile`). Zapomniany podgląd trzyma port 8090 (panel) albo 8443 (telefony) i odbierałby
-   zapytania zamiast filmu. Sprawdzenie: `netstat -ano | findstr 8090` (a potem `8443`) nie powinno przed
-   startem pokazać żadnego nasłuchującego procesu, a po starcie filmu dokładnie jeden.
+   `python -m bajka.mobile`). Zapomniany podgląd trzyma port 8090 (panel) albo 8443 (telefony). Film się wtedy
+   nie uruchomi, tylko napisze w konsoli „Nie udało się uruchomić serwera aplikacji mobilnej” albo „… panelu dla
+   jury” (`WinError 10048`), więc podgląd nie przejmie zapytań po cichu. Który proces trzyma port:
+   `netstat -ano | findstr 8443` (ostatnia kolumna to numer procesu), a przed startem nie powinno być wyniku.
 4. Ekrany: laptop i projektor jako rozszerzony ekran (Win+P, „Rozszerz”).
    - **Zalecane:** bajka z `--windowed`. Okno filmu przeciągnijcie na projektor i rozwińcie na cały ekran.
      Panel i stronę z kodem QR otwórzcie w przeglądarce na ekranie laptopa.

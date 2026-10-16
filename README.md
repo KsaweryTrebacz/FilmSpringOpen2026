@@ -225,6 +225,8 @@ Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne 
 python -m pytest
 ```
 
+Test strony telefonu (`tests/test_mobile.py`) uruchamia jej skrypt w `node`; bez zainstalowanego `node` jest pomijany.
+
 ## Problemy
 
 - `FileNotFoundError: ... libvlc.dll`: brak VLC albo zainstalowana wersja 32-bit.
@@ -241,5 +243,11 @@ python -m pytest
   i zaakceptuj ostrzeżenie o certyfikacie; sprawdź `pip install -e ".[mobile]"`.
 - Telefon nie otwiera strony: ta sama sieć Wi-Fi co komputer, port `BAJKA_MOBILE_PORT` otwarty w zaporze Windows;
   sieci gościnne często blokują ruch między urządzeniami.
+- Telefon pokazuje „Patrz na ekran”, a pytania nie przychodzą: strona musi być otwarta pod adresem z konsoli
+  (`https://…`), nie jako plik z dysku ani z podglądu edytora. Tam nie ma połączenia z komputerem ani mikrofonu.
+  Przeglądarka z zablokowanymi danymi stron też działa; telefon pamięta wtedy swój numer tylko do odświeżenia strony.
+- `Nie udało się uruchomić serwera aplikacji mobilnej` albo `… panelu dla jury` (`WinError 10048`): port zajmuje inny
+  proces, na przykład zapomniany podgląd. Zamknij go (`netstat -ano | findstr 8443` pokaże numer procesu) albo zmień
+  `BAJKA_MOBILE_PORT` / `BAJKA_PANEL_PORT`.
 - Krzykomierz ciągle mówi „za cicho” albo każdą ciszę uznaje za okrzyk: `python -m bajka.vote` na sali i ustaw
   `BAJKA_VOTE_MIN_LEVEL` / `BAJKA_VOTE_MIN_RATIO` według podpowiedzi.
