@@ -1,0 +1,30 @@
+# Przykładowa bajka. Ścieżki klipów są względne wobec tego pliku.
+# Klipy-zaślepki do prób: python -m bajka.placeholders scenarios/las_czy_jaskinia.yaml
+hero: >
+  Lisek Feliks: odważny, ciekawski i trochę gapowaty lis, który przeżywa przygodę
+  razem z dzieckiem siedzącym przed ekranem i zwraca się do niego jak do przyjaciela.
+start: intro
+
+scenes:
+  intro:
+    clip: clips/intro.mp4          # Feliks odwraca się do kamery i zadaje pytanie
+    idle: clips/intro_idle.mp4     # pętla oczekiwania, BEZ dźwięku (mikrofon słucha)
+    question: Idziemy do mrocznego lasu czy do jaskini?
+    reprompt: Hmm, nie usłyszałem. Idziemy do lasu czy do jaskini?
+    fallback: Dobrze, to ja wybiorę!
+    default: las
+    choices:
+      las:
+        description: pójść do mrocznego lasu
+        next: las
+        reply: Do lasu! Trzymaj się blisko mnie!
+      jaskinia:
+        description: wejść do jaskini
+        next: jaskinia
+        reply: Do jaskini! Dobrze, że mam latarkę!
+
+  las:
+    clip: clips/las.mp4
+
+  jaskinia:
+    clip: clips/jaskinia.mp4

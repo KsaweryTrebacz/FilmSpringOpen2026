@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bajka"
+version = "0.1.0"
+description = "Interaktywna Bajka Głosowa Zero-UI — prototyp hackathonowy"
+requires-python = ">=3.11"
+dependencies = [
+    "python-vlc>=3.0.21203",
+    "azure-cognitiveservices-speech>=1.52",
+    "openai>=1.55",
+    "PyYAML>=6.0",
+    "python-dotenv>=1.0",
+    "sounddevice>=0.5",
+    "numpy>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["bajka"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
