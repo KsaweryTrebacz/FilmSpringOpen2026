@@ -8,7 +8,7 @@
 | **Widownia** | Dzieci 4–7 lat z opiekunami, sala kinowa. Działa też dla jednego widza (pokaz dla jury, kiosk) |
 | **Czas** | ok. 12 minut: ok. 8 min animacji i ok. 4 min interakcji (zależy od sali) |
 | **Styl** | Ilustrowana książka 2D: miękka akwarela, ciepłe pastele (zgodnie z [projektem flow filmu](../docs/superpowers/specs/2026-10-16-flow-filmu-design.md)) |
-| **Obraz** | 16:9, 1920×1080, 24 kl./s (kotwice); sceny generowane na żywo 1280×720, skalowane |
+| **Obraz** | 16:9, 1920×1080, 24 kl./s |
 | **Dźwięk** | Stereo; dialogi i muzyka w klipach, cisza w pętlach oczekiwania (wtedy słucha mikrofon) |
 | **Język** | Polski; wersja z napisami dla niesłyszących — opcjonalnie |
 | **Plik dla aplikacji** | [`klub_ciekawskich.yaml`](klub_ciekawskich.yaml) — graf scen, pytania, wezwania i reakcje Lili |
@@ -335,19 +335,11 @@ w kolejności wezwań).
 - Inna liczba: *„Policzmy razem jeszcze raz. Jedna, dwie, trzy! Trzy pszczółki. Super, że liczycie ze mną!”* → SC. 7
 - Cisza albo liczenie w trakcie („jedna, dwie…”): *„Policzmy razem paluszkami. Jedna, dwie… ile ich jest?”*
 
-### SC. 7b (planowana) — PLENER. UL — POPOŁUDNIE (`ozdoby`, obraz na żywo)
+### SC. 7b (wycofana) — PLENER. UL — POPOŁUDNIE (`ozdoby`)
 
-Scena z [projektu flow filmu](../docs/superpowers/specs/2026-10-16-flow-filmu-design.md) (obszar C, scena `open`):
-Lila pyta, jak udekorujemy ul, a ilustracja powstaje na żywo z pomysłu widowni. Silnik i aplikacja obsługują już
-sceny `kind: open` ([plan „obraz na żywo”](../docs/superpowers/plans/2026-10-16-obraz-na-zywo.md)); do YAML (między
-SC. 6 a SC. 7) scena wejdzie po decyzji zespołu i z klipami: `07b_ozdoby.mp4`, cicha pętla oczekiwania, pętla
-„Lila rysuje” i 1–3 klipy zapasowe. Wymaga kluczy Azure
-(pomysł i ilustracja powstają w chmurze); bez internetu w trakcie seansu lecą klipy zapasowe.
-
-**W kinie** pytanie otwarte do całej sali będzie nieczytelne, a scena otwarta słucha dziś tylko mikrofonu przy
-ekranie, nie telefonów. Proponujemy: na telefonach wybór spośród trzech pomysłów (Kwiatki, Wstążki, Gwiazdki),
-a zwycięski pomysł trafia do promptu ilustracji. Pytanie w pełni otwarte zostawiamy dla trybu jednego widza
-(kiosk, jury).
+Scena z ilustracją rysowaną na żywo z pomysłu widowni została wycofana razem z rysowaniem na żywo (16.10).
+Wszystkie animacje filmu są przygotowane wcześniej; w zamian film dopasowuje wersje scen do tętna sali
+([projekt](../docs/superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
 
 ### SC. 7 — PLENER. KWIATOWA ŁĄKA — ZŁOTA GODZINA (`swieto`)
 

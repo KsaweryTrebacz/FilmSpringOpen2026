@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 
 from bajka.keywords import words
-from bajka.ports import Imaginer, IntentResolver, Interpretation, Vision
+from bajka.ports import IntentResolver, Interpretation
 from bajka.scenario import Scene
 
 log = logging.getLogger(__name__)
@@ -45,17 +45,3 @@ class SafeReplyResolver:
             return Interpretation(choice_id=interpretation.choice_id, reply="")
         return interpretation
 
-
-class SafeImaginer:
-    """Opakowuje dowolny `Imaginer`. Podejrzana kwestia unieważnia cały pomysł: silnik pokaże wtedy
-    klip zapasowy ze scenariusza i powie stałą, sprawdzoną kwestię."""
-
-    def __init__(self, inner: Imaginer) -> None:
-        self._inner = inner
-
-    def imagine(self, scene: Scene, transcript: str) -> Vision:
-        vision = self._inner.imagine(scene, transcript)
-        if vision.reply and not is_safe_reply(vision.reply):
-            log.warning("Kwestia wyobraźni odrzucona przez filtr, pokazuję klip zapasowy")
-            return Vision(reply="", idea="")
-        return vision

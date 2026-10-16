@@ -81,6 +81,20 @@ def test_keywords_are_optional_and_numbers_become_words(scenario_dict):
     assert scenario.scene("intro").choices["jaskinia"].keywords == ()
 
 
+@pytest.mark.parametrize("field", ["kind", "image_prompt", "fallback_clips", "next"])
+def test_live_drawing_scene_fields_are_rejected_with_a_clear_message(scenario_dict, field):
+    scenario_dict["scenes"]["las"][field] = "open"
+    with pytest.raises(ScenarioError, match=f"scena 'las': pola {field} .*rysowanie na żywo usunięto"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+@pytest.mark.parametrize("field", ["style", "references"])
+def test_live_drawing_scenario_fields_are_rejected_with_a_clear_message(scenario_dict, field):
+    scenario_dict[field] = "watercolor"
+    with pytest.raises(ScenarioError, match=f"scenariusz: pola {field} .*rysowanie na żywo usunięto"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
 def test_keywords_must_be_a_list_of_words(scenario_dict):
     scenario_dict["scenes"]["intro"]["choices"]["las"]["keywords"] = "drzewa"
     with pytest.raises(ScenarioError, match="keywords"):

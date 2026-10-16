@@ -1,39 +1,18 @@
-"""Silnik bajki: odtwarza sceny, słucha dziecka (albo całej widowni) i wybiera kolejny klip.
-
-Sceny z pytaniem otwartym (`kind: open`) rysują pomysł dziecka na żywo: Imaginer → Illustrator → Animator.
-Sceny generowane (`kind: generated`) rysujemy w tle zawczasu: gdy pada pytanie, które może do nich prowadzić.
-"""
+"""Silnik bajki: odtwarza sceny, słucha dziecka (albo całej widowni) i wybiera kolejny klip."""
 
 from __future__ import annotations
 
 import logging
-import random
 import threading
-import time
 from collections import Counter
-from collections.abc import Iterable, Mapping
-from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 
-from bajka.ports import (
-    Animator,
-    Audience,
-    Illustrator,
-    Imaginer,
-    IntentResolver,
-    Interpretation,
-    Listener,
-    Player,
-    ShoutMeter,
-    Vision,
-    Voice,
-)
-from bajka.scenario import Choice, Scenario, Scene, fill_prompt
+from bajka.ports import Audience, IntentResolver, Interpretation, Listener, Player, ShoutMeter, Voice
+from bajka.scenario import Choice, Scenario, Scene
 
 log = logging.getLogger(__name__)
 
 DEFAULT_FALLBACK = "Dobrze, to ja wybiorę!"
-FALLBACK_VISION_LINE = "Zobacz, co mam w wyobraźni!"
 
 
 class _Stopped(Exception):
@@ -56,29 +35,8 @@ class StoryEngine:
         max_reprompts: int = 2,
         meter: ShoutMeter | None = None,
         audience: Audience | None = None,
-        imaginer: Imaginer | None = None,
-        illustrator: Illustrator | None = None,
-        animator: Animator | None = None,
-        image_timeout_s: float = 25.0,
-        generated_seconds: float = 0.0,
-        rng: random.Random | None = None,
     ) -> None:
-        missing = [name for name, module in (("imaginer", imaginer), ("illustrator", illustrator),
-                                             ("animator", animator)) if module is None]  # fmt: skip
-        if scenario.needs_live_images and missing:
-            raise ValueError("Scenariusz ma sceny rysowane na żywo, a brakuje modułów: " + ", ".join(missing))
-        self._imaginer = imaginer
-        self._illustrator = illustrator
-        self._animator = animator
-        self._image_timeout_s = image_timeout_s
-        self._generated_seconds = generated_seconds  # tyle najmniej zostaje na ekranie obraz sceny generowanej
-        self._rng = rng or random.Random()
         self._stopped = threading.Event()
-        # Scena generowana może paść przed pytaniem otwartym (inna gałąź): domyślny pomysł jest od początku.
-        self._memory: dict[str, str] = {
-            scene.remember: scene.default_idea for scene in scenario.scenes.values() if scene.kind == "open"
-        }
-        self._prefetched: dict[str, tuple[Future[Path], float]] = {}  # scena → (rysowanie, termin)
         self._scenario = scenario
         self._player = player
         self._listener = listener
@@ -87,11 +45,6 @@ class StoryEngine:
         self._max_reprompts = max_reprompts
         self._meter = meter  # bez krzykomierza sceny `vote` rozpoznają wybór z mowy, jak pozostałe
         self._audience = audience  # telefony widzów; gdy żaden nie jest połączony, słuchamy sali
-
-    @property
-    def memory(self) -> Mapping[str, str]:
-        """Pomysły dziecka z tego seansu (klucz `remember` → opis po angielsku), do pytania: `default_idea`."""
-        return dict(self._memory)
 
     def stop(self) -> None:
         """Przerywa bajkę przy najbliższej okazji; wywoływane z wątku okna, np. po Esc."""
@@ -113,34 +66,20 @@ class StoryEngine:
         """Odtwarza bajkę i zwraca identyfikatory odwiedzonych scen."""
         visited: list[str] = []
         scene = self._scenario.scene(self._scenario.start)
-        self._pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="rysowanie")
         try:
             while True:
                 self._check_stopped()
                 visited.append(scene.id)
                 log.info("Scena: %s", scene.id)
-                if scene.kind == "generated":
-                    self._show_generated(scene)
-                    scene = self._scenario.scene(scene.next)
-                    continue
-                self._prefetch(scene.successors if scene.choices else ())
                 self._play(scene.clip)
                 if scene.is_ending:
                     return visited
                 if scene.idle is not None:
                     self._loop(scene.idle)
-                if scene.kind == "open":
-                    self._ask_open(scene)  # pomysł z mikrofonu na sali, także gdy działają telefony
-                    scene = self._scenario.scene(scene.next)
-                    continue
-                choice = self._decide(scene)
-                self._drop_prefetched(other for other in scene.successors if other != choice.next)
-                scene = self._scenario.scene(choice.next)
+                scene = self._scenario.scene(self._decide(scene).next)
         except _Stopped:
             log.info("Bajka zatrzymana")
             return visited
-        finally:
-            self._pool.shutdown(wait=False, cancel_futures=True)  # nie czekamy na spóźnione obrazy
 
     def _decide(self, scene: Scene) -> Choice:
         if self._audience is not None and self._phones_connected():
@@ -237,92 +176,6 @@ class StoryEngine:
         log.info("Brak decyzji, bohater wybiera sam: %s", default.id)
         self._say(f"{scene.fallback or DEFAULT_FALLBACK} {default.reply}")
         return default
-
-    def _ask_open(self, scene: Scene) -> None:
-        vision = self._hear_idea(scene)
-        if vision is None:
-            self._memory[scene.remember] = scene.default_idea
-            self._prefetch((scene.next,))
-            self._say(FALLBACK_VISION_LINE)
-            self._play(self._fallback_clip(scene))
-            return
-        self._memory[scene.remember] = vision.idea
-        prompt = fill_prompt(scene.image_prompt, {**self._memory, "idea": vision.idea})
-        deadline = time.monotonic() + self._image_timeout_s
-        future = self._pool.submit(self._render, prompt)
-        self._prefetch((scene.next,))  # dopiero po rysunku dziecka: jego pomysł ma pierwszeństwo w kolejce
-        if vision.reply:
-            self._say(vision.reply)  # postać mówi, a obraz w tym czasie się rysuje
-        self._play(self._clip_or_fallback(scene, future, deadline))
-
-    def _hear_idea(self, scene: Scene) -> Vision | None:
-        """Pomysł dziecka albo None: cisza po wszystkich dopytaniach, błąd LLM, pomysł nie do narysowania."""
-        for attempt in range(self._max_reprompts + 1):
-            transcript = self._listen()
-            if transcript:
-                if scene.drawing is not None:
-                    self._loop(scene.drawing)  # od razu: odpowiedź modelu potrwa, a ekran nie może stać pusty
-                try:
-                    vision = self._imaginer.imagine(scene, transcript)
-                except Exception:
-                    log.exception("Błąd LLM przy pomyśle dziecka, pokazuję klip zapasowy")
-                    return None
-                log.info("Pomysł: %r | %s", vision.idea, vision.reply)
-                return vision if vision.idea else None
-            if attempt < self._max_reprompts:
-                self._say(scene.reprompt)
-        return None
-
-    def _show_generated(self, scene: Scene) -> None:
-        self._prefetch((scene.id,))  # nic nie robi, jeśli scena już się rysuje
-        future, deadline = self._prefetched.pop(scene.id)
-        self._prefetch((scene.next,))
-        clip = self._clip_or_fallback(scene, future, deadline, announce=False)
-        self._loop(clip)
-        shown_at = time.monotonic()
-        self._say(scene.narration)  # postać mówi na tle zapętlonej ilustracji
-        remaining = self._generated_seconds - (time.monotonic() - shown_at)
-        if remaining > 0:  # krótka narracja albo brak głosu (--text): obraz i tak ma chwilę pobyć
-            self._check_stopped()
-            self._stopped.wait(remaining)  # Esc przerywa czekanie
-
-    def _prefetch(self, scene_ids: Iterable[str]) -> None:
-        for scene_id in scene_ids:
-            target = self._scenario.scene(scene_id)
-            if target.kind != "generated" or scene_id in self._prefetched:
-                continue
-            prompt = fill_prompt(target.image_prompt, self._memory)
-            log.info("Rysuję w tle scenę %s", scene_id)
-            self._prefetched[scene_id] = (
-                self._pool.submit(self._render, prompt),
-                time.monotonic() + self._image_timeout_s,
-            )
-
-    def _drop_prefetched(self, scene_ids: Iterable[str]) -> None:
-        for scene_id in scene_ids:
-            entry = self._prefetched.pop(scene_id, None)
-            if entry is not None:
-                entry[0].cancel()  # niewybrana gałąź: jeśli jeszcze czeka w kolejce, nie rysujemy jej wcale
-
-    def _render(self, prompt: str) -> Path:
-        started = time.monotonic()
-        clip = self._animator.animate(self._illustrator.draw(prompt))
-        log.info("Narysowane w %.1f s: %s", time.monotonic() - started, clip.name)
-        return clip
-
-    def _clip_or_fallback(self, scene: Scene, future: Future[Path], deadline: float, announce: bool = True) -> Path:
-        try:
-            return future.result(timeout=max(0.0, deadline - time.monotonic()))
-        except TimeoutError:
-            log.warning("Rysowanie trwa dłużej niż %.0f s, pokazuję klip zapasowy", self._image_timeout_s)
-        except Exception:
-            log.exception("Błąd rysowania, pokazuję klip zapasowy")
-        if announce:
-            self._say(FALLBACK_VISION_LINE)
-        return self._fallback_clip(scene)
-
-    def _fallback_clip(self, scene: Scene) -> Path:
-        return self._rng.choice(scene.fallback_clips)
 
     def _listen(self) -> str | None:
         self._check_stopped()

@@ -17,15 +17,12 @@ COLORS = ("darkgreen", "midnightblue", "saddlebrown", "darkred", "indigo", "dark
 
 
 def planned_clips(scenario: Scenario) -> list[tuple[Path, str, bool]]:
-    """(ścieżka, kolor, czy z dźwiękiem) — klipy scen i zapasy scen otwartych mają ton; pętle (oczekiwanie,
-    rysowanie) i zapasy scen generowanych są ciche, bo grają w pętli pod narracją postaci."""
+    """(ścieżka, kolor, czy z dźwiękiem) — klipy scen mają ton, a pętle oczekiwania są ciche."""
     clips: dict[Path, tuple[Path, str, bool]] = {}
     for index, scene in enumerate(scenario.scenes.values()):
         color = COLORS[index % len(COLORS)]
-        tracks = [(scene.clip, True), (scene.idle, False), (scene.drawing, False)]
-        tracks += [(path, scene.kind != "generated") for path in scene.fallback_clips]
-        for path, with_tone in tracks:
-            if path is not None and path not in clips:  # wspólna pętla rysowania tylko raz
+        for path, with_tone in ((scene.clip, True), (scene.idle, False)):
+            if path is not None and path not in clips:  # ten sam plik w kilku scenach tylko raz
                 clips[path] = (path, color, with_tone)
     return list(clips.values())
 

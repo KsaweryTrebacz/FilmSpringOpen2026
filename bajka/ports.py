@@ -73,26 +73,3 @@ class Audience(Protocol):
         Pusta lista oznacza, że nikt nie odpowiedział.
         """
 
-
-@dataclass(frozen=True)
-class Vision:
-    reply: str  # kwestia postaci po polsku, wypowiadana podczas rysowania
-    idea: str  # pomysł dziecka po angielsku, bezpieczny dla dzieci; "" gdy nie da się go użyć
-
-
-@runtime_checkable
-class Imaginer(Protocol):
-    def imagine(self, scene: Scene, transcript: str) -> Vision:
-        """Zamienia odpowiedź na pytanie otwarte na kwestię postaci i opis ilustracji."""
-
-
-@runtime_checkable
-class Illustrator(Protocol):
-    def draw(self, prompt: str) -> Path:
-        """Rysuje ilustrację sceny w stylu bajki i zwraca ścieżkę do pliku PNG."""
-
-
-@runtime_checkable
-class Animator(Protocol):
-    def animate(self, image: Path) -> Path:
-        """Robi z ilustracji klip MP4 z ruchem kamery i zwraca jego ścieżkę."""

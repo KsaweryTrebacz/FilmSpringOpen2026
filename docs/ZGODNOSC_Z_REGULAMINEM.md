@@ -19,7 +19,7 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 | §3 ust. 10 | Praca może zostać opublikowana na stronie i w mediach społecznościowych organizatora | **ZESPÓŁ** | Wszystko, co pokażemy, musi nadawać się do publikacji: bez nagrań dzieci bez zgody opiekunów, bez cudzych utworów |
 | §4 ust. 5 | Kryteria: innowacyjność, adekwatność do zadania, oryginalność, kreatywność | **OK** | Mapowanie na pitch niżej |
 | §5 ust. 3 | Najlepszy projekt to pomysł wart dalszego rozwijania i testowania z prawdziwą publicznością | **OK** / **ZESPÓŁ** | Projekt jest od początku zbudowany do seansu z widownią; plan testu niżej |
-| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie zapisuje głosu ani wypowiedzi; lokalne AI przetwarza mowę na komputerze, bez wysyłania nagrań do chmury. Wyjątek: w scenach rysowanych na żywo (`kind: open`) rozpoznany tekst odpowiedzi dziecka trafia do Azure OpenAI, a obraz rysuje Azure AI Foundry (nagranie głosu nigdy); informacja dla opiekunów powinna o tym wspomnieć. Głos dzieci z telefonów — szczegóły niżej |
+| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie zapisuje głosu ani wypowiedzi; lokalne AI przetwarza mowę na komputerze, bez wysyłania nagrań do chmury. Głos dzieci z telefonów — szczegóły niżej |
 
 ## §3 ust. 8 — treści
 
@@ -34,11 +34,6 @@ warstwach:
    dwa zdania nie zostaje wypowiedziana — Lila mówi zamiast niej sprawdzoną kwestię ze scenariusza. **POPRAWIONE**
    W scenach decyzji z krzykomierzem model w ogóle nie pisze kwestii, a przy odpowiedziach z telefonów — tylko gdy
    odpowie jedna osoba; przy wielu Lila mówi teksty ze scenariusza.
-4. **Ilustracje rysowane na żywo** (sceny `kind: open`, moduły Ksawerego): pomysł dziecka najpierw przepisuje
-   model językowy na bezpieczny opis (`bajka/imagine.py`, te same zasady prawdy i kultury), podejrzana kwestia
-   unieważnia cały pomysł (`SafeImaginer`), a model obrazu ma własny filtr treści (gpt-image; przy FLUX —
-   Azure AI Content Safety). Przy każdym błędzie albo odrzuceniu pokazujemy przygotowany klip zapasowy.
-   Ilustracje poprzednich seansów aplikacja usuwa przy starcie. **OK** w kodzie; **ZESPÓŁ**: filtr treści przy FLUX.
 
 **Poprawione fakty w scenariuszu:**
 - Sowa w dzień: sowy są aktywne głównie nocą, więc Lila mówi teraz „Sowy w dzień zwykle śpią, a my ją chyba budzimy!”.
@@ -74,7 +69,7 @@ głosów widowni nie zapisujemy. **POPRAWIONE**
 | PyYAML, sounddevice | MIT | Scenariusz, dźwięk |
 | python-dotenv | BSD-3-Clause | Ustawienia |
 | numpy | BSD-3-Clause (z komponentami MIT, Zlib, CC0) | Dźwięk |
-| ffmpeg | LGPL/GPL (zależnie od kompilacji) | Narzędzie do zaślepek i ruchu kamery; nie jest częścią filmu |
+| ffmpeg | LGPL/GPL (zależnie od kompilacji) | Narzędzie do zaślepek; nie jest częścią filmu |
 
 ## Aplikacja mobilna widowni — prywatność i bezpieczeństwo
 
@@ -95,13 +90,13 @@ Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
 
 | Kryterium | Argument |
 |---|---|
-| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci; w chmurze Azure powstają tylko ilustracje scen rysowanych na żywo oraz, w scenach otwartych, kwestia bohaterki i pomysł na obraz (Azure OpenAI) — wszystko z samego tekstu, bez nagrania. Bez telefonów decyzje rozstrzyga krzykomierz |
+| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci. Bez telefonów decyzje rozstrzyga krzykomierz |
 | **Adekwatność do zadania** | „Przyszłość odbioru dzieł audiowizualnych”: widz przestaje być bierny — współdecyduje o filmie. Nawiązujemy do tradycji: w czechosłowackim Kinoautomacie (Expo 67) widzowie głosowali przyciskami; u nas głosują głosem, a postać reaguje na nich |
 | **Oryginalność** | Własny świat i postacie, film dla najmłodszych z pierwszym w życiu doświadczeniem kina jako wspólnej zabawy |
 | **Kreatywność** | Mechaniki zaprojektowane pod salę kinową: okrzyki, odpowiedzi chórem, wspólny oddech, liczenie; pomyłki widowni stają się częścią nauki |
 
 Technologia pasuje do partnerów hackathonu: nagrodą jest Copilot+ PC Lenovo, a film działa lokalnie właśnie na takim
-komputerze (z wyjątkiem scen rysowanych na żywo, które potrzebują Azure i internetu).
+komputerze.
 
 ## Test z prawdziwą publicznością (§5 ust. 3)
 
@@ -124,6 +119,5 @@ Propozycja pierwszego seansu próbnego po hackathonie:
 - [ ] Decyzja o licencji repozytorium.
 - [ ] Data prezentacji potwierdzona z organizatorem (literówka „18.10.2022” w §2 ust. 3).
 - [ ] Na nagraniach z pokazu nie ma dzieci bez zgody opiekunów.
-- [x] Ilustracje z poprzednich seansów usuwane przy starcie aplikacji (zadanie 6 planu „obraz na żywo”).
 - [ ] Na pokazie: Wi-Fi dla telefonów (bez izolacji klientów), port aplikacji otwarty w zaporze, plansza z kodem QR,
       informacja dla opiekunów o mikrofonie.

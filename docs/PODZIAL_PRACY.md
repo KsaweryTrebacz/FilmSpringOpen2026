@@ -8,7 +8,7 @@ i własne demo, więc dwie osoby mogą commitować równolegle na `main` bez wch
 
 **Osoba A — „ucho i mózg”**: wszystko, co zamienia głos dziecka na decyzję.
 **Osoba B — „oko i głos”**: wszystko, co dziecko widzi i słyszy.
-**Osoba C — „obraz na żywo”**: ilustracje rysowane z pomysłów dziecka ([projekt](superpowers/specs/2026-10-16-flow-filmu-design.md), [plan](superpowers/plans/2026-10-16-obraz-na-zywo.md)).
+**Osoba C — „film czuje salę”**: tętno widowni, wersje scen i panel dla jury ([projekt](superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
 
 | Moduł | Kontrakt | Osoba | Demo bez reszty aplikacji | Testy |
 |---|---|---|---|---|
@@ -26,9 +26,6 @@ i własne demo, więc dwie osoby mogą commitować równolegle na `main` bez wch
 | [`bajka/local_tts.py`](../bajka/local_tts.py) — kwestia bohatera → głos Windows, offline | `Voice` | B | `python -m bajka.local_tts "Cześć!"` | `tests/test_local_tts.py` |
 | [`bajka/player.py`](../bajka/player.py) — VLC w pełnoekranowym oknie | `Player` | B | `python -m bajka.player KLIP PĘTLA` | ręcznie (wymaga VLC) |
 | [`bajka/placeholders.py`](../bajka/placeholders.py) — klipy-zaślepki | — | B | `python -m bajka.placeholders scenarios/las_czy_jaskinia.yaml` | `tests/test_placeholders.py` |
-| [`bajka/imagine.py`](../bajka/imagine.py) — pomysł dziecka → kwestia postaci + opis obrazu | `Imaginer` | C | `python -m bajka.imagine scenarios/rysowanie_na_zywo.yaml "złota korona"` | `tests/test_imagine.py` |
-| [`bajka/illustrate.py`](../bajka/illustrate.py) — opis → ilustracja (Azure AI Foundry) | `Illustrator` | C | `python -m bajka.illustrate scenarios/rysowanie_na_zywo.yaml "a fox"` | `tests/test_illustrate.py` |
-| [`bajka/motion.py`](../bajka/motion.py) — ilustracja → klip z ruchem kamery (ffmpeg) | `Animator` | C | `python -m bajka.motion obraz.png` | `tests/test_motion.py` |
 
 Wszystkie moduły działają na poziomie szkieletu (testy na atrapach). Najbliższe kroki:
 

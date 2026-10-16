@@ -58,6 +58,33 @@ class FakeResolver:
         return answer
 
 
+class StoppingVoice(FakeVoice):
+    """Esc po wskazanej kwestii: okno się zamyka, a silnik dostaje stop() z wątku okna."""
+
+    def __init__(self, stop_after):
+        super().__init__()
+        self.engine = None  # silnik powstaje po głosie, test podstawia go przed run()
+        self._stop_after = stop_after
+
+    def say(self, text):
+        super().say(text)
+        if text == self._stop_after:
+            self.engine.stop()
+
+
+class StoppingListener(FakeListener):
+    """Esc w trakcie słuchania: odpowiedź przychodzi, ale okno zamyka się, zanim silnik ją obsłuży."""
+
+    def __init__(self, *answers):
+        super().__init__(*answers)
+        self.engine = None
+
+    def listen(self):
+        answer = super().listen()
+        self.engine.stop()
+        return answer
+
+
 def make_engine(scenario, listener, resolver=None, voice=None, max_reprompts=2):
     player = FakePlayer()
     voice = voice or FakeVoice()
@@ -175,3 +202,30 @@ def test_story_chains_multiple_decisions(scenario_dict):
     assert engine.run() == ["intro", "las", "jaskinia"]
     assert ("loop", "las_idle.mp4") in player.calls
     assert voice.lines == ["Las!", "Hop, hop!"]
+
+
+# Zamknięcie okna (Esc) w trakcie bajki
+
+
+def test_stop_after_hero_reply_ends_the_run_without_playing_or_saying_more(scenario):
+    resolver = FakeResolver({"las": Interpretation("las", LAS_REPLY)})
+    voice = StoppingVoice(stop_after=LAS_REPLY)
+    engine, player, _ = make_engine(scenario, FakeListener("las"), resolver, voice=voice)
+    voice.engine = engine
+
+    assert engine.run() == ["intro"]
+
+    assert voice.lines == [LAS_REPLY]  # po Esc bohater już nic nie mówi
+    assert ("play", "las.mp4") not in player.calls  # ani nie przechodzi do następnej sceny
+
+
+def test_stop_while_listening_ends_the_run_before_the_answer_is_acted_on(scenario):
+    listener = StoppingListener("las")
+    resolver = FakeResolver({"las": Interpretation("las", LAS_REPLY)})
+    engine, player, voice = make_engine(scenario, listener, resolver)
+    listener.engine = engine
+
+    assert engine.run() == ["intro"]
+
+    assert voice.lines == []
+    assert player.calls == [("play", "intro.mp4"), ("loop", "intro_idle.mp4")]

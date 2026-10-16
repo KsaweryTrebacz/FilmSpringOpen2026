@@ -1,7 +1,7 @@
 import pytest
 
-from bajka.ports import Imaginer, IntentResolver, Interpretation, Vision
-from bajka.safety import MAX_REPLY_CHARS, SafeImaginer, SafeReplyResolver, is_safe_reply
+from bajka.ports import IntentResolver, Interpretation
+from bajka.safety import MAX_REPLY_CHARS, SafeReplyResolver, is_safe_reply
 
 
 @pytest.mark.parametrize(
@@ -51,24 +51,3 @@ def test_safe_reply_passes_through(scenario):
 
     assert SafeReplyResolver(FixedResolver(interpretation)).resolve(scenario.scene("intro"), "?") == interpretation
 
-
-class FakeImaginer:
-    def __init__(self, vision):
-        self._vision = vision
-
-    def imagine(self, scene, transcript):
-        return self._vision
-
-
-def test_safe_imaginer_passes_friendly_vision(scenario):
-    vision = Vision("Tęczowe wstążki? Już rysuję!", "rainbow ribbons")
-    safe = SafeImaginer(FakeImaginer(vision))
-
-    assert isinstance(safe, Imaginer)
-    assert safe.imagine(scenario.scene("intro"), "wstążkami") == vision
-
-
-def test_safe_imaginer_drops_whole_idea_when_line_is_unsafe(scenario):
-    safe = SafeImaginer(FakeImaginer(Vision("Narysuję potwora, który zabija!", "a monster")))
-
-    assert safe.imagine(scenario.scene("intro"), "potwór") == Vision(reply="", idea="")

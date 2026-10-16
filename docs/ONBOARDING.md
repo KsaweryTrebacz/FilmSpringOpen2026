@@ -9,8 +9,7 @@ Program zamienia zwykły film w **film, który słucha widowni**. Film jest poci
 program zbiera odpowiedzi widzów (głosem — do telefonu albo okrzykiem całej sali), rozpoznaje, co wybrali,
 pozwala postaci zareagować na żywo i wybiera kolejną scenę. Sam program nie zna żadnej historii: historia jest
 wymiennym plikiem — **scenariuszem** — a program to **silnik**, który ją odtwarza. Wszystko może działać na jednym
-komputerze z Windows, bez chmury i bez nagrywania widzów. Wyjątek: sceny rysowane na żywo potrzebują Azure, internetu
-i ffmpeg (patrz niżej).
+komputerze z Windows, bez chmury i bez nagrywania widzów.
 
 ## Trzy filary
 
@@ -18,7 +17,7 @@ i ffmpeg (patrz niżej).
    dokąd prowadzi każda odpowiedź. Zmiana historii = zmiana pliku, bez zmian w kodzie.
 2. **Silnik, który nigdy nie staje.** Prowadzi widza po grafie, a każdy błąd (mikrofon, model, głos, sieć) obsługuje
    po cichu: dopytuje, wybiera ścieżkę domyślną albo pokazuje klip zapasowy. Pokaz ma trwać, cokolwiek się zepsuje.
-3. **Wymienne moduły.** Odtwarzacz, rozpoznawanie mowy, rozumienie odpowiedzi, głos postaci i rysowanie obrazów
+3. **Wymienne moduły.** Odtwarzacz, rozpoznawanie mowy, rozumienie odpowiedzi i głos postaci
    to osobne moduły, które rozmawiają z silnikiem tylko przez umówione interfejsy (`bajka/ports.py`). Każdy można
    wymienić — np. lokalne AI na usługi w chmurze — i testować bez reszty programu.
 
@@ -67,27 +66,14 @@ Rozpoznanie idzie od najtańszego do najmądrzejszego kroku:
 
 Gdy model zawiedzie, wybór i tak rozpoznają słowa kluczowe. Program nie zgaduje, gdy nie wie: wtedy dopytuje.
 
-## Pytania otwarte i obrazy na żywo (opcjonalnie)
-
-Scena może też zadać **pytanie otwarte** („Jak to wygląda?”). Wtedy pomysł widza zamienia się w ilustrację:
-
-```
-wypowiedź ──▶ model językowy: kwestia postaci + bezpieczny opis obrazu ──▶ model obrazu ──▶ ruch kamery (ffmpeg) ──▶ nowy klip
-```
-
-W czasie rysowania leci pętla „postać rysuje”, a postać mówi swoją kwestię. Pomysł zostaje zapamiętany
-i może wrócić w kolejnych scenach. Gdy rysowanie potrwa zbyt długo albo się nie uda, program pokazuje gotowy klip
-zapasowy. Ta część korzysta z chmury (Azure OpenAI pisze kwestię i opis, Azure AI Foundry rysuje); do chmury
-trafia tylko tekst, nigdy nagranie.
-
 ## Tryby działania
 
 | Tryb | Co robi | Przykład |
 |---|---|---|
-| `local` (domyślny) | Rozpoznawanie mowy, model językowy i głos postaci na komputerze; bez kluczy i internetu po pierwszym pobraniu modeli (wyjątek: sceny rysowane na żywo — klucze Azure, internet i ffmpeg) | `python -m bajka SCENARIUSZ` |
+| `local` (domyślny) | Rozpoznawanie mowy, model językowy i głos postaci na komputerze; bez kluczy i internetu po pierwszym pobraniu modeli | `python -m bajka SCENARIUSZ` |
 | `azure` | To samo przez usługi Azure | `--backend azure` |
 | `--mobile` | Odpowiedzi z telefonów widzów | `python -m bajka SCENARIUSZ --mobile` |
-| `--no-llm` | Bez modelu językowego przy wyborze ścieżki, tylko słowa kluczowe (sceny rysowane na żywo dalej korzystają z Azure) | na słabszym komputerze i do prób |
+| `--no-llm` | Bez modelu językowego, tylko słowa kluczowe | na słabszym komputerze i do prób |
 | `--text` | Próba bez mikrofonu i głośnika (konsola) | `--text --no-llm --windowed` |
 
 ## Mapa kodu
@@ -96,12 +82,11 @@ trafia tylko tekst, nigdy nagranie.
 |---|---|
 | Scenariusz | `bajka/scenario.py` — wczytanie i walidacja grafu scen |
 | Silnik | `bajka/engine.py` — cykl scen, kanały odpowiedzi, dopytywanie, ścieżki awaryjne; `bajka/app.py` — złożenie całości |
-| Interfejsy | `bajka/ports.py` — `Player`, `Listener`, `Voice`, `IntentResolver`, `Audience`, `ShoutMeter`, `Imaginer`, `Illustrator`, `Animator` |
+| Interfejsy | `bajka/ports.py` — `Player`, `Listener`, `Voice`, `IntentResolver`, `Audience`, `ShoutMeter` |
 | Obraz | `bajka/player.py` (VLC), `bajka/placeholders.py` (klipy zastępcze) |
 | Odpowiedzi widowni | `bajka/mobile.py` + `bajka/mobile_app/` (telefony), `bajka/vote.py` (krzykomierz), `bajka/local_stt.py`, `bajka/stt.py` (mikrofon), `bajka/console.py` (próby) |
 | Rozumienie | `bajka/keywords.py`, `bajka/local_intent.py`, `bajka/intent.py`, `bajka/foundry.py`, `bajka/safety.py` |
 | Głos postaci | `bajka/local_tts.py` (Windows), `bajka/tts.py` (Azure) |
-| Obrazy na żywo | `bajka/imagine.py`, `bajka/illustrate.py`, `bajka/motion.py` |
 
 Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m bajka.keywords`, `python -m bajka.vote`,
 `python -m bajka.mobile` (pełna lista w README). Testy (`python -m pytest`) działają bez sieci, mikrofonu i VLC.
@@ -110,14 +95,12 @@ Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m ba
 
 - **Odporność ponad wszystko.** Każdy kontakt ze światem zewnętrznym (mikrofon, model, sieć, syntezator) jest
   opakowany obsługą błędu z zapasowym zachowaniem.
-- **Lokalnie, jeśli się da.** Prywatność widzów i działanie bez internetu w kinie; chmura tylko tam, gdzie lokalnie
-  się nie da (obrazy na żywo) albo jako alternatywa.
+- **Lokalnie, jeśli się da.** Prywatność widzów i działanie bez internetu w kinie; chmura tylko jako alternatywa.
 - **Najpierw prosto, potem mądrze.** Słowa kluczowe przed modelem językowym; stałe kwestie ze scenariusza jako
   siatka bezpieczeństwa dla kwestii pisanych przez model.
 - **Treść oddzielona od kodu.** Pytania, opcje, słowa kluczowe, reakcje i klipy żyją w scenariuszu, więc autor
   historii nie potrzebuje programisty.
-- **Prywatność.** Nagrania są przetwarzane w pamięci i nie są zapisywane; obrazy z seansu trafiają do katalogu
-  tymczasowego, czyszczonego przy następnym starcie.
+- **Prywatność.** Nagrania są przetwarzane w pamięci i nie są zapisywane.
 
 ## Słowniczek
 
@@ -128,8 +111,6 @@ Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m ba
 | **Pętla oczekiwania** (`idle`) | Cichy, zapętlony klip po pytaniu, w trakcie którego zbieramy odpowiedzi |
 | **Runda** | Jedna próba zebrania odpowiedzi na pytanie |
 | **Scena `vote`** | Scena decyzji, którą bez telefonów rozstrzyga krzykomierz |
-| **Scena `open`** | Pytanie otwarte; pomysł widza jest rysowany na żywo |
-| **Klip zapasowy** | Gotowy klip na wypadek, gdy obraz na żywo się nie uda |
 | **Backend** | Skąd bierzemy AI: `local` (komputer) albo `azure` (chmura) |
 | **Zaślepka** | Kolorowy klip zastępczy, dopóki nie ma prawdziwego wideo |
 
@@ -140,5 +121,5 @@ Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m ba
 | [README](../README.md) | Instalacja, uruchamianie, wszystkie tryby, rozwiązywanie problemów |
 | [PODZIAL_PRACY.md](PODZIAL_PRACY.md) | Kto rozwija który moduł, zasady modułów i pracy w Git |
 | [LOKALNE_AI.md](LOKALNE_AI.md) | Foundry Local, Whisper, Phi, NPU, głos Windows |
-| [Projekt flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) | Obrazy na żywo i dobór modeli |
+| [Projekt flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) | Produkcja klipów i dobór modeli (rysowanie na żywo wycofane) |
 | [DO_ZROBIENIA.md](DO_ZROBIENIA.md) | Co zostało do zrobienia |

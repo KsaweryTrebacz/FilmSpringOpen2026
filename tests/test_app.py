@@ -107,16 +107,14 @@ def test_local_backend_without_windows_voice_packages_exits_with_code_2(tmp_path
     assert "pip install" in caplog.text
 
 
-def test_missing_media_files_exit_with_code_2_and_name_clips_and_reference_images(
-    tmp_path, monkeypatch, scenario_dict, caplog
-):
+def test_missing_video_files_exit_with_code_2(tmp_path, monkeypatch, scenario_dict, caplog):
     monkeypatch.chdir(tmp_path)
     for name in LLM_VARS:
         monkeypatch.setenv(name, "wartosc-testowa")
     path = write_scenario(tmp_path / "bajka.yaml", scenario_dict)
 
     assert main([str(path), "--text"]) == 2
-    assert "Brak plików (klipy wideo, obrazy referencyjne)" in caplog.text
+    assert "Brak plików wideo" in caplog.text
 
 
 # Zamykanie okna (Esc)
