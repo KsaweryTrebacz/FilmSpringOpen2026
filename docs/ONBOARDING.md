@@ -1,148 +1,142 @@
-# Witaj w projekcie „Bzyczka szuka domu”
+# Wprowadzenie: jak działa program
 
-Ten tekst to pierwsze wprowadzenie do projektu — dla programistów, ale też dla osób od scenariusza, animacji,
-dźwięku i pitchu. Czytanie zajmie ok. 10 minut. Szczegóły są w dokumentach podlinkowanych po drodze.
+Ten tekst tłumaczy **zamysł i działanie programu** — bez wchodzenia w fabułę konkretnego filmu. Czytanie zajmie
+ok. 10 minut. Szczegóły techniczne są w dokumentach podlinkowanych po drodze.
 
-## W jednym akapicie
+## Zamysł w jednym akapicie
 
-Tworzymy **interaktywny animowany film krótkometrażowy dla dzieci (4–7 lat)**, który ogląda się w kinie i który
-**słucha widowni**. Bohaterka, Lila Lupka, zadaje pytania, a dzieci odpowiadają głosem — do telefonu albo
-okrzykiem całej sali. Od odpowiedzi zależy dalszy ciąg filmu, a Lila reaguje na nie na żywo. Całe AI może działać
-na jednym komputerze w kinie, bez chmury i bez nagrywania dzieci. Projekt powstaje na hackathonie
-**„Kino szuka nowej formy. Znajdź ją.”** (21. Plenery Film Spring Open, Kraków, 16–18.10.2026). Prezentacja przed
-jury: **18.10.2026, 19:00**.
+Program zamienia zwykły film w **film, który słucha widowni**. Film jest pocięty na sceny. Po scenie z pytaniem
+program zbiera odpowiedzi widzów (głosem — do telefonu albo okrzykiem całej sali), rozpoznaje, co wybrali,
+pozwala postaci zareagować na żywo i wybiera kolejną scenę. Sam program nie zna żadnej historii: historia jest
+wymiennym plikiem — **scenariuszem** — a program to **silnik**, który ją odtwarza. Wszystko może działać na jednym
+komputerze z Windows, bez chmury i bez nagrywania widzów.
 
-## Co przeżywa widz
+## Trzy filary
 
-1. Przed seansem na ekranie wisi kod QR. Opiekun skanuje go telefonem, otwiera aplikację w przeglądarce
-   i zezwala na mikrofon. Niczego nie trzeba instalować.
-2. Zaczyna się film. Lila i jej przyjaciel Fiku prowadzą Klub Ciekawskich w dziupli starego dębu. Wpada zagubiona
-   pszczółka Bzyczka — trzeba jej pomóc wrócić do ula.
-3. Kiedy w rogu ekranu pulsuje **Świecąca Lupka**, przychodzi kolej widowni. Telefon wibruje i pokazuje pytanie,
-   np. „Przez Tęczowy Mostek czy przez Szumiący Las?”. Dziecko mówi odpowiedź do telefonu albo dotyka opcji.
-4. Komputer w kinie liczy głosy całej sali. Lila mówi na żywo: „Wygrywa Tęczowy Mostek!” i film idzie tą drogą.
-5. Po drodze widownia rozwiązuje zagadki (kolory, zwierzęta, liczenie), uspokaja rozbrykany Wiaterek wspólnym
-   oddechem i na koniec wybiera, jak świętować: tańcem albo piosenką.
+1. **Scenariusz jako graf scen.** Plik YAML opisuje sceny, ich klipy wideo, pytania, możliwe odpowiedzi i to,
+   dokąd prowadzi każda odpowiedź. Zmiana historii = zmiana pliku, bez zmian w kodzie.
+2. **Silnik, który nigdy nie staje.** Prowadzi widza po grafie, a każdy błąd (mikrofon, model, głos, sieć) obsługuje
+   po cichu: dopytuje, wybiera ścieżkę domyślną albo pokazuje klip zapasowy. Pokaz ma trwać, cokolwiek się zepsuje.
+3. **Wymienne moduły.** Odtwarzacz, rozpoznawanie mowy, rozumienie odpowiedzi, głos postaci i rysowanie obrazów
+   to osobne moduły, które rozmawiają z silnikiem tylko przez umówione interfejsy (`bajka/ports.py`). Każdy można
+   wymienić — np. lokalne AI na usługi w chmurze — i testować bez reszty programu.
 
-Pełny scenariusz z dialogami: [scenarios/klub_ciekawskich.md](../scenarios/klub_ciekawskich.md).
-
-## Jak to działa pod spodem
-
-Film to **graf scen** w pliku YAML ([klub_ciekawskich.yaml](../scenarios/klub_ciekawskich.yaml)). Każda scena
-z pytaniem przechodzi ten sam cykl:
+## Cykl jednej sceny
 
 ```
-klip z pytaniem → cicha pętla oczekiwania → odpowiedzi widowni → rozpoznanie wyboru → reakcja Lili → następna scena
+klip ──▶ cicha pętla oczekiwania ──▶ odpowiedzi widowni ──▶ rozpoznanie wyboru ──▶ reakcja postaci ──▶ następna scena
+                                          ▲                                                  │
+                                          └──── cisza / niejasna odpowiedź: dopytanie ◀──────┘
+                                                (po kilku próbach: wybór domyślny)
 ```
 
-| Krok | Czym | Gdzie w kodzie |
+1. **Klip** — gotowe wideo kończy się pytaniem postaci do widowni.
+2. **Pętla oczekiwania** — krótki, cichy, zapętlony klip trwa, dopóki zbieramy odpowiedzi (cisza jest ważna, bo wtedy
+   słucha mikrofon).
+3. **Odpowiedzi** — przychodzą jednym z kanałów opisanych niżej.
+4. **Rozpoznanie** — z wypowiedzi powstaje wybór spośród opcji zapisanych w scenariuszu.
+5. **Reakcja** — postać mówi na żywo (syntezator mowy) krótką kwestię dopasowaną do odpowiedzi.
+6. **Następna scena** — według grafu. Scena bez pytań kończy film.
+
+## Skąd przychodzą odpowiedzi
+
+Program sam wybiera kanał, zależnie od tego, co jest dostępne na sali:
+
+| Kanał | Kiedy | Jak działa |
 |---|---|---|
-| Odtwarzanie klipów | VLC w pełnoekranowym oknie | `bajka/player.py` |
-| Odpowiedzi z telefonów | Aplikacja mobilna w przeglądarce + lokalny serwer HTTPS na komputerze | `bajka/mobile.py`, `bajka/mobile_app/` |
-| Odpowiedzi bez telefonów | Krzykomierz (wygrywa najgłośniejszy okrzyk) albo mikrofon przy ekranie | `bajka/vote.py`, `bajka/local_stt.py` |
-| Mowa → tekst | Whisper w Foundry Local (lokalnie, także na NPU) | `bajka/local_stt.py`, `bajka/foundry.py` |
-| Tekst → wybór | Najpierw słowa kluczowe ze scenariusza, dla niejasnych odpowiedzi model Phi w Foundry Local | `bajka/keywords.py`, `bajka/local_intent.py` |
-| Bezpieczeństwo kwestii | Filtr wulgaryzmów, przemocy i zbyt długich kwestii modelu | `bajka/safety.py` |
-| Głos Lili | Syntezator wbudowany w Windows (polski głos) | `bajka/local_tts.py` |
-| Ilustracje na żywo (opcjonalnie) | Pomysł widza → opis (Azure OpenAI) → ilustracja (Azure AI Foundry) → ruch kamery (ffmpeg) | `bajka/imagine.py`, `bajka/illustrate.py`, `bajka/motion.py` |
-| Całość | Silnik prowadzący film po grafie scen | `bajka/engine.py`, `bajka/app.py` |
+| **Aplikacja mobilna** | Widzowie połączyli telefony | Komputer uruchamia lokalny serwer HTTPS; widz skanuje kod QR i otwiera aplikację w przeglądarce (bez instalacji). Przy pytaniu telefon pokazuje opcje i sam nagrywa odpowiedź, wykrywając początek i koniec mowy. Komputer rozpoznaje nagrania i **liczy głosy — wygrywa większość** |
+| **Krzykomierz** | Brak telefonów, scena decyzji (`vote`) | Postać wzywa po kolei do każdej opcji („Kto za opcją A? Krzyczymy!”), mikrofon przy ekranie mierzy głośność okrzyków — **wygrywa najgłośniejsza** |
+| **Mikrofon na sali** | Brak telefonów, pozostałe pytania | Mikrofon słucha odpowiedzi wykrzyczanej chórem albo jednej osoby (np. na pokazie dla jury) |
+| **Konsola** | Próby bez sprzętu (`--text`) | Odpowiedzi i głośność okrzyków wpisuje się z klawiatury |
 
-Kilka zasad, które warto znać od początku:
+Remis, cisza albo niezrozumiała odpowiedź oznaczają dopytanie i kolejną rundę. Po kilku nieudanych próbach postać
+sama wybiera ścieżkę domyślną ze scenariusza.
 
-- **Bajka nigdy nie staje.** Gdy coś zawiedzie (mikrofon, model, głos, sieć), silnik loguje błąd i idzie dalej:
-  dopytuje, wybiera domyślną ścieżkę albo pokazuje klip zapasowy.
-- **Moduły rozmawiają tylko przez kontrakty** z `bajka/ports.py` (`Player`, `Listener`, `Voice`,
-  `IntentResolver`, `Audience`, …). Dzięki temu każdą część można wymienić — np. lokalne AI na usługi Azure
-  (`--backend azure`) — i testować osobno na atrapach.
-- **Dwa tryby AI:** `local` (domyślny; Foundry Local + głos Windows, bez kluczy) i `azure` (Azure Speech i Azure
-  OpenAI). Ilustracje na żywo korzystają zawsze z Azure; bez internetu pokazują klipy zapasowe.
-- **Pętle oczekiwania są ciche**, bo wtedy słucha mikrofon.
+## Jak program rozumie odpowiedź
 
-Więcej: [README](../README.md), [lokalne AI na Windows](LOKALNE_AI.md),
-[projekt flow filmu i rysowania na żywo](superpowers/specs/2026-10-16-flow-filmu-design.md).
+Rozpoznanie idzie od najtańszego do najmądrzejszego kroku:
 
-## Pierwsze kroki (Windows)
+1. **Mowa → tekst** — model Whisper działający lokalnie (Foundry Local, także na NPU w Copilot+ PC).
+2. **Słowa kluczowe** — natychmiastowe dopasowanie do słów zapisanych przy każdej opcji w scenariuszu, z tolerancją
+   na odmianę („lasu” ≈ „las”). Większość krótkich odpowiedzi kończy się tutaj.
+3. **Model językowy** — tylko dla odpowiedzi niejasnych: lokalny model Phi rozumie opisowe wypowiedzi („tam, gdzie
+   ciemno”) i od razu pisze reakcję postaci. Odpowiedź modelu jest wymuszona jako JSON z dozwolonymi opcjami.
+4. **Filtr bezpieczeństwa** — kwestia z modelu z wulgaryzmem, przemocą, linkiem albo za długa nie zostaje
+   wypowiedziana; postać mówi wtedy sprawdzoną kwestię ze scenariusza.
 
-```powershell
-git clone https://github.com/KsaweryTrebacz/FilmSpringOpen2026.git
-cd FilmSpringOpen2026
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -e ".[dev,local,mobile]"
-Copy-Item .env.example .env          # tryb lokalny działa bez zmian; klucze Azure tylko do trybu azure i ilustracji
-winget install --id VideoLAN.VLC -e  # VLC 64-bit
-winget install --id Gyan.FFmpeg -e   # do klipów-zaślepek i ruchu kamery
+Gdy model zawiedzie, wybór i tak rozpoznają słowa kluczowe. Program nie zgaduje, gdy nie wie: wtedy dopytuje.
+
+## Pytania otwarte i obrazy na żywo (opcjonalnie)
+
+Scena może też zadać **pytanie otwarte** („Jak to wygląda?”). Wtedy pomysł widza zamienia się w ilustrację:
+
+```
+wypowiedź ──▶ model językowy: kwestia postaci + bezpieczny opis obrazu ──▶ model obrazu ──▶ ruch kamery (ffmpeg) ──▶ nowy klip
 ```
 
-Potem, w tej kolejności:
+W czasie rysowania leci pętla „postać rysuje”, a postać mówi swoją kwestię. Pomysł zostaje zapamiętany
+i może wrócić w kolejnych scenach. Gdy rysowanie potrwa zbyt długo albo się nie uda, program pokazuje gotowy klip
+zapasowy. Ta część korzysta z chmury (Azure AI Foundry); do modelu obrazu trafia tylko przepisany opis, nigdy nagranie.
 
-1. `python -m pytest` — wszystkie testy powinny przejść (działają bez sieci, mikrofonu i VLC).
-2. `python -m bajka.placeholders scenarios/klub_ciekawskich.yaml` — kolorowe klipy-zaślepki zamiast animacji.
-3. `python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed` — cały film bez mikrofonu i bez AI:
-   odpowiedzi i głośność okrzyków wpisujesz w konsoli. Najszybszy sposób, żeby zobaczyć, jak działa graf scen.
-4. Gdy to działa: tryb z lokalnym AI (`--text --windowed`), potem pełny (`python -m bajka scenarios/klub_ciekawskich.yaml`),
-   a na koniec z telefonami (`--mobile`).
+## Tryby działania
 
-Każdy moduł ma też własne demo, które działa bez reszty aplikacji (lista w README, sekcja „Sprawdzanie modułów osobno”),
-np. `python -m bajka.local_tts "Cześć! Jestem Lila Lupka!"` albo `python -m bajka.vote`.
+| Tryb | Co robi | Przykład |
+|---|---|---|
+| `local` (domyślny) | Rozpoznawanie mowy, model językowy i głos postaci na komputerze; bez kluczy i internetu po pierwszym pobraniu modeli | `python -m bajka SCENARIUSZ` |
+| `azure` | To samo przez usługi Azure | `--backend azure` |
+| `--mobile` | Odpowiedzi z telefonów widzów | `python -m bajka SCENARIUSZ --mobile` |
+| `--no-llm` | Bez modelu językowego, tylko słowa kluczowe | na słabszym komputerze i do prób |
+| `--text` | Próba bez mikrofonu i głośnika (konsola) | `--text --no-llm --windowed` |
 
-## Jak pracujemy
+## Mapa kodu
 
-- **Wszystko na `main`**, bez gałęzi. Przed pracą `git pull --rebase origin main`, przed wypchnięciem
-  `python -m pytest`, potem `git push origin main`. Małe commity, wypychane od razu.
-- **Podział na obszary** ([PODZIAL_PRACY.md](PODZIAL_PRACY.md)):
-  - **A — „ucho i mózg”**: wszystko, co zamienia głos widowni na decyzję (rozpoznawanie mowy, wybór, aplikacja mobilna,
-    krzykomierz, filtr treści),
-  - **B — „oko i głos”**: to, co widz widzi i słyszy (odtwarzacz, głos Lili, zaślepki),
-  - **C — „obraz na żywo”**: ilustracje rysowane z pomysłów widowni.
-- **Zasady modułu:** własny plik i testy, ustawienia `…Settings.from_env`, demo `python -m bajka.<moduł>`, testy bez sieci
-  na atrapach. Pliki wspólne (`ports.py`, `engine.py`, `app.py`, `scenario.py`, `.env.example`, README) zmieniamy małymi
-  commitami i mówimy o tym reszcie zespołu.
-- **Język:** identyfikatory w kodzie po angielsku; komunikaty, logi, kwestie, dokumentacja i commity po polsku.
-- **Ustawienia i klucze** tylko w `.env` (nie trafia do repozytorium); wzór i opis zmiennych w `.env.example`.
+| Warstwa | Moduły |
+|---|---|
+| Scenariusz | `bajka/scenario.py` — wczytanie i walidacja grafu scen |
+| Silnik | `bajka/engine.py` — cykl scen, kanały odpowiedzi, dopytywanie, ścieżki awaryjne; `bajka/app.py` — złożenie całości |
+| Interfejsy | `bajka/ports.py` — `Player`, `Listener`, `Voice`, `IntentResolver`, `Audience`, `ShoutMeter`, `Imaginer`, `Illustrator`, `Animator` |
+| Obraz | `bajka/player.py` (VLC), `bajka/placeholders.py` (klipy zastępcze) |
+| Odpowiedzi widowni | `bajka/mobile.py` + `bajka/mobile_app/` (telefony), `bajka/vote.py` (krzykomierz), `bajka/local_stt.py`, `bajka/stt.py` (mikrofon), `bajka/console.py` (próby) |
+| Rozumienie | `bajka/keywords.py`, `bajka/local_intent.py`, `bajka/intent.py`, `bajka/foundry.py`, `bajka/safety.py` |
+| Głos postaci | `bajka/local_tts.py` (Windows), `bajka/tts.py` (Azure) |
+| Obrazy na żywo | `bajka/imagine.py`, `bajka/illustrate.py`, `bajka/motion.py` |
 
-## Zasady treści — obowiązują wszystkich
+Każdy moduł ma własne demo uruchamiane bez reszty programu, np. `python -m bajka.keywords`, `python -m bajka.vote`,
+`python -m bajka.mobile` (pełna lista w README). Testy (`python -m pytest`) działają bez sieci, mikrofonu i VLC.
 
-Film oglądają małe dzieci, a regulamin hackathonu stawia jasne wymagania
-([raport zgodności](ZGODNOSC_Z_REGULAMINEM.md)):
+## Założenia projektowe
 
-- **Do widowni w liczbie mnogiej i bez form zależnych od płci**: „Pomożecie?”, „Brawo, świetnie wam idzie!”,
-  nigdy „zrobiłeś/zrobiłaś” ani „zrobiliście”. Pilnują tego testy scenariusza.
-- **Tylko prawdziwe fakty** o świecie (zwierzęta, kolory, liczby). Nowy fakt w scenariuszu = wpis w tabeli
-  „Sprawdzone fakty”.
-- **Bez wulgaryzmów, przemocy i straszenia** — także w tym, co mówi model na żywo (dlatego filtr w `bajka/safety.py`).
-- **Tylko własne utwory**: postacie, muzyka, melodie, efekty. Każde narzędzie generatywne sprawdzamy pod kątem licencji,
-  bo lider oświadcza, że zespół ma wyłączne prawa do pracy.
-- **Prywatność dzieci**: nie zapisujemy nagrań; ilustracje z seansu żyją tylko w katalogu tymczasowym.
+- **Odporność ponad wszystko.** Każdy kontakt ze światem zewnętrznym (mikrofon, model, sieć, syntezator) jest
+  opakowany obsługą błędu z zapasowym zachowaniem.
+- **Lokalnie, jeśli się da.** Prywatność widzów i działanie bez internetu w kinie; chmura tylko tam, gdzie lokalnie
+  się nie da (obrazy na żywo) albo jako alternatywa.
+- **Najpierw prosto, potem mądrze.** Słowa kluczowe przed modelem językowym; stałe kwestie ze scenariusza jako
+  siatka bezpieczeństwa dla kwestii pisanych przez model.
+- **Treść oddzielona od kodu.** Pytania, opcje, słowa kluczowe, reakcje i klipy żyją w scenariuszu, więc autor
+  historii nie potrzebuje programisty.
+- **Prywatność.** Nagrania są przetwarzane w pamięci i nie są zapisywane; obrazy z seansu trafiają do katalogu
+  tymczasowego, czyszczonego przy następnym starcie.
 
 ## Słowniczek
 
 | Pojęcie | Znaczenie |
 |---|---|
-| **Kotwica** | Klip przygotowany przed pokazem (animacja albo ilustracja z ruchem kamery) |
+| **Scenariusz** | Plik YAML z grafem scen — jedyne miejsce, gdzie żyje historia |
+| **Scena** | Klip wideo, opcjonalnie z pytaniem, opcjami i przejściami do kolejnych scen |
 | **Pętla oczekiwania** (`idle`) | Cichy, zapętlony klip po pytaniu, w trakcie którego zbieramy odpowiedzi |
-| **Runda** | Czas na odpowiedzi z telefonów po jednym pytaniu (domyślnie do 8 s) |
-| **Krzykomierz** | Głosowanie okrzykiem: Lila wzywa do każdej opcji, wygrywa najgłośniejsza (tryb bez telefonów) |
+| **Runda** | Jedna próba zebrania odpowiedzi na pytanie |
 | **Scena `vote`** | Scena decyzji, którą bez telefonów rozstrzyga krzykomierz |
 | **Scena `open`** | Pytanie otwarte; pomysł widza jest rysowany na żywo |
-| **Świecąca Lupka** | Sygnał na ekranie i w telefonie: „teraz mówicie wy” |
-| **Backend** | Skąd bierzemy AI: `local` (na komputerze) albo `azure` (chmura) |
-| **Zaślepka** | Kolorowy klip zastępczy, dopóki nie ma prawdziwej animacji |
+| **Klip zapasowy** | Gotowy klip na wypadek, gdy obraz na żywo się nie uda |
+| **Backend** | Skąd bierzemy AI: `local` (komputer) albo `azure` (chmura) |
+| **Zaślepka** | Kolorowy klip zastępczy, dopóki nie ma prawdziwego wideo |
 
-## Co dalej
-
-Aktualna lista zadań — co trzeba zrobić przed pokazem i co po hackathonie — jest w [DO_ZROBIENIA.md](DO_ZROBIENIA.md).
-Najwięcej pracy zostało na prawdziwym sprzęcie (testy na laptopie z Windows i na telefonach) i w produkcji filmu
-(karta postaci, klipy, nagrania, muzyka). Wybierz punkt, dopisz przy nim swoje imię i daj znać zespołowi.
-
-### Gdzie czego szukać
+## Gdzie dalej
 
 | Dokument | Po co |
 |---|---|
 | [README](../README.md) | Instalacja, uruchamianie, wszystkie tryby, rozwiązywanie problemów |
-| [scenarios/klub_ciekawskich.md](../scenarios/klub_ciekawskich.md) | Scenariusz filmu: postacie, sceny, dialogi, lista klipów |
 | [PODZIAL_PRACY.md](PODZIAL_PRACY.md) | Kto rozwija który moduł, zasady modułów i pracy w Git |
 | [LOKALNE_AI.md](LOKALNE_AI.md) | Foundry Local, Whisper, Phi, NPU, głos Windows |
-| [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md) | Regulamin hackathonu, prawa autorskie, prywatność, pitch |
-| [Projekt flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) | Rysowanie na żywo i dobór modeli |
+| [Projekt flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) | Obrazy na żywo i dobór modeli |
 | [DO_ZROBIENIA.md](DO_ZROBIENIA.md) | Co zostało do zrobienia |
