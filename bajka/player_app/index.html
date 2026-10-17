@@ -78,6 +78,36 @@
   #bar button { width: 2.4em; height: 2.4em; border: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.55); font-size: 20px; }
   #offline { position: absolute; top: 2vh; left: 50%; transform: translateX(-50%); padding: 0.4em 1em;
     border-radius: 999px; background: #8a2b1d; font-size: 16px; }
+
+  #montageBadge {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    z-index: 20;
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    background: rgba(18, 16, 26, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+  #montageBadge.dynamic {
+    border-color: #f7a224;
+    color: #ffd27d;
+    box-shadow: 0 4px 20px rgba(247, 162, 36, 0.35);
+  }
+  #montageBadge.calm {
+    border-color: #5bb3ff;
+    color: #bfe3ff;
+    box-shadow: 0 4px 20px rgba(91, 179, 255, 0.35);
+  }
 </style>
 </head>
 <body>
@@ -87,6 +117,7 @@
     <div class="deck" id="deckB" hidden><video playsinline preload="auto"></video><div class="layers"></div></div>
     <div id="veil"></div>
   </div>
+  <div id="montageBadge" hidden></div>
 
   <div id="choice" hidden>
     <p id="question"></p>
@@ -442,8 +473,26 @@ function load(deck, shot, loop) {
   }));
 }
 
-function begin(deck, seq) {
+let badgeTimer = null;
+function showBadge(text, variant = "dynamic") {
+  const badge = $("montageBadge");
+  if (!badge) return;
+  badge.textContent = text;
+  badge.className = variant;
+  badge.hidden = false;
+  badge.style.opacity = "1";
+  badge.style.transform = "translateY(0) scale(1)";
+  clearTimeout(badgeTimer);
+  badgeTimer = setTimeout(() => {
+    badge.style.opacity = "0";
+    badge.style.transform = "translateY(-8px) scale(0.95)";
+    setTimeout(() => { badge.hidden = true; }, 400);
+  }, 3200);
+}
+
+function begin(deck, seq, rate = 1.0) {
   const video = deck.video;
+  try { video.playbackRate = rate; } catch (_) {}
   if (seq !== undefined) {  // klip sceny: koniec zgłaszamy chwilę wcześniej, żeby następne ujęcie mogło zajść
     let sent = false;
     const report = () => { if (!sent) { sent = true; done(seq); } };
@@ -454,7 +503,10 @@ function begin(deck, seq) {
     video.ontimeupdate = video.onended = video.onerror = null;
     video.play().catch(() => { /* np. przeglądarka wstrzymała odtwarzanie w tle; pętla ruszy przy kolejnym ujęciu */ });
   }
-  for (const layer of deck.layerBox.children) layer.play().catch(() => {});
+  for (const layer of deck.layerBox.children) {
+    try { layer.playbackRate = rate; } catch (_) {}
+    layer.play().catch(() => {});
+  }
 }
 
 async function animate(el, frames, ms, easing = "ease-in-out") {
@@ -480,6 +532,8 @@ async function present(shot, loop, seq) {
   const ms = Math.min(2.5, cut.seconds || 0) * 1000;
   const kind = front && ms > 0 ? cut.transition : "ciecie";
   const through = kind === "zaciemnienie" || kind === "rozjasnienie";  // przez ciemność albo jasność
+  const rate = shot.rate || 1.0;
+  const punch = !!shot.punch;
   const back = decks.find(deck => deck !== front);
   load(back, shot, loop);
   await ready(back.video);
@@ -493,19 +547,38 @@ async function present(shot, loop, seq) {
   back.el.style.opacity = through ? 0 : 1;
   const volume = loop ? LOOP_VOLUME : 1;
   if (outgoing) fadeVolume(outgoing.video, 0, kind === "ciecie" ? 0 : ms);
+
+  // Efekt Punch Cut: energiczny mikro-najazd kadru przy cięciu dla ożywienia dynamiki
+  if (punch) {
+    back.el.style.transformOrigin = "center center";
+    animate(back.el, [
+      { transform: "scale(1.06)" },
+      { transform: "scale(1.0)" }
+    ], 340, "cubic-bezier(0.12, 0.82, 0.3, 1.15)");
+  } else {
+    back.el.style.transform = "none";
+  }
+
+  // Wskaźnik adaptacji montażu w odtwarzaczu
+  if (!loop && (shot.viewer === "znuzenie" || punch || rate > 1.0)) {
+    showBadge(`⚡ Montaż dynamiczny (${rate}x + Punch Cut)`, "dynamic");
+  } else if (!loop && (shot.viewer === "pobudzenie" || rate < 1.0)) {
+    showBadge(`🌿 Montaż relaksujący (${rate}x · spokojne tempo)`, "calm");
+  }
+
   if (kind === "ciecie") {
-    begin(back, seq);
+    begin(back, seq, rate);
     back.video.volume = volume;
   } else if (through) {
     const veil = $("veil");
     veil.style.background = kind === "zaciemnienie" ? "#000" : "#fff6e3";
     await animate(veil, [{ opacity: 0 }, { opacity: 1 }], ms / 2);
-    begin(back, seq);
+    begin(back, seq, rate);
     back.el.style.opacity = 1;
     fadeVolume(back.video, volume, ms / 2);
     await animate(veil, [{ opacity: 1 }, { opacity: 0 }], ms / 2);
   } else {
-    begin(back, seq);
+    begin(back, seq, rate);
     fadeVolume(back.video, volume, ms);
     const frames = kind === "przetarcie"
       ? [{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)" }]
@@ -521,6 +594,7 @@ function retire(deck) {
   deck.video.ontimeupdate = deck.video.onended = deck.video.onerror = null;
   for (const layer of deck.layerBox.children) layer.pause();
   deck.el.hidden = true;
+  deck.el.style.transform = "none";
   deck.key = null;
 }
 

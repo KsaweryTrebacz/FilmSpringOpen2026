@@ -35,7 +35,7 @@ from bajka.ports import (
     Viewer,
     Voice,
 )
-from bajka.pulse import PulseSettings, hall_state, pick_variant
+from bajka.pulse import BORED, EXCITED, PulseSettings, hall_state, pick_variant
 from bajka.scenario import Choice, Scenario, Scene
 
 log = logging.getLogger(__name__)
@@ -108,8 +108,17 @@ class StoryEngine:
 
     def _play(self, clip: Path, layers: tuple[Path, ...] = (), cut: Cut | None = None) -> None:
         self._check_stopped()
+        actual_cut = cut or Cut()
+        rate = 1.0
+        punch = False
+        if actual_cut.viewer == BORED:
+            rate = 1.08
+            punch = True
+        elif actual_cut.viewer == EXCITED:
+            rate = 0.92
+            punch = False
         if isinstance(self._player, Compositor):
-            self._player.play_shot(Shot(clip, layers, cut or Cut()))
+            self._player.play_shot(Shot(clip, layers, actual_cut, rate=rate, punch=punch))
         else:
             self._player.play(clip)
 

@@ -271,7 +271,14 @@ class WebEpisode:
 
     def _shot(self, shot: Shot) -> dict[str, Any]:
         cut = {"transition": shot.cut.transition, "seconds": shot.cut.seconds}
-        return {"clip": self._url(shot.clip), "layers": [self._url(layer) for layer in shot.layers], "cut": cut}
+        payload = {"clip": self._url(shot.clip), "layers": [self._url(layer) for layer in shot.layers], "cut": cut}
+        if shot.rate != 1.0:
+            payload["rate"] = round(shot.rate, 2)
+        if shot.punch:
+            payload["punch"] = True
+        if shot.cut.viewer:
+            payload["viewer"] = shot.cut.viewer
+        return payload
 
     def _url(self, clip: Path) -> str:
         return self._urls.get(clip) or self._register(clip)

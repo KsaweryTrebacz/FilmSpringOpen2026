@@ -37,6 +37,7 @@ class Cut:
     seconds: float = 0.0
     reason: str = ""  # jednym zdaniem dla panelu podglądu: dlaczego takie przejście
     source: str = "reguly"  # kto zdecydował: "model" (AI) albo "reguly"
+    viewer: str = ""  # stan widza w chwili cięcia (np. "znużenie", "pobudzenie")
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,8 @@ class Shot:
     clip: Path
     layers: tuple[Path, ...] = ()  # przezroczyste klipy nakładane na klip, w kolejności od spodu
     cut: Cut = Cut()
+    rate: float = 1.0  # tempo odtwarzania (np. 1.08 przy znużeniu, 0.92 przy pobudzeniu)
+    punch: bool = False  # efekt punch cut (mikro-zoom kadru dla dynamiki)
 
 
 @runtime_checkable

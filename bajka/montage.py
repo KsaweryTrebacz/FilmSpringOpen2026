@@ -50,7 +50,7 @@ MAX_REASON_CHARS = 140
 _JSON_OBJECT = re.compile(r"\{.*\}", re.DOTALL)
 
 
-def checked_cut(transition: str, seconds: float, reason: str = "", source: str = "reguly") -> Cut:
+def checked_cut(transition: str, seconds: float, reason: str = "", source: str = "reguly", viewer: str = "") -> Cut:
     """Przejście w dozwolonych granicach: znany rodzaj, długość w widełkach, krótki i bezpieczny powód."""
     if transition not in TRANSITIONS:
         raise ValueError(f"nieznane przejście {transition!r}, dostępne: {', '.join(TRANSITIONS)}")
@@ -58,7 +58,13 @@ def checked_cut(transition: str, seconds: float, reason: str = "", source: str =
     reason = " ".join(str(reason).split())
     if len(reason) > MAX_REASON_CHARS or not is_safe_reply(reason):
         reason = ""
-    return Cut(transition=transition, seconds=round(min(high, max(low, float(seconds))), 2), reason=reason, source=source)
+    return Cut(
+        transition=transition,
+        seconds=round(min(high, max(low, float(seconds))), 2),
+        reason=reason,
+        source=source,
+        viewer=viewer,
+    )
 
 
 def loop_cut(scenario: Scenario) -> Cut:
@@ -107,7 +113,7 @@ class RuleEditor:
         else:
             why = f"{base_why}: {describe_cut(Cut(transition, seconds))}."
 
-        return checked_cut(transition, seconds, why)
+        return checked_cut(transition, seconds, why, viewer=context.viewer)
 
 
 SYSTEM_PROMPT = """\
