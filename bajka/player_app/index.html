@@ -175,7 +175,6 @@ let closed = false;       // widz zakończył odcinek
 let audio = null;         // { context, processor } po zgodzie na mikrofon
 let recorder = null;      // nagrywanie bieżącego okna wyboru
 let ask = null;           // otwarte okno wyboru: { seq, endsAt, timerEnded, sending, picked, timer }
-let polish = null;        // polski głos syntezy mowy, lokalny, jeśli jest
 let chain = Promise.resolve();  // polecenia komputera wykonujemy po kolei (przejścia trwają)
 let front = null;         // pokład na wierzchu: { el, video, layerBox, key, loop }
 let depth = 1;            // kolejność pokładów (z-index)
@@ -186,21 +185,18 @@ const decks = ["deckA", "deckB"].map(id => {
 
 // --- ustawienia rodzica ---
 
-for (const [key, id] of [["mic", "micSetting"], ["speak", "speakSetting"], ["captions", "captionsSetting"]]) {
-  $(id).checked = settings[key];
-  $(id).addEventListener("change", () => {
-    settings[key] = $(id).checked;
-    try { localStorage.setItem("bajka-odtwarzacz", JSON.stringify(settings)); } catch (_) { /* bez pamięci */ }
-  });
+for (const [key, id] of [["mic", "micSetting"], ["captions", "captionsSetting"]]) {
+  const el = $(id);
+  if (el) {
+    el.checked = settings[key];
+    el.addEventListener("change", () => {
+      settings[key] = el.checked;
+      try { localStorage.setItem("bajka-odtwarzacz", JSON.stringify(settings)); } catch (_) { /* bez pamięci */ }
+    });
+  }
 }
 
-function pickVoice() {
-  const voices = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().startsWith("pl"));
-  polish = voices.find(v => v.localService) || voices[0] || null;  // lokalny głos systemu przed głosem z chmury
-}
-if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.addEventListener("voiceschanged", pickVoice); }
-
-// --- start: gest użytkownika odblokowuje dźwięk, mowę i mikrofon ---
+// --- start: gest użytkownika odblokowuje dźwięk i mikrofon ---
 
 $("startButton").addEventListener("click", async () => {
   if (started) { $("start").hidden = true; return; }  // powrót z ustawień
@@ -209,7 +205,6 @@ $("startButton").addEventListener("click", async () => {
     try { recognition.start(); } catch (err) { console.warn("Recognition start error:", err); }
   }
   if (settings.mic) await openMicrophone();
-  if ("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(""));  // odblokowanie mowy
   started = true;
   $("start").hidden = true;
   $("startButton").textContent = "▶ Wróć do odcinka";
