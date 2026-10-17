@@ -127,38 +127,43 @@ def write_wav(path: str, samples: np.ndarray, sample_rate: int = SAMPLE_RATE) ->
 class FoundryTranscriber:
     """Whisper z Foundry Local; nagranie przekazujemy jako plik WAV, tak jak w przykładach Microsoftu."""
 
-    def __init__(self, model: Any, language: str) -> None:
+    def __init__(self, model: Any, language: str, alias: str = "whisper-tiny") -> None:
         self._model = model
         self._language = language
+        self._alias = alias
 
     @classmethod
     def from_settings(cls, settings: LocalSttSettings) -> FoundryTranscriber:
-        return cls(load_model(settings.model, settings.device), settings.language)
+        return cls(load_model(settings.model, settings.device), settings.language, settings.model)
+
+    def _transcribe_file(self, path: str, options: Any) -> str:
+        from foundry_local_sdk import AudioItem, AudioSession, Request, SpeechResultItem, TextItem
+
+        with AudioSession(self._model) as session, Request() as request:
+            request.add_item(AudioItem.from_uri(path))
+            request.set_options(options)
+            with session.process_request(request) as response:
+                items = list(response)
+                results = [item.text for item in items if isinstance(item, SpeechResultItem)]
+                texts = results or [item.text for item in items if isinstance(item, TextItem)]
+                return " ".join(texts)
 
     def __call__(self, samples: np.ndarray) -> str:
-        from foundry_local_sdk import (
-            AudioItem,
-            AudioSession,
-            Request,
-            RequestOptions,
-            SearchOptions,
-            SpeechResultItem,
-            TextItem,
-        )
+        from foundry_local_sdk import RequestOptions, SearchOptions
 
         handle, path = tempfile.mkstemp(suffix=".wav", prefix="bajka-")
         os.close(handle)
         try:
             write_wav(path, samples)
             options = RequestOptions(search=SearchOptions(temperature=0.0), additional_options={"language": self._language})
-            with AudioSession(self._model) as session, Request() as request:
-                request.add_item(AudioItem.from_uri(path))
-                request.set_options(options)
-                with session.process_request(request) as response:
-                    items = list(response)
-                    results = [item.text for item in items if isinstance(item, SpeechResultItem)]
-                    texts = results or [item.text for item in items if isinstance(item, TextItem)]
-                    return " ".join(texts)
+            try:
+                return self._transcribe_file(path, options)
+            except Exception as exc:
+                if any(err in str(exc).lower() for err in ("cudnn", "cuda", "kernel image", "device")):
+                    log.warning("Błąd akceleratora GPU (%s), przełączam Whisper na CPU...", exc)
+                    self._model = load_model(self._alias, "CPU")
+                    return self._transcribe_file(path, options)
+                raise
         finally:
             os.remove(path)
 

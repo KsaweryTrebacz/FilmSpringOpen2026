@@ -48,19 +48,20 @@ def import_sdk() -> Any:
     return foundry_local_sdk
 
 
-def get_manager(sdk: Any = None) -> Any:
+def get_manager(sdk: Any = None, device: str = "auto") -> Any:
     """Inicjuje Foundry Local raz na proces i rejestruje akceleratory (NPU/GPU) dostępne na tym komputerze."""
     sdk = sdk or import_sdk()
     with _lock:
         if sdk.FoundryLocalManager.instance is None:
             sdk.FoundryLocalManager.initialize(sdk.Configuration(app_name=APP_NAME))
             manager = sdk.FoundryLocalManager.instance
-            log.info("Foundry Local: przygotowuję akceleratory (pierwszy raz pobiera sterowniki)…")
-            try:
-                manager.download_and_register_eps(progress_callback=_ProgressLog("akcelerator"))
-            except Exception:
-                # Bez sieci albo bez sterowników modele nadal działają na CPU; bajka nie może przez to nie wystartować.
-                log.warning("Nie udało się przygotować akceleratorów NPU/GPU, modele pójdą na CPU", exc_info=True)
+            if device != "CPU":
+                log.info("Foundry Local: przygotowuję akceleratory (pierwszy raz pobiera sterowniki)…")
+                try:
+                    manager.download_and_register_eps(progress_callback=_ProgressLog("akcelerator"))
+                except Exception:
+                    # Bez sieci albo bez sterowników modele nadal działają na CPU; bajka nie może przez to nie wystartować.
+                    log.warning("Nie udało się przygotować akceleratorów NPU/GPU, modele pójdą na CPU", exc_info=True)
         return sdk.FoundryLocalManager.instance
 
 
@@ -72,7 +73,7 @@ def device_of(model: Any) -> str:
 
 def load_model(alias: str, device: str = "auto", manager: Any = None) -> Any:
     """Zwraca załadowany model z katalogu Foundry Local, w razie potrzeby najpierw go pobiera."""
-    manager = manager or get_manager()
+    manager = manager or get_manager(device=device)
     model = manager.catalog.get_model(alias)
     if model is None:
         raise FoundryError(f"Foundry Local nie zna modelu '{alias}'. Dostępne modele: python -m bajka.foundry")

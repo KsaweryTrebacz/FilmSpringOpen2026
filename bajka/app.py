@@ -149,7 +149,18 @@ def build_transcriber(env: Mapping[str, str], backend: str) -> Callable[[np.ndar
         return AzureFileTranscriber(SttSettings.from_env(env))
     from bajka.local_stt import FoundryTranscriber, LocalSttSettings
 
-    return FoundryTranscriber.from_settings(LocalSttSettings.from_env(env))
+    settings = LocalSttSettings.from_env(env)
+    device = env.get("FOUNDRY_DEVICE") or "CPU"
+    settings = LocalSttSettings(
+        model=settings.model,
+        device=device,
+        language=settings.language,
+        initial_silence_ms=settings.initial_silence_ms,
+        end_silence_ms=settings.end_silence_ms,
+        max_utterance_ms=settings.max_utterance_ms,
+        vad_threshold=settings.vad_threshold,
+    )
+    return FoundryTranscriber.from_settings(settings)
 
 
 def build_speech(env: Mapping[str, str], backend: str = "azure") -> tuple[Listener, Voice]:
@@ -221,17 +232,14 @@ def build_web(env: Mapping[str, str], scenario: Scenario, backend: str, use_mic:
     from bajka.web_player import WebEpisode, WebPlayerServer, WebPlayerSettings
 
     settings = WebPlayerSettings.from_env(env)
-    episode = WebEpisode(scenario, None, settings, browser_voice=use_mic)
+    transcribe = None
     if use_mic:
-        def load_transcriber() -> None:
-            try:
-                t = build_transcriber(env, backend)
-                episode.set_transcribe(t)
-                log.info("Lokalny model rozpoznawania mowy (Whisper) gotowy w tle")
-            except Exception as exc:
-                log.warning("Rozpoznawanie mowy w backendzie niedostępne (%s), działa rozpoznawanie w przeglądarce", exc)
-
-        threading.Thread(target=load_transcriber, daemon=True).start()
+        try:
+            transcribe = build_transcriber(env, backend)
+            log.info("Lokalny model rozpoznawania mowy (Whisper) gotowy")
+        except Exception as exc:
+            log.warning("Rozpoznawanie mowy w backendzie niedostępne (%s), działa rozpoznawanie w przeglądarce", exc)
+    episode = WebEpisode(scenario, transcribe, settings, browser_voice=use_mic)
     return Web(episode=episode, server=WebPlayerServer(episode, settings))
 
 
