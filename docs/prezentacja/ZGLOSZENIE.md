@@ -112,7 +112,7 @@ powstawały błyski.
 |---|---|
 | **Cały odcinek w przeglądarce**, sterowany automatycznie (Chromium), z klipami z generatora wideo i zaślepkami dla scen bez animacji | Przeszedł od powitania do finału: 8 okien wyboru, 10 decyzji montażysty, ekran końcowy z wyborami widza, **0 błędów strony**. Nagranie: [demo_z_napisami.mp4](media/demo_z_napisami.mp4) |
 | **Rozpoznawanie odpowiedzi po słowach kluczowych** (tryb bez modelu i zapas): 100 typowych odpowiedzi dzieci napisanych przez zespół, nie nagrania ([eksperyment](eksperyment/)) | Przed poprawkami: 4 z 18 niejasnych odpowiedzi (np. „nie wiem”) wybierało konkretną opcję. Po poprawkach: **79 z 81** jasnych odpowiedzi rozpoznanych dobrze, **0** złych wyborów, 2 kończą się dopytaniem; **19 z 19** niejasnych — dopytanie |
-| **Testy automatyczne** silnika, okna wyboru, rozpoznawania, montażu, wersji liniowej, manifestu i importu klipów | **436** testów przechodzi; działają bez chmury, mikrofonu i przeglądarki |
+| **Testy automatyczne** silnika, okna wyboru, rozpoznawania, montażu, wersji liniowej, manifestu i importu klipów | **439** testów przechodzi; działają bez chmury, mikrofonu i przeglądarki |
 | **Graf odcinka** | 17 scen, na każdej ścieżce 8 okien wyboru, 32 różne układy scen (576 kombinacji odpowiedzi); każda ścieżka kończy się finałem — sprawdza to silnik przy wczytaniu |
 | **Pierwsza partia klipów z generatora wideo** (8 klipów) | 4 dobre, 3 użyteczne z uwagami, 1 do wymiany. Test wykrył błąd naszego importu (pętle traciły dźwięk) — naprawiony |
 
