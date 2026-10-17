@@ -56,6 +56,10 @@ def clean_env(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)  # w katalogu testu nie ma pliku .env
     for name in ENV_VARS_THAT_CHANGE_MAIN:
         monkeypatch.delenv(name, raising=False)
+    # Odcinek w przeglądarce czekałby na stronę bez końca: w testach nikt jej nie otworzy.
+    monkeypatch.setattr("bajka.app.run_episodes", lambda episode, make_engine: None)
+    monkeypatch.setattr("bajka.app.webbrowser", SimpleNamespace(open=lambda url: None))
+    monkeypatch.setenv("BAJKA_WEB_PORT", "0")
 
 
 def write_scenario(path, scenario_dict):
@@ -132,7 +136,7 @@ def test_missing_settings_exit_with_code_2(tmp_path, monkeypatch, scenario_dict)
     assert main([str(path), "--backend", "azure"]) == 2
 
 
-def test_missing_speech_keys_exit_with_code_2_before_the_episode_starts(tmp_path, monkeypatch, scenario_dict, caplog):
+def test_missing_speech_keys_exit_with_code_2_before_the_vlc_episode_starts(tmp_path, monkeypatch, scenario_dict, caplog):
     for name in LLM_VARS:
         monkeypatch.setenv(name, "wartosc-testowa")
     for name in SPEECH_VARS:
@@ -140,8 +144,20 @@ def test_missing_speech_keys_exit_with_code_2_before_the_episode_starts(tmp_path
     write_media(tmp_path, scenario_dict)  # klipy są, brakuje tylko kluczy mowy
     path = write_scenario(tmp_path / "bajka.yaml", scenario_dict)
 
-    assert main([str(path), "--backend", "azure"]) == 2
+    assert main([str(path), "--backend", "azure", "--player", "vlc"]) == 2
     assert "AZURE_SPEECH_KEY" in caplog.text
+
+
+def test_web_player_without_speech_recognition_falls_back_to_the_browser(tmp_path, monkeypatch, scenario_dict, caplog):
+    for name in LLM_VARS:
+        monkeypatch.setenv(name, "wartosc-testowa")
+    for name in SPEECH_VARS:
+        monkeypatch.delenv(name, raising=False)
+    write_media(tmp_path, scenario_dict)
+    path = write_scenario(tmp_path / "bajka.yaml", scenario_dict)
+
+    assert main([str(path), "--backend", "azure"]) == 0  # odcinek rusza, głos rozpoznaje przeglądarka
+    assert "działa rozpoznawanie w przeglądarce" in caplog.text
 
 
 def test_local_web_player_without_foundry_local_exits_with_code_2(tmp_path, monkeypatch, scenario_dict, caplog):
@@ -369,7 +385,6 @@ def test_main_exits_with_code_2_when_the_panel_cannot_start(tmp_path, monkeypatc
 
 def test_main_web_player_serves_the_episode_and_opens_the_browser(tmp_path, monkeypatch, scenario_dict):
     path, created, events = install_spies(tmp_path, monkeypatch, scenario_dict)
-    monkeypatch.setenv("BAJKA_WEB_PORT", "0")  # wolny port
     opened = []
     monkeypatch.setattr("bajka.app.webbrowser", SimpleNamespace(open=opened.append))
 

@@ -112,6 +112,7 @@ class PanelState:
         self._last: Pulse | None = None
         self._baseline: float | None = None
         self._log: deque[dict[str, str]] = deque(maxlen=LOG_ENTRIES)
+        self.player_url: str | None = None  # adres odtwarzacza w przeglądarce, gdy działa; panel pokaże link
 
     def event(self, kind: str, data: Mapping[str, Any]) -> None:
         handler = getattr(self, f"_on_{kind}", None)
@@ -146,6 +147,7 @@ class PanelState:
                     "state": state,
                 },
                 "log": list(self._log),
+                "player": self.player_url,
             }
 
     def _say(self, text: str) -> None:

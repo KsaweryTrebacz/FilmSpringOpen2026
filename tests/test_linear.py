@@ -37,6 +37,14 @@ def test_linear_cut_follows_default_choices_and_the_hero_decides(scenario):
     ]
 
 
+def test_pause_loop_enters_with_the_scenario_loop_transition(scenario_dict):
+    scenario_dict["loop_transition"] = "przenikanie"
+
+    segments = default_path(parse_scenario(scenario_dict, base_dir=Path("film")))
+
+    assert (segments[1].clip.name, segments[1].cut.transition) == ("intro_idle.mp4", "przenikanie")
+
+
 def test_recorded_reaction_is_used_instead_of_a_subtitled_line(scenario_dict):
     scenario_dict["scenes"]["intro"]["fallback"] = "To ja wybiorę."
     scenario_dict["scenes"]["intro"]["choices"]["las"]["reaction"] = "reakcja_las.mp4"

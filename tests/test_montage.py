@@ -182,3 +182,15 @@ def test_settings_from_env():
     assert MontageSettings.from_env({"BAJKA_MONTAGE": "reguly", "BAJKA_MONTAGE_WAIT": "1.5"}) == MontageSettings(False, 1.5)
     with pytest.raises(ConfigError, match="BAJKA_MONTAGE"):
         MontageSettings.from_env({"BAJKA_MONTAGE": "magia"})
+
+
+def test_loop_enters_with_a_cut_unless_the_scenario_asks_for_a_transition(scenario_dict):
+    from pathlib import Path
+
+    from bajka.montage import loop_cut
+    from bajka.scenario import parse_scenario
+
+    assert loop_cut(parse_scenario(scenario_dict, base_dir=Path("film"))).transition == "ciecie"
+    scenario_dict["loop_transition"] = "przenikanie"
+    cut = loop_cut(parse_scenario(scenario_dict, base_dir=Path("film")))
+    assert (cut.transition, cut.seconds > 0) == ("przenikanie", True)

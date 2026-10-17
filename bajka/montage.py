@@ -61,6 +61,12 @@ def checked_cut(transition: str, seconds: float, reason: str = "", source: str =
     return Cut(transition=transition, seconds=round(min(high, max(low, float(seconds))), 2), reason=reason, source=source)
 
 
+def loop_cut(scenario: Scenario) -> Cut:
+    """Wejście pętli oczekiwania po klipie sceny (`loop_transition` scenariusza); domyślnie cięcie."""
+    kind = scenario.loop_transition or CUT
+    return checked_cut(kind, DEFAULT_SECONDS[kind], "Pętla oczekiwania po klipie sceny.")
+
+
 def describe_cut(cut: Cut) -> str:
     """„przenikanie 0,6 s” — do dziennika i panelu."""
     return cut.transition if cut.transition == CUT else f"{cut.transition} {cut.seconds:.1f} s".replace(".", ",")

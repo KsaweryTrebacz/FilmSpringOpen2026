@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from bajka.engine import DEFAULT_FALLBACK
-from bajka.montage import RuleEditor, context_for, describe_cut
+from bajka.montage import RuleEditor, context_for, describe_cut, loop_cut
 from bajka.ports import Cut
 from bajka.scenario import (
     CUT,
@@ -60,6 +60,7 @@ def reading_seconds(text: str) -> float:
 def default_path(scenario: Scenario) -> list[Segment]:
     """Kolejne fragmenty filmu liniowego: klipy scen, pauzy na pętlach, reakcje i przejścia z reguł montażu."""
     rules = RuleEditor()
+    into_loop = loop_cut(scenario)
     segments: list[Segment] = []
     layers: dict[str, Path] = {}
     scene, visited, entering = scenario.scene(scenario.start), set(), Cut()
@@ -84,12 +85,13 @@ def default_path(scenario: Scenario) -> list[Segment]:
             layers[choice.slot] = choice.layer
         if choice.reaction is not None:
             segments.append(Segment(scene.idle, PAUSE_SECONDS + reading_seconds(fallback), fallback, PAUSE_SECONDS,
-                                    shown(scene)))  # fmt: skip
+                                    shown(scene), into_loop))  # fmt: skip
             reaction = rules.cut(context_for(scenario, scene, scene.id, "reakcja"))
             segments.append(Segment(choice.reaction, layers=shown(scene), cut=reaction))
         else:
             line = f"{fallback} {choice.reply}"
-            segments.append(Segment(scene.idle, PAUSE_SECONDS + reading_seconds(line), line, PAUSE_SECONDS, shown(scene)))
+            segments.append(Segment(scene.idle, PAUSE_SECONDS + reading_seconds(line), line, PAUSE_SECONDS, shown(scene),
+                                    into_loop))  # fmt: skip
         context = context_for(scenario, scene, choice.next, "wybor", choice=choice.display_label,
                               meaning=choice.description, how="domyslna")  # fmt: skip
         entering = rules.cut(context)

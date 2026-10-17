@@ -393,3 +393,14 @@ def test_vlc_without_layers_still_plays_every_clip(scenario_dict):
     engine.run()
 
     assert player.calls == [("play", "intro.mp4"), ("loop", "intro_idle.mp4"), ("play", "las.mp4"), ("play", "polana.mp4")]
+
+
+def test_loop_enters_with_the_scenario_loop_transition(scenario_dict):
+    scenario_dict["loop_transition"] = "przenikanie"  # klipy z generatora nie kończą się klatką pętli
+    player = FakeCompositor()
+    engine = StoryEngine(parse_scenario(scenario_dict, base_dir=Path("film")), player,
+                         ScriptedViewer(Answer(choice_id="las")), FakeVoice(), FakeResolver({}))  # fmt: skip
+
+    engine.run()
+
+    assert ("loop", "intro_idle.mp4", (), "przenikanie") in player.shots

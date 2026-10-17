@@ -67,9 +67,11 @@ def test_play_waits_until_the_page_reports_the_end_of_the_clip(scenario):
 
     state = wait_for(episode, "play")
     assert state["clip"] == "media/0/intro.mp4" and state["background"] is None
-    assert episode.event({"type": "done", "seq": state["seq"] - 1}) == "stale"
+    assert episode.event({"type": "done", "seq": state["seq"] - 1}) == "ok"  # spóźnione: przyjęte, ale nic nie zmienia
+    assert episode.event({"type": "done", "seq": state["seq"] + 5}) == "stale"  # z przyszłości: odrzucone
+    assert episode.event({"type": "done", "seq": "1"}) == "stale"
     thread.join(0.2)
-    assert thread.is_alive()  # spóźnione zgłoszenie po poprzednim klipie nie kończy bieżącego
+    assert thread.is_alive()  # zgłoszenie po poprzednim klipie nie kończy bieżącego
 
     assert episode.event({"type": "done", "seq": state["seq"]}) == "ok"
     thread.join(1)

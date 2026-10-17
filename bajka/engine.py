@@ -18,7 +18,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from bajka.montage import Montage, PendingCut, context_for, describe_cut
+from bajka.montage import Montage, PendingCut, context_for, describe_cut, loop_cut
 from bajka.ports import (
     Answer,
     Audience,
@@ -93,6 +93,7 @@ class StoryEngine:
         self._choice_seconds = choice_seconds
         self._montage = montage or Montage()  # bez modelu: same reguły montażu
         self._layers: dict[str, Path] = {}  # miejsce na warstwę → klip wybrany przez widza
+        self._loop_cut = loop_cut(scenario)  # pętla oczekiwania wchodzi cięciem albo (klipy z generatora) przenikaniem
         self._next_cut: PendingCut | None = None  # decyzja o wejściu następnej sceny, zlecona zaraz po wyborze
         self.decisions: list[tuple[str, str]] = []  # (scena, wybór) w kolejności: ekran końcowy pokazuje wybory widza
 
@@ -114,7 +115,7 @@ class StoryEngine:
     def _loop(self, clip: Path, layers: tuple[Path, ...] = ()) -> None:
         self._check_stopped()
         if isinstance(self._player, Compositor):
-            self._player.loop_shot(Shot(clip, layers))  # pętla zaczyna się od ostatniej klatki klipu: cięcie
+            self._player.loop_shot(Shot(clip, layers, self._loop_cut))
         else:
             self._player.loop(clip)
 
@@ -232,10 +233,11 @@ class StoryEngine:
         # Montażysta myśli, gdy gra reakcja: zanim reakcja się skończy, decyzja zwykle jest gotowa.
         self._next_cut = self._request_cut(scene, choice.next, "wybor", choice=choice.display_label,
                                            meaning=choice.description, how=how, transcript=transcript)  # fmt: skip
-        line = personal or choice.reply
+        # Nagrana reakcja zastępuje kwestię; zostaje tylko informacja, że postać wybrała sama (wybór domyślny).
+        line = "" if choice.reaction is not None else personal or choice.reply
         if prefix:
             line = f"{prefix} {line}" if line else prefix
-        if line and choice.reaction is None:
+        if line:
             self._say(line)
         if choice.reaction is not None:
             reaction = self._take_cut(self._request_cut(scene, scene.id, "reakcja"))

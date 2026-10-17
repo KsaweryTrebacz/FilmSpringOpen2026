@@ -1,0 +1,14 @@
+# Klipy z generatora wideo (Veo, 17.10.2026) → sceny odcinka „Bzyczka szuka domu”.
+# Montaż do odcinka: python -m bajka.clips download/klipy.yaml   (potem: python -m bajka.placeholders … dla reszty)
+# Pętle oczekiwania (`idle`) dostają płynny szew i cichszy dźwięk. Uwagi do poprawek w generatorze:
+# docs/SCENARIUSZ_WIZUALNY_PROMPTY_AI.md, sekcja „Przegląd klipów z 17.10”.
+scenario: ../scenarios/klub_ciekawskich.yaml
+clips:
+  01_powitanie.mp4: Girl_waves_and_squirrel_somersaults_20261017155044.mp4
+  01_powitanie_idle.mp4: Girl_and_squirrel_listening_20261017155044.mp4
+  01_reakcja_hopsasa.mp4: Chest_springs_open_in_workshop_20261017155044.mp4
+  01_reakcja_pukanie.mp4: Chest_stretching_in_workshop_20261017155044.mp4
+  02_kuferek.mp4: Lila_reveals_adventure_map_props_20261017155044.mp4
+  02_kuferek_idle.mp4: Fairytale_map_glowing_on_timber_20261017155044.mp4
+  03a_most.mp4: Girl_comforts_squirrel_at_bridge_20261017155044.mp4
+  03a_most_idle.mp4: Planks_bobbing_over_river_20261017155044.mp4

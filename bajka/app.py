@@ -302,13 +302,17 @@ def main(argv: list[str] | None = None) -> int:
             servers.append(mobile)
             log.info("Drugi ekran: otwórzcie %s w telefonach (kod QR: %sqr)", url, url)
         if panel is not None:
-            panel.server.start()  # adres panelu wypisuje sam PanelServer
+            panel_url = panel.server.start()  # adres panelu wypisuje sam PanelServer
             servers.append(panel.server)
+            if web is not None:
+                web.episode.panel_url = panel_url  # odtwarzacz pokaże przycisk panelu
             if not scenario.mood:
                 log.info("Scenariusz nie ma pola 'mood': panel pokazuje drzewo i wybory, a sceny grają zwykłe wersje")
         if web is not None:
             url = web.server.start()
             servers.append(web.server)
+            if panel is not None:
+                panel.state.player_url = url  # panel pokaże link do odtwarzacza
             if not args.no_browser and env_flag(env, "BAJKA_WEB_OPEN", "1"):
                 webbrowser.open(url)
     except OSError as exc:

@@ -34,6 +34,9 @@ start: powitanie
 # Odcinek zrównoważony. Z czujnikiem tętna (dziś symulator: flaga --panel) scena z `variants` gra wersję
 # spokojną, gdy widz jest bardzo pobudzony, i żywą, gdy tętno spada (znużenie). Bez tętna: zwykłe wersje.
 mood: zrownowazony
+# Klipy z generatora wideo nie kończą się klatką, od której zaczyna się pętla oczekiwania sceny: pętla wchodzi
+# przenikaniem (a nie cięciem), więc postacie nie przeskakują w inne miejsce kadru.
+loop_transition: przenikanie
 
 scenes:
   # SC. 1. Dziupla klubu. Okno wyboru uczy zasad: dwie opcje, obie budzą Kuferek, inna jest tylko reakcja.

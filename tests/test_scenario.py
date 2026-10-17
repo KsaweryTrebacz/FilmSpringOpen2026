@@ -242,6 +242,15 @@ def test_unknown_transition_hint_is_refused(scenario_dict):
         parse_scenario(scenario_dict, base_dir=Path("film"))
 
 
+def test_loop_transition_is_read_and_checked(scenario_dict):
+    assert parse_scenario(scenario_dict, base_dir=Path("film")).loop_transition == ""
+    scenario_dict["loop_transition"] = "przenikanie"
+    assert parse_scenario(scenario_dict, base_dir=Path("film")).loop_transition == "przenikanie"
+    scenario_dict["loop_transition"] = "eksplozja"
+    with pytest.raises(ScenarioError, match="loop_transition"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
 def test_choice_layer_fills_a_slot_shown_by_later_scenes(tmp_path, scenario_dict):
     scenario_dict["scenes"]["intro"]["choices"]["las"].update(layer="warstwa_latarka.webm", slot="pomocnik")
     scenario_dict["scenes"]["intro"]["choices"]["jaskinia"]["layer"] = "warstwa_lina.webm"

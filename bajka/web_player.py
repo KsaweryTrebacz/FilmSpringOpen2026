@@ -109,6 +109,7 @@ class WebEpisode:
         self._closed = False
         self._restart = False
         self.on_stop: Callable[[], None] | None = None  # zatrzymanie silnika, gdy widz zamknie odcinek
+        self.panel_url: str | None = None  # adres panelu podglądu, gdy działa (--panel); strona pokaże przycisk
 
     def set_transcribe(self, transcribe: Callable[[np.ndarray], str]) -> None:
         with self._cond:
@@ -186,7 +187,7 @@ class WebEpisode:
             self._seen = self._clock()
             state = {**self._command, "seq": self._seq, "background": self._background, "title": self._title,
                      "voice": self._transcribe is not None or self._browser_voice,
-                     "answer_seconds": self._settings.answer_seconds}  # fmt: skip
+                     "answer_seconds": self._settings.answer_seconds, "panel": self.panel_url}  # fmt: skip
             if state["kind"] == "ask":
                 state["seconds_left"] = max(0.0, min(state["seconds"], self._remaining - self._settings.grace_seconds))
             return state
@@ -208,8 +209,12 @@ class WebEpisode:
                     return "stale"
                 self._restart = True
             elif kind == "done":
-                if seq is not None and int(seq) >= self._done:
-                    self._done = int(seq)
+                # Spóźnione zgłoszenie końca wcześniejszego polecenia nie szkodzi, ale numer z przyszłości
+                # (albo nie-liczba) odblokowałby kolejne klipy, zanim strona je zagra.
+                if not isinstance(seq, int) or seq > self._seq:
+                    return "stale"
+                if seq >= self._done:
+                    self._done = seq
                     self._cond.notify_all()
                 return "ok"
             elif seq != self._seq:

@@ -101,7 +101,7 @@
   <div id="caption" hidden aria-live="polite"></div>
 
   <div id="bar" class="idle">
-    <button id="panelButton" title="Odcinek, który czuje widza — panel tętna" aria-label="Panel tętna" onclick="window.open('http://127.0.0.1:8090/', '_blank')">💓</button>
+    <button id="panelButton" hidden title="Odcinek, który czuje widza — panel tętna" aria-label="Panel tętna">💓</button>
     <button id="settingsButton" title="Ustawienia rodzica" aria-label="Ustawienia rodzica">⚙</button>
     <button id="fullscreenButton" title="Pełny ekran (F)" aria-label="Pełny ekran">⛶</button>
     <button id="stopButton" title="Zakończ odcinek" aria-label="Zakończ odcinek">✕</button>
@@ -121,7 +121,7 @@
         <button id="startButton" class="big">▶ Oglądaj</button>
         <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 6px;">
           <button id="testMicButton" type="button" class="ghost" style="font-size: 0.75em;">🎙️ Przetestuj mikrofon</button>
-          <a href="http://127.0.0.1:8090/" target="_blank" class="ghost" style="text-decoration: none; font-size: 0.75em; display: inline-flex; align-items: center;">💓 Odcinek, który czuje widza (panel)</a>
+          <a id="panelLink" hidden target="_blank" class="ghost" style="text-decoration: none; font-size: 0.75em; display: inline-flex; align-items: center;">💓 Odcinek, który czuje widza (panel)</a>
         </div>
       </div>
       <div id="testMicBox" hidden style="margin: 0.8em auto; padding: 0.8em; background: rgba(24, 19, 14, 0.95); border: 1px solid var(--dim); border-radius: 12px; max-width: 440px;">
@@ -319,6 +319,7 @@ async function openMicrophone() {
   }
 }
 
+$("panelButton").addEventListener("click", () => { if (state?.panel) window.open(state.panel, "_blank"); });
 $("settingsButton").addEventListener("click", () => { $("start").hidden = false; $("startButton").focus(); });
 $("fullscreenButton").addEventListener("click", toggleFullscreen);
 $("stopButton").addEventListener("click", closeEpisode);
@@ -371,6 +372,8 @@ function onState(next) {
   document.title = next.title;
   $("title").textContent = next.title;
   $("micOption").hidden = $("micNote").hidden = $("voiceHint").hidden = !next.voice;
+  $("panelButton").hidden = $("panelLink").hidden = !next.panel;  // panel podglądu działa tylko z flagą --panel
+  if (next.panel) $("panelLink").href = next.panel;
   if (next.kind === "closed") { closed = true; stopAll(); show("closed"); return; }
   if (!started || next.seq === handled) return;
   handled = next.seq;

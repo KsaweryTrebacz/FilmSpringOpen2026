@@ -63,7 +63,9 @@ Copy-Item .env.example .env   # tryb lokalny działa bez zmian; klucze tylko dla
 ## Uruchomienie
 
 ```powershell
-# klipy-zaślepki (kolorowe plansze z nazwą pliku), dopóki nie ma animacji
+# klipy z generatora wideo (download/) pod nazwy scen: wspólny format, płynne pętle
+python -m bajka.clips download/klipy.yaml
+# klipy-zaślepki (kolorowe plansze z nazwą pliku) dla scen, które nie mają jeszcze animacji
 python -m bajka.placeholders scenarios/klub_ciekawskich.yaml
 
 # najszybsza próba: cały odcinek w konsoli, bez wideo, mikrofonu i AI (cyfra = przycisk pilota, tekst = głos)
@@ -242,6 +244,7 @@ scenariusza. Scena bez `choices` kończy odcinek.
 | `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter (`--player vlc`) |
 | `bajka/console.py` | Tryb `--text`: odcinek w konsoli (`ConsolePlayer`, `ConsoleViewer`, `ConsoleVoice`) |
 | `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg; MP4 albo WebM) |
+| `bajka/clips.py` | Klipy z generatora wideo → klipy odcinka (mapa `download/klipy.yaml`, płynny szew pętli) |
 | `bajka/app.py` | Złożenie całości i uruchomienie |
 
 Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne ustawienia

@@ -95,6 +95,9 @@ class Scenario:
     scenes: dict[str, Scene]
     mood: str = ""  # nastrój odcinka; bez niego odcinek nie dopasowuje się do tętna widza
     title: str = ""  # tytuł odcinka na ekranie startowym odtwarzacza i w manifeście dla serwisu
+    # Jak pętla oczekiwania wchodzi po klipie sceny. Domyślnie cięciem (pętla zaczyna się od ostatniej klatki klipu);
+    # klipy z generatora wideo nie mają wspólnej klatki, więc dla nich np. "przenikanie".
+    loop_transition: str = ""
 
     def scene(self, scene_id: str) -> Scene:
         return self.scenes[scene_id]
@@ -126,6 +129,7 @@ def parse_scenario(raw: object, base_dir: Path) -> Scenario:
         scenes={sid: _parse_scene(sid, data, base_dir) for sid, data in raw_scenes.items()},
         mood=mood,
         title=str(raw.get("title") or "").strip(),
+        loop_transition=_optional_transition(raw, "scenariusz", key="loop_transition"),
     )
     _validate_graph(scenario)
     return scenario
@@ -211,10 +215,10 @@ def _parse_choice(cid: str, data: object, base_dir: Path, where: str, default_sl
     )
 
 
-def _optional_transition(data: dict, where: str) -> str:
-    value = str(data.get("transition") or "").strip()
+def _optional_transition(data: dict, where: str, key: str = "transition") -> str:
+    value = str(data.get(key) or "").strip()
     if value and value not in TRANSITIONS:
-        raise ScenarioError(f"{where}: 'transition' musi być jednym z: {', '.join(TRANSITIONS)}, jest: {value!r}")
+        raise ScenarioError(f"{where}: '{key}' musi być jednym z: {', '.join(TRANSITIONS)}, jest: {value!r}")
     return value
 
 

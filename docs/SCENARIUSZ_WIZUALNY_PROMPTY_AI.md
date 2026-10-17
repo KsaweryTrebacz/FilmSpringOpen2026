@@ -225,3 +225,59 @@ Do wykorzystania jako Image-to-Video Anchor lub w promptach generujących:
 - **Wizualia:** Lila wyjmuje rzeźbione dzwoneczki z orzecha, Fiku rytmicznie wystukuje takt na żołędziowym bębenku, a Kuferek kłapie wiekiem w rytm melodii. Z kielichów kwiatów wzbija się w powietrze chmura fosforyzującego, złotego pyłku kwiatowego, który wiruje jak gwiezdny pył. Kamera wznosi się ponad koronę drzewa w szafirowy, rozgwieżdżony nieboskłon. Gwiazdy na niebie łączą się świetlistymi liniami, tworząc konstelację w kształcie Lupy Lili. Na tle gwiazd pojawiają się napisy końcowe.
 - **Prompt AI:**
   > `Enchanting musical night finale. Lila plays tuned acorn bells, the squirrel taps a wooden drum, glowing floral pollen rises into the air like swirling stardust trails. The camera elevates vertically past the ancient tree branches into a deep sapphire night sky studded with brilliant stars. The constellations connect with golden light rays forming the shape of Lila's magnifying glass. Poetic, heartwarming, cinematic storybook conclusion with elegant credit typography.`
+
+---
+
+## 🔎 4. PRZEGLĄD KLIPÓW Z 17.10
+
+Pierwsza partia z generatora wideo leży w `download/` (8 klipów, 1280×720, 24 kl./s, po 10 s, z dźwiękiem generatora).
+Mapa `download/klipy.yaml` mówi, który klip gra którą scenę; `python -m bajka.clips download/klipy.yaml` zapisuje je
+pod nazwami ze scenariusza (`scenarios/clips/klub_ciekawskich/`), a brakujące sceny uzupełnia
+`python -m bajka.placeholders scenarios/klub_ciekawskich.yaml`. Odcinek gra już z tymi klipami.
+
+### Co poprawiliśmy w kodzie (bez ponownego generowania)
+- **Pętle oczekiwania nie były zapętlone:** generator nie robi klipu, którego koniec trafia w początek. Narzędzie
+  `bajka.clips` przenika ostatnią sekundę pętli w jej pierwszą (obraz i dźwięk), więc zapętlenie nie skacze.
+- **Klip sceny nie kończy się klatką pętli:** postacie przeskakiwały w inne miejsce kadru. Scenariusz ma
+  `loop_transition: przenikanie`, więc odtwarzacz i wersja liniowa wchodzą w pętlę przenikaniem, nie cięciem.
+- **Dźwięk generatora w pętli zagłuszał mikrofon:** pętle są ok. 12 dB ciszej (a odtwarzacz dodatkowo je ścisza).
+- **Wolny start w przeglądarce:** klipy dostają indeks na początku pliku (`faststart`) i wspólny format H.264/AAC.
+- Nazwa klipu mostka miała znak „…” (problem w Windows i w Git) — zmieniona na zwykłą.
+
+### Co trzeba poprawić w generatorze
+
+| Ujęcie | Klip z `download/` | Ocena | Do poprawki |
+|---|---|---|---|
+| 01 `01_powitanie` | Girl_waves_and_squirrel_somersaults | ✅ dobry | 10 s zamiast ~65 s: brakuje wejścia do dziupli i wskazania na kuferek (do dogenerowania jako drugi klip). |
+| 02 `01_powitanie_idle` | Girl_and_squirrel_listening | 🟡 użyteczny | Styl 3D zamiast ilustracji; inne wnętrze (kuchnia z ziołami) niż w 01. Postacie zajmują dolną 1/3 kadru (tam są kafelki wyboru). |
+| 03 `01_reakcja_hopsasa` | Chest_springs_open_in_workshop | 🟡 użyteczny | Styl 3D, okrągłe okna — inna dziupla niż w 01 i 05. |
+| 04 `01_reakcja_pukanie` | Chest_stretching_in_workshop | ✅ dobry | Jak wyżej (3D); gra aktorska kuferka (ziewnięcie, buzia) zgodna z opisem. |
+| 05 `02_kuferek` | Lila_reveals_adventure_map_props | ✅ dobry | Brak lornetki; mapa pokazuje dobrze oba wybory (tęczowy mostek i las). |
+| 06 `02_kuferek_idle` | Fairytale_map_glowing_on_timber | 🔴 do wymiany | Świeci mostek i **zamek** (którego nie ma w historii), las nie świeci; inna mapa niż w 05. Dziecko nie zobaczy obu opcji. |
+| 07 `03a_most` | Girl_comforts_squirrel_at_bridge | ✅ dobry | Deski czerwone/niebieskie i wolne miejsce są; Fiku ma białą chustkę zamiast zielonego szalika. |
+| 08 `03a_most_idle` | Planks_bobbing_over_river | 🔴 do wymiany | Inny most (z poręczą, bez kolorowych desek i bez wyrwy), styl 3D; deski unoszą się nad wodą, nie nad luką. |
+
+**Ciągłość postaci.** We wszystkich klipach Lila ma żółtą czapkę z daszkiem, rude kucyki, koszulkę w czerwono-białe
+paski i ogrodniczki — to inny wygląd niż w karcie postaci (brązowe warkocze, kremowy sweter, żółte kalosze). Generator
+trzyma ten wygląd stabilnie, więc **przyjmujemy go jako obowiązujący** (taniej niż generować wszystko od nowa) i
+dopisujemy go do promptów. Fiku nie ma ogona w kształcie znaku zapytania, a szalik pojawia się tylko w jednym klipie.
+
+**Styl.** Klipy 01, 05 i 07 to ilustracja książkowa (najbliżej zamierzonego stylu); 02, 03, 04, 08 wyglądają jak
+animacja 3D. Do kolejnych ujęć: generować z klatki startowej (image-to-video) wziętej z klipu 01 albo 07 i dodawać
+stały dopisek stylu.
+
+### Stały dopisek do każdego promptu (ciągłość)
+> `Same characters in every shot: Lila, a 7-year-old girl with red-orange pigtails, a yellow baseball cap, a red-and-white striped long-sleeve shirt, blue denim dungarees and yellow rubber boots, a brass magnifying glass on a twine cord; Fiku, a chubby red squirrel with a creamy belly, a fluffy tail curled like a question mark and a moss-green knitted scarf. Hand-painted 2D storybook illustration, soft watercolor texture, no 3D render look. Keep the lower third of the frame free of characters in waiting loops.`
+
+### Poprawione prompty ujęć do wymiany
+- **06 `02_kuferek_idle`** (pętla 8–10 s, z klatki końcowej klipu 05):
+  > `Seamless looping overhead shot of the same parchment map from the previous shot lying on the oak table: on the left a rainbow-coloured wooden footbridge over a sparkling brook, on the right a dense green pine forest path. Only these two places glow, taking turns: first the bridge pulses with a soft rainbow halo, then the forest pulses with a soft green halo, then the bridge again. No castle, no other landmarks glowing. Floating golden dust motes, warm amber light, static camera, first and last frame identical.`
+- **08 `03a_most_idle`** (pętla 8–10 s, z klatki końcowej klipu 07):
+  > `Seamless loop, same small wooden footbridge from the previous shot, planks painted alternately bright red and cobalt blue, one plank missing in the middle leaving a clear dark gap. Just above the gap two spare planks float and bob gently, one red on the left and one blue on the right, with soft golden sparkles. The brook ripples underneath. Lila and Fiku stand at the left end of the bridge, looking at the viewer, waiting. Static camera, lower third of the frame free, first and last frame identical.`
+- **02 `01_powitanie_idle`** (ponownie, by zgadzało się wnętrze z klipem 01):
+  > `Seamless loop inside the same cozy oak-tree hollow workshop as the previous shot (wooden shelves with jars and books, round window). Lila and Fiku stand side by side in the upper part of the frame, cupping their ears towards the viewer, smiling and breathing gently. A small watercolor magnifying-glass icon pulses softly in the bottom right corner. Static camera, first and last frame identical.`
+
+### Dźwięk
+Generator dokłada własny podkład i efekty (średnio od −43 do −23 dB). Postacie w klipach nie mówią po polsku, więc
+kwestie są w napisach, a muzykę i głosy postaci warto nagrać osobno i nałożyć w montażu (manifest odcinka ma na to
+miejsce). Do tego czasu pętle są ściszone, a odtwarzacz ścisza tło, gdy słucha mikrofon.

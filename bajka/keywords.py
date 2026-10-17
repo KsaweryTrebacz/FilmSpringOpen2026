@@ -42,9 +42,8 @@ def same_word(spoken: str, keyword: str) -> bool:
     """Ten sam wyraz mimo odmiany: "lasu" ~ "las", "jaskini" ~ "jaskinia", ale nie "lato" ~ "las"."""
     if spoken == keyword:
         return True
-    if spoken.isdigit() or keyword.isdigit():
-        return False
-    if min(len(spoken), len(keyword)) < 3:
+    # Krótkie wyrazy i liczby tylko dosłownie: inaczej „do” pasowałoby do „dom”, a „lato” do „las”.
+    if spoken.isdigit() or keyword.isdigit() or min(len(spoken), len(keyword)) < 3:
         return False
     if spoken.startswith(keyword) or keyword.startswith(spoken):
         return True
