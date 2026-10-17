@@ -44,7 +44,7 @@ Interaktywne filmy w serwisach to dziś nisza, a największy gracz się z nich w
 2. Interaktywność musi być **tania w produkcji**, ale wybór musi mieć widoczny skutek. Dlatego gałęzie zagadek
    to krótkie sceny (15–25 s), które wracają na wspólną drogę, a wybory „kosmetyczne” (kwiatek dla mamy Bzyczki)
    to warstwy nakładane na jedną animację zamiast osobnych wersji scen. Bzyczka: 10 scen głównych, 7 krótkich gałęzi
-   i 3 warstwy dają kilkanaście różnych ścieżek.
+   i 3 warstwy dają 32 różne układy scen (576 kombinacji odpowiedzi).
 3. Wartość, której linearny film nie da: dziecko **mówi do postaci swoimi słowami**, a postać odpowiada —
    z rozpoznawaniem mowy na urządzeniu, bez wysyłania głosu dziecka do chmury.
 4. Najbardziej realne pierwsze kanały: aplikacja na tablet/PC (np. edukacyjna albo biblioteczna), serwisy dla dzieci

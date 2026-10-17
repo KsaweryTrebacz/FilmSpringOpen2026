@@ -7,10 +7,12 @@ Liczby i źródła: [BADANIA.md](BADANIA.md). Pokaz na żywo: [DEMO_DLA_JURY.md]
 
 | Wersja | Czas | Slajdy |
 |---|---|---|
-| **Jury hackathonu (18.10, 19:00)** | ok. 7 min | 1–4 (1,5 min) → **pokaz na żywo** zamiast 5–9 (3 min; awaryjnie nagranie ze slajdu 6) → 10, 12, 13, 14, 18 (2,5 min) |
-| **Rozmowa sprzedażowa** (serwis, wydawca, edukacja) | 12–15 min | wszystkie 18 |
+| **Zgłoszenie (18.10, 19:00)** — ocena bez prelegenta | czyta się samo | [ZGLOSZENIE.md](ZGLOSZENIE.md) / PDF + slajdy w PDF + `media/demo_z_napisami.mp4` i `media/zwiastun.mp4` |
+| **Sesja online 29.10** (transmisja, publiczna) | ok. 7 min | 1–4 (1,5 min) → **pokaz na żywo** zamiast 5–9 (3 min; awaryjnie nagranie ze slajdu 6) → 10, 12, 14, 15, 21 (2,5 min) |
+| **Rozmowa sprzedażowa** (serwis, wydawca, edukacja) | 12–15 min | wszystkie 21 |
 
-Jeden mówi, drugi steruje laptopem (pokaz i panel). Juror trzyma pilota — jest „dzieckiem przed telewizorem”.
+Na sesji online jeden mówi, drugi steruje laptopem (pokaz i panel), a widzowie transmisji wybierają na czacie —
+są „dzieckiem przed telewizorem” ([DEMO_DLA_JURY.md](../DEMO_DLA_JURY.md)).
 
 ## Slajd po slajdzie
 
@@ -49,8 +51,8 @@ wybiera sama. Głos rozpoznaje Whisper na tym laptopie, zrozumienie odpowiedzi �
 
 **8. Każda odpowiedź ma swoją scenę.**
 „Zła deska nie kończy gry: mostek się chwieje i naprawiamy go razem — osobna scena. Wybory kosmetyczne, jak kwiatek
-dla mamy Bzyczki, nakładamy na klip jako warstwę. Z 10 scen, 7 krótkich gałęzi i 3 warstw powstaje kilkanaście
-ścieżek. Panel na żywo pokazuje drogę widza i każdą decyzję.”
+dla mamy Bzyczki, nakładamy na klip jako warstwę. Z 10 scen, 7 krótkich gałęzi i 3 warstw powstają 32 różne układy
+scen. Panel na żywo pokazuje drogę widza i każdą decyzję.”
 
 **9. Montażysta AI.**
 „AI nie wymyśla fabuły. Robi to, co montażysta: wybiera przejście — przenikanie, przetarcie, zaciemnienie,

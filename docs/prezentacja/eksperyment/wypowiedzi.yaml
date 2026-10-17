@@ -1,0 +1,41 @@
+# Wypowiedzi do eksperymentu z rozpoznawaniem odpowiedzi po słowach kluczowych (tryb bez modelu językowego).
+# Napisał je zespół, wzorując się na tym, jak mówią dzieci 4–7 lat (odmiana, krótkie zdania, wtrącenia).
+# To NIE są nagrania dzieci ani transkrypcje Whispera. `brak` = odpowiedź niejasna: postać powinna dopytać.
+powitanie:
+  hopsasa: ["hop-sa-sa!", "zawołam hopsasa", "hopsasa kuferku!", "ja chcę zawołać"]
+  pukanie: ["puk puk", "zapukam w wieko", "pukamy!", "stuk stuk"]
+  brak: ["nie wiem", "a co to jest?"]
+kuferek:
+  most: ["przez mostek", "tęczowy mostek!", "ten kolorowy most", "idziemy przez most"]
+  las: ["przez las", "do lasu", "szumiący las", "las las las"]
+  brak: ["eee", "mamo!"]
+most:
+  czerwona: ["czerwona", "czerwoną deskę", "ta czerwona", "czerwony"]
+  niebieska: ["niebieska", "niebieską", "ta niebieska deska", "niebieski"]
+  brak: ["nie wiem", "ta", "nie"]
+las:
+  sowa: ["sowa", "to sówka", "sowa hu hu", "ptak"]
+  zaba: ["żaba", "żabka", "to żaba kum kum", "żabcia"]
+  brak: ["kto to?", "boję się"]
+wiaterek:
+  spokojnie: ["udało się", "już", "fuuu", "tak, spokojnie", "spokojnie"]
+  jeszcze: ["jeszcze raz", "jeszcze", "powtórzmy", "znowu"]
+  brak: ["nie wiem", "co?"]
+pomocnik:
+  mapa: ["mapa", "mapę", "weźmy mapę", "rozkładanka"]
+  latarka: ["latarka", "latarkę", "światło", "latarką"]
+  lornetka: ["lornetka", "lornetkę", "przez lornetkę", "lornetką"]
+  brak: ["wszystko", "nie wiem"]
+laka:
+  trzy: ["trzy", "3", "trzy pszczółki", "jest ich trzy"]
+  inna_liczba: ["cztery", "pięć", "dużo", "sześć pszczółek"]
+  brak: ["nie umiem liczyć", "pszczółki"]
+kwiatek:
+  slonecznik: ["słonecznik", "słonecznika", "ten żółty", "duży słonecznik"]
+  koniczyna: ["koniczyna", "koniczynkę", "tę zieloną", "koniczynka"]
+  stokrotka: ["stokrotka", "stokrotkę", "białą", "tę małą stokrotkę"]
+  brak: ["różę", "ładny"]
+swieto:
+  taniec: ["taniec", "tańczymy!", "zatańczmy", "tańczyć"]
+  piosenka: ["piosenka", "piosenkę", "zaśpiewajmy", "śpiewamy"]
+  brak: ["nie chcę", "eee"]

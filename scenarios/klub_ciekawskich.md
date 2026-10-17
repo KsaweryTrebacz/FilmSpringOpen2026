@@ -43,7 +43,7 @@ mostek się chwieje i naprawiamy go razem; sowa budzi się i pokazuje drogę, a 
 zanim odezwie się sowa; „jeszcze raz” to drugi, wolniejszy oddech; zła liczba — pszczółki liczą się same w rządku.
 Gałęzie są krótkie (15–25 s) i wracają na wspólną drogę (pole `next`), więc dziecko widzi skutek swojej decyzji,
 a my animujemy kilka krótkich scen zamiast drzewa kilkudziesięciu. Dwie duże decyzje (droga i finał) dają cztery
-różne odcinki, a z gałęziami zagadek — kilkanaście ścieżek. To powód, żeby obejrzeć jeszcze raz.
+różne odcinki, a z gałęziami zagadek — 32 różne układy scen. To powód, żeby obejrzeć jeszcze raz.
 
 **Warstwy.** Kwiatek, który widz wybierze dla mamy Bzyczki (słonecznik, koniczyna albo stokrotka), to przezroczysty
 klip nakładany na sceny święta i finału. Jedna animacja finału + trzy małe warstwy zamiast trzech wersji finału.
@@ -679,7 +679,9 @@ przejście robi odtwarzacz, więc gałęzi nie trzeba domontowywać do kolejnych
 wszystkie wybory jako krótkie klipy (pole `reaction`), żeby na żywo syntezator czytał już tylko osobiste kwestie
 pisane przez model.
 
-## Plan na hackathon (prezentacja 18.10.2026, 19:00)
+## Plan na hackathon
+
+Zgłoszenie: 18.10.2026, 19:00 (materiały bez prezentacji na żywo); pokaz online: 29.10.2026.
 
 Pełna animacja 17 scen (10 głównych i 7 krótkich gałęzi) to za dużo na trzy dni. Regulamin (§2 ust. 2) mówi
 o „zarysie”, więc na pokaz wystarczy działający prototyp całego odcinka:
@@ -688,7 +690,7 @@ o „zarysie”, więc na pokaz wystarczy działający prototyp całego odcinka:
    flow filmu) i nagranymi dialogami; gałęzie po jednej ilustracji. Pętle oczekiwania to ta sama ilustracja
    z delikatnym ruchem. Warstwy kwiatków to trzy wycięte z tła rysunki (PNG z przezroczystością → WebM z alfą).
 2. **Pełna animacja jednej sceny** jako próbka jakości — najlepiej SC. 4 (Wiaterek), bo pokazuje emocje i wspólny oddech.
-3. **Na pokazie dla jury** odcinek leci w odtwarzaczu w przeglądarce, jak w serwisie streamingowym: juror wybiera
-   pilotem albo głosem, a panel podglądu pokazuje drzewo wyborów, symulowane tętno i decyzje montażysty AI
+3. **W zgłoszeniu (nagranie) i na pokazie online 29.10** odcinek leci w odtwarzaczu w przeglądarce, jak w serwisie
+   streamingowym: wybieramy pilotem albo głosem (na pokazie — to, co wskażą widzowie transmisji), a panel podglądu pokazuje drzewo wyborów, symulowane tętno i decyzje montażysty AI
    ([demo](../docs/DEMO_DLA_JURY.md)).
 4. Brakujące klipy zastępują zaślepki — aplikacja i tak przechodzi cały odcinek.

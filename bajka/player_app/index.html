@@ -683,8 +683,10 @@ function textMatchesChoice(heardText, choiceId, label) {
   const l = clean(label);
 
   if (!h) return false;
-  if (h.includes(id) || (id.length >= 3 && id.includes(h))) return true;
-  if (h.includes(l) || (l.length >= 3 && l.includes(h))) return true;
+  // Fragment wypowiedzi w nazwie wyboru liczy się od 4 liter (jak w bajka/keywords.py): krótki strzęp
+  // rozpoznawanej mowy („a”, „nie”) nie może sam wybrać opcji.
+  if (h.includes(id) || (h.length >= 4 && id.includes(h))) return true;
+  if (h.includes(l) || (h.length >= 4 && l.includes(h))) return true;
 
   const synonyms = {
     hopsasa: [
@@ -722,14 +724,22 @@ function textMatchesChoice(heardText, choiceId, label) {
   };
 
   const list = synonyms[choiceId] || [];
+  // Krótkie słowa („nie”, „tak”, „hu”) tylko jako całe wyrazy: „spokojnie” kończy się na „nie”.
+  const heardWords = (heardText || "").toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/);
   for (const s of list) {
-    if (h.includes(s)) return true;
+    const key = s.replace(/[^a-z0-9]/g, "");
+    if (key.length >= 4 ? h.includes(key) : heardWords.includes(key)) return true;
   }
   return false;
 }
 
+// „Nie wiem” to odpowiedź, a nie wybór: postać ma dopytać, zamiast zgadywać po podobnych słowach (jak w bajka/keywords.py).
+const DONT_KNOW = /\bnie (wiem|umiem|pamietam|rozumiem|mam pojecia)\b/;
+
 function matchChoice(heardText) {
   if (!ask) return null;
+  const plain = heardText.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ");
+  if (DONT_KNOW.test(plain)) return null;
   const buttons = [...$("options").children];
 
   for (let i = 0; i < buttons.length; i++) {

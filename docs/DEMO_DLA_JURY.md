@@ -1,10 +1,21 @@
-# Pokaz dla jury: bajka interaktywna jak w serwisie streamingowym
+# Pokaz na żywo: bajka interaktywna jak w serwisie streamingowym
 
-Prezentacja: **18.10.2026, 19:00**. Pokaz trwa około 4 minut i działa na jednym laptopie, bez internetu.
-Jury jest „dzieckiem przed telewizorem”: jeden juror trzyma pilota (klawiaturę albo pilota do prezentacji
-ze strzałkami), wszyscy mogą odpowiadać na głos, a ktoś z zespołu steruje symulowanym tętnem na panelu podglądu.
+**Sesja online 29.10.2026** (czwartek, godzina do ustalenia), transmitowana i publiczna. 18.10 nie ma prezentacji:
+o 19:00 mija termin zgłoszenia, które jury ocenia z materiałów ([ZGLOSZENIE.md](prezentacja/ZGLOSZENIE.md)).
+Pokaz trwa około 4 minut i działa na jednym laptopie; internet jest potrzebny tylko do transmisji.
+Widzowie transmisji są „dzieckiem przed telewizorem”: przy każdym oknie wyboru prowadzący pyta na czacie, a my
+wybieramy to, co wskaże większość — pilotem albo głosem. Druga osoba steruje symulowanym tętnem na panelu podglądu.
 
-## Przygotowanie (przed wejściem jury)
+## Co zmienia transmisja online
+
+- **Udostępniamy kartę przeglądarki z dźwiękiem** (Chrome/Edge: „Udostępnij kartę” + „Udostępnij dźwięk karty”),
+  nie cały ekran — panel podglądu zostaje u nas albo pokazujemy go osobno przy slajdzie o gałęziach.
+- **Słuchawki**: mikrofon laptopa słyszy wtedy tylko nas, a nie głosy z rozmowy; Whisper rozpoznaje odpowiedź mówioną
+  do mikrofonu, którego używamy też w rozmowie.
+- **Plan B**: nagranie `docs/prezentacja/media/demo_z_napisami.mp4` (60 s), gdy transmisja tnie obraz albo dźwięk.
+- **Wszystko jest publiczne** (§3 ust. 10 regulaminu): bez dzieci w kadrze bez zgody opiekunów, bez cudzych utworów.
+
+## Przygotowanie (przed sesją)
 
 1. Klipy na miejscu: prawdziwe albo zastępcze z nazwą pliku na planszy
    (`python -m bajka.placeholders scenarios/klub_ciekawskich.yaml`). Polecenie tworzy tylko brakujące pliki,
@@ -17,8 +28,8 @@ ze strzałkami), wszyscy mogą odpowiadać na głos, a ktoś z zespołu steruje 
 4. Zamknijcie podglądy po próbach (`python -m bajka.panel`, poprzednie uruchomienie bajki): zajęty port 8080
    albo 8090 kończy start komunikatem „Nie udało się uruchomić serwera (port zajęty?)”. Sprawdzenie:
    `netstat -ano | findstr 8080`.
-5. Ekrany: laptop i projektor jako rozszerzony ekran (Win+P, „Rozszerz”). Kartę z odcinkiem przeciągnijcie
-   na projektor i naciśnijcie **F** (pełny ekran); panel podglądu zostaje na laptopie.
+5. Ekrany: odcinek w osobnym oknie przeglądarki (to okno udostępniamy w transmisji), panel podglądu w drugim.
+   Na sali z projektorem: rozszerzony ekran (Win+P, „Rozszerz”), karta z odcinkiem na projektorze, **F** — pełny ekran.
 6. Wersja liniowa na zapas i do pokazania (kilka minut ffmpeg, więc wcześniej):
    `python -m bajka.linear scenarios/klub_ciekawskich.yaml` → `scenarios/klub_ciekawskich_liniowy.mp4` + `.srt`.
 7. Komenda startowa:
@@ -28,7 +39,7 @@ ze strzałkami), wszyscy mogą odpowiadać na głos, a ktoś z zespołu steruje 
    ```
 
    Bez modeli (słabszy laptop albo kłopot z Foundry Local): dodajcie `--no-llm --no-mic` — okna wyboru działają
-   pilotem, a głos zastępuje wybór strzałkami. Telewizor bez mikrofonu: `--mobile` i telefon jurora jako drugi ekran.
+   pilotem, a głos zastępuje wybór strzałkami. Telewizor bez mikrofonu: `--mobile` i telefon jako drugi ekran.
 
 ## Start
 
@@ -40,12 +51,12 @@ o mikrofon — zezwólcie. Panel podglądu: `http://127.0.0.1:8090/`.
 
 | Czas | Co się dzieje | Co mówimy |
 |---|---|---|
-| 0:00–0:30 | Ekran startowy, juror naciska **Oglądaj**. SC. 1, potem pierwsze okno wyboru („Hop-sa-sa!” / „Puk, puk!”) | „To odcinek z serwisu streamingowego. Netflix wycofał swoje filmy interaktywne — my pokazujemy, jak zrobić to prościej i dla dzieci.” |
-| 0:30–1:00 | Juror wybiera **strzałką i OK**. Gra nagrany klip reakcji. Na panelu: decyzja „wybór pilotem albo dotykiem” i wpis „Punkt odniesienia tętna widza” | „Pilot działa na każdym telewizorze. Dzieci, które nie czytają, mają obrazki.” |
-| 1:00–1:45 | SC. 2: okno „Tęczowy Mostek / Szumiący Las”. Juror **mówi** „przez las!”. Pod oknem: „Słyszę: …”. Las wchodzi przejściem wybranym przez montażystę (zwykle **przetarciem**, przy pobudzeniu łagodniejszym przenikaniem), a w dzienniku panelu: „Montaż kuferek → las: … (model AI): …”. W trakcie tego okna klikamy na panelu **Pobudzenie** | „Głos rozpoznaje Whisper na tym laptopie. O przejściu decyduje montażysta AI: wie, że ruszamy w nowe miejsce i że dziecko jest pobudzone.” |
-| 1:45–2:30 | W lesie juror celowo wybiera **Żabę**: gra osobna scena z żabką Kumką (gałąź), która wraca na wspólną drogę. Las i Wiaterek grają **wersję spokojną** | „Każda odpowiedź ma swoją scenę, a pomyłka jest częścią przygody. Dziecko jest pobudzone, więc odcinek zwalnia — tętno dziś symulujemy, docelowo z zegarka, za zgodą rodzica.” |
+| 0:00–0:30 | Ekran startowy, naciskamy **Oglądaj**. SC. 1, potem pierwsze okno wyboru („Hop-sa-sa!” / „Puk, puk!”) | „To odcinek z serwisu streamingowego. Netflix wycofał swoje filmy interaktywne — my pokazujemy, jak zrobić to prościej i dla dzieci.” |
+| 0:30–1:00 | Wybieramy **strzałką i OK** to, co wskazał czat. Gra nagrany klip reakcji. Na panelu: decyzja „wybór pilotem albo dotykiem” i wpis „Punkt odniesienia tętna widza” | „Pilot działa na każdym telewizorze. Dzieci, które nie czytają, mają obrazki.” |
+| 1:00–1:45 | SC. 2: okno „Tęczowy Mostek / Szumiący Las”. **Mówimy** do mikrofonu wybór czatu, np. „przez las!”. Pod oknem: „Słyszę: …”. Las wchodzi przejściem wybranym przez montażystę (zwykle **przetarciem**, przy pobudzeniu łagodniejszym przenikaniem), a w dzienniku panelu: „Montaż kuferek → las: … (model AI): …”. W trakcie tego okna klikamy na panelu **Pobudzenie** | „Głos rozpoznaje Whisper na tym laptopie. O przejściu decyduje montażysta AI: wie, że ruszamy w nowe miejsce i że dziecko jest pobudzone.” |
+| 1:45–2:30 | W lesie celowo wybieramy **Żabę**: gra osobna scena z żabką Kumką (gałąź), która wraca na wspólną drogę. Las i Wiaterek grają **wersję spokojną** | „Każda odpowiedź ma swoją scenę, a pomyłka jest częścią przygody. Dziecko jest pobudzone, więc odcinek zwalnia — tętno dziś symulujemy, docelowo z zegarka, za zgodą rodzica.” |
 | 2:30–3:15 | Przy oknie „Mapa, latarka czy lornetka?” nikt nic nie robi: postać dopytuje, a po czasie wybiera sama. Klikamy **Znużenie** | „Cisza nie zatrzymuje bajki. A gdy dziecko się nudzi, kolejna scena będzie żywsza.” |
-| 3:15–4:00 | Juror wybiera kwiatek dla mamy Bzyczki — Bzyczka trzyma go w Święcie (**wersja żywa**) i w finale: to **warstwa** nałożona na klip. Finał wchodzi rozjaśnieniem. Ekran końcowy: „Twoje wybory” i „Obejrzyj jeszcze raz” | „Wybory widza nakładamy na klipy jako warstwy, więc nie animujemy trzech finałów. Ten sam odcinek jest też zwykłym filmem dla serwisów bez interakcji” — pokazujemy plik `_liniowy.mp4` |
+| 3:15–4:00 | Czat wybiera kwiatek dla mamy Bzyczki — Bzyczka trzyma go w Święcie (**wersja żywa**) i w finale: to **warstwa** nałożona na klip. Finał wchodzi rozjaśnieniem. Ekran końcowy: „Twoje wybory” i „Obejrzyj jeszcze raz” | „Wybory widza nakładamy na klipy jako warstwy, więc nie animujemy trzech finałów. Ten sam odcinek jest też zwykłym filmem dla serwisów bez interakcji” — pokazujemy plik `_liniowy.mp4` |
 
 Wiaterek jest zawsze na ścieżce, więc to najpewniejsze miejsce na wersję spokojną. Wersję żywą mają Las i Święto.
 

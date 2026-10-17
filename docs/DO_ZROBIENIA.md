@@ -1,7 +1,8 @@
 # Do zrobienia
 
-Stan na 17.10.2026 (415 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md).
-Prezentacja przed jury: **18.10.2026, 19:00**. Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe.
+Stan na 17.10.2026 (428 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md).
+Zgłoszenie: **18.10.2026, 19:00** (bez prezentacji na żywo; materiały: [prezentacja/ZGLOSZENIE.md](prezentacja/ZGLOSZENIE.md)).
+Aktualizacje do 25.10, pokaz online 29.10 ([mail organizatorów](ZGODNOSC_Z_REGULAMINEM.md#mail-organizatorów-z-1710-nowe-terminy-i-wytyczne-zgłoszenia)). Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe.
 Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dlaczego streaming: [STREAMING.md](STREAMING.md).
 
 ## Zrobione
@@ -63,16 +64,18 @@ Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dl
 - [ ] Zgłoszenie wysłane przez formularz; nikt z zespołu nie podlega wykluczeniu z §3 ust. 7.
 - [ ] Zespół przerabia scenariusz i zapisuje, kto co zrobił (wymóg własnych praw autorskich, §3 ust. 9).
 - [ ] Sprawdzone licencje: generatory obrazu (i wideo, jeśli użyte), głosy syntezatora do publikacji, fonty w napisach.
-- [ ] Data prezentacji potwierdzona z organizatorem (w §2 ust. 3 regulaminu stoi „18.10.2022”).
+- [x] Terminy potwierdzone mailem organizatorów (17.10): zgłoszenie 18.10 19:00, aktualizacje do 25.10, sesja online 29.10.
 - [ ] Na nagraniach z pokazu i testów nie ma dzieci bez zgody rodziców.
 - [ ] Decyzja o licencji repozytorium (dziś nie ma pliku `LICENSE`).
 
-## Pokaz dla jury (18.10, 19:00)
+## Zgłoszenie (18.10, 19:00) i pokaz online (29.10)
 
+- [ ] Zgłoszenie wysłane według [listy kontrolnej](ZGODNOSC_Z_REGULAMINEM.md#lista-kontrolna-dla-zespołu-przed-1810-1900):
+  PDF, wideo, link do repozytorium, nazwiska i kontakt.
 - [ ] Prezentacja oparta na kryteriach jury — argumenty w [raporcie zgodności](ZGODNOSC_Z_REGULAMINEM.md#pitch-wobec-kryteriów-jury-4-ust-5),
   realia rynku w [STREAMING.md](STREAMING.md#realia-rynku-dlaczego-urealnić).
-- [ ] Demo na żywo według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md): pilot, głos, wersje scen na panelu, ekran końcowy,
-  wersja liniowa.
+- [ ] Demo na sesji online 29.10 według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md): pilot, głos, wersje scen na panelu,
+  ekran końcowy, wersja liniowa.
 
 ## Po hackathonie
 

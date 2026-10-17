@@ -6,6 +6,23 @@ Dotyczy odcinka interaktywnego [„Bzyczka szuka domu”](../scenarios/klub_ciek
 Od 17.10.2026 projekt to bajka interaktywna do serwisów streamingowych (okna wyboru, odpowiedź pilotem albo głosem),
 a nie seans kinowy z udziałem widowni ([co się zmieniło](STREAMING.md#co-się-zmieniło-17102026)).
 
+## Mail organizatorów z 17.10: nowe terminy i wytyczne zgłoszenia
+
+Organizatorzy zmienili zakończenie hackathonu. Mail zmienia terminy z §2 ust. 3 i §4 ust. 3 regulaminu: 18.10 o 19:00
+nie ma prezentacji przed jury, tylko **termin oddania zgłoszenia**; ocenia je jury na podstawie przysłanych materiałów,
+a projekty pokazujemy na publicznej, transmitowanej sesji online 29.10.
+
+| Punkt maila | Co to znaczy dla nas | Stan |
+|---|---|---|
+| 1. Zgłoszenie do niedzieli 18.10, 19:00; bez sesji zamykającej; Borys dostępny do terminu na stronie FSO | Zgłoszenie po 19:00 nie podlega ocenie (§4 ust. 2). Nikt nie opowie projektu za nas, więc materiały muszą się bronić same | **ZESPÓŁ**: wysłać przed 19:00 · **ZAPYTAĆ** Borysa (strona FSO), gdzie i jak złożyć zgłoszenie: formularz, mail czy link |
+| 2.1 Co to jest, dlaczego ważne (jaki problem rozwiązuje), kto skorzysta, jakie są wyzwania i jak je rozwiązujemy | [prezentacja/ZGLOSZENIE.md](prezentacja/ZGLOSZENIE.md) odpowiada na te pytania po kolei; slajdy mają osobne slajdy „Kto skorzysta” i „Wyzwania” | **POPRAWIONE** |
+| 2.2 Wyniki testów, eksperymentów albo badań potwierdzających część koncepcji | Sekcja „Co sprawdziliśmy” w zgłoszeniu: badania z literatury ([BADANIA.md](prezentacja/BADANIA.md)) i nasze próby (pełny przebieg odcinka w przeglądarce z klipami z generatora, testy automatyczne, przegląd klipów). Testu z dziećmi jeszcze nie ma — to pierwszy krok i dobry materiał na aktualizację do 25.10 | **POPRAWIONE** / **ZESPÓŁ** |
+| 2.3 Jeśli projekt opiera się na wdrożonym produkcie — „delta” | Nie opiera się: kod, scenariusz i odcinek powstały w trakcie hackathonu (pierwszy commit 16.10). Gotowe składniki (Foundry Local, Whisper, Phi, ffmpeg, generator wideo) są wypisane w zgłoszeniu | **POPRAWIONE** |
+| 2.4 Forma, której nie trzeba otwierać specjalistycznymi narzędziami | Zgłoszenie jako PDF i Markdown na publicznym GitHubie, slajdy z eksportem do PDF, wideo MP4 (zwiastun i nagranie odtwarzacza z napisami). Uruchomienie prototypu wymaga Pythona i ffmpeg, więc nie jest potrzebne do oceny. Slajdy w Claude są prywatne, dopóki ich nie udostępnicie — dołączcie eksport PDF | **POPRAWIONE** / **ZESPÓŁ** |
+| 3. Projekty oceniają Borys i Dominik dla Sławomira; mogą dopytać | Notatki prelegenta są w treści zgłoszenia, wideo ma napisy. W zgłoszeniu musi być kontakt do zespołu | **POPRAWIONE** / **ZESPÓŁ** (kontakt, nazwiska) |
+| 4. Sesja online 29.10 (czwartek, godzina do ustalenia), transmitowana i publiczna | Pokaz na żywo dopasowany do transmisji: [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md). Wszystko, co pokażemy, jest publiczne (§3 ust. 10): bez dzieci na nagraniach bez zgody opiekunów, sprawdzone warunki generatora wideo | **POPRAWIONE** / **ZESPÓŁ** |
+| 5. Aktualizacje do niedzieli 25.10 (do końca dnia), tylko rozwinięcie tej samej koncepcji; wysyłka do Borysa na adres nadawcy maila | Kreator Rodzica jest już w zgłoszeniu z 18.10, więc późniejsze zmiany będą rozwinięciem, a nie nowym pomysłem. Plan aktualizacji: test z kilkoma rodzinami, nowe pętle mapy i mostka, dokument z badaniami zespołu | **ZESPÓŁ** |
+
 Oznaczenia: **OK** — spełnione · **POPRAWIONE** — naprawione w repozytorium · **ZESPÓŁ** — do zrobienia przez
 zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 
@@ -14,7 +31,7 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 | Regulamin | Wymóg | Stan | Co zrobiliśmy / co zostaje |
 |---|---|---|---|
 | §2 ust. 2 | „Zarys filmów, aplikacji, gier… umożliwiających odbiór dzieł sztuki na nowej, interakcyjnej płaszczyźnie” | **OK** / **ZAPYTAĆ** | Interaktywny odcinek animowany: widz w domu współdecyduje o przebiegu w oknach wyboru (pilot, dotyk, głos), a postacie reagują. Do tego działający prototyp odtwarzacza i aplikacji. Regulamin obejmuje „filmy, aplikacje, gry”, a temat to „przyszłość odbioru dzieł audiowizualnych”, więc odbiór w serwisie streamingowym mieści się w zadaniu. Hasło hackathonu brzmi jednak „Kino szuka nowej formy” — warto potwierdzić z organizatorem, że forma poza salą kinową jest w porządku, i w pitchu powiedzieć, że ten sam odcinek da się pokazać w kinie (wersja liniowa albo pokaz z jednym „pilotem” dla sali) |
-| §2 ust. 3 i 5 | Prezentacja przed jury 18.10 o 19:00 | **POPRAWIONE** / **ZAPYTAĆ** | Scenariusz ma [plan na hackathon](../scenarios/klub_ciekawskich.md#plan-na-hackathon-prezentacja-18102026-1900) (zarys całego odcinka + jedna scena w pełnej animacji), a [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md) — przebieg pokazu. W §2 ust. 3 jest data „18.10.2022” — oczywista literówka, ale warto ją potwierdzić z organizatorem |
+| §2 ust. 3 i 5, §4 ust. 2–3 | Prezentacja przed jury 18.10 o 19:00; zgłoszenia po terminie nie są oceniane | **ZMIENIONE MAILEM** | Mail z 17.10 (wyżej): 18.10 o 19:00 to termin zgłoszenia, pokaz online 29.10, aktualizacje do 25.10. Literówka „18.10.2022” z §2 ust. 3 przestała mieć znaczenie. Scenariusz ma [plan na hackathon](../scenarios/klub_ciekawskich.md#plan-na-hackathon), a [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md) — przebieg pokazu online |
 | §3 ust. 4, 6, 7 | Zgłoszenie przez formularz (nazwa zespołu, lider, e-mail); uczestnicy pełnoletni albo 13+ za zgodą opiekunów; wykluczenie pracowników organizatora i partnerów oraz ich rodzin | **ZESPÓŁ** | Sprawdzić, czy zgłoszenie jest wysłane i czy żaden członek zespołu nie podlega wykluczeniu |
 | §3 ust. 8 | Bez treści obraźliwych, wulgarnych, propagujących przemoc, niemoralnych, nieprawdziwych lub wprowadzających w błąd | **POPRAWIONE** | Szczegóły niżej: filtr kwestii AI, zasady w prompcie, sprawdzone fakty, poprawione dwa fakty w scenariuszu, informacja o AI w napisach |
 | §3 ust. 9 | Lider oświadcza, że zespołowi przysługują wyłączne prawa autorskie do pracy, która jest oryginalna i wolna od roszczeń osób trzecich | **POPRAWIONE** / **ZESPÓŁ** | Szczegóły niżej: oryginalne postacie, muzyka tylko własna, treści z AI jako szkic do opracowania przez zespół, licencje narzędzi |
@@ -52,7 +69,7 @@ i że nagrań odpowiedzi nie przechowujemy; kwestie na żywo mają zawsze napisy
 
 | Element | Stan | Uwagi |
 |---|---|---|
-| Postacie, imiona, świat, fabuła | **OK** | Oryginalne. Scenariusz zastrzega, że projektując postacie nie wzorujemy się na postaciach z innych filmów i seriali. W szczególności Bzyczka ma własny wygląd (miętowy sweterek w miodowe paski) i nie może przypominać znanych pszczółek z animacji. W materiałach i pitchu nie odwołujemy się do cudzych marek |
+| Postacie, imiona, świat, fabuła | **OK** | Oryginalne. Scenariusz zastrzega, że projektując postacie nie wzorujemy się na postaciach z innych filmów i seriali. W szczególności Bzyczka ma własny wygląd (miętowy sweterek w miodowe paski) i nie może przypominać znanych pszczółek z animacji. Cudze tytuły i firmy (Netflix, serial z badania Elinor) pojawiają się w materiałach tylko jako fakty ze źródłem, nie jako wzór ani skojarzenie z naszym serialem |
 | Tekst scenariusza powstał z pomocą AI | **ZESPÓŁ** | Prawo autorskie chroni twórczość człowieka. Traktujcie tekst jako szkic: zespół go przerabia, wybiera i uzupełnia (dialogi, ujęcia, napisy) i zapisuje, kto co zrobił. Dopiero wtedy lider może z czystym sumieniem złożyć oświadczenie z §3 ust. 9 |
 | Ilustracje i animacje z generatorów (Azure AI Foundry, ewentualnie Kling, Runway, Veo) | **ZESPÓŁ** | Zgodnie z [projektem flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) przed prezentacją sprawdzamy warunki każdej usługi: czy zespół może korzystać z wyników i je publikować |
 | Muzyka, piosenki, efekty dźwiękowe | **POPRAWIONE** / **ZESPÓŁ** | Scenariusz wymaga muzyki i melodii skomponowanych przez zespół. Bez znanych melodii, gotowych podkładów i efektów z sieci — nawet darmowe licencje nie dają *wyłącznych* praw. Muzyka generowana przez AI tylko po sprawdzeniu licencji |
@@ -118,13 +135,18 @@ Propozycja pierwszego testu po hackathonie:
 
 ## Lista kontrolna dla zespołu przed 18.10, 19:00
 
-- [ ] Zgłoszenie przez formularz wysłane; nikt z zespołu nie podlega wykluczeniu z §3 ust. 7.
+- [ ] **Zgłoszenie wysłane przed 19:00**: [ZGLOSZENIE.pdf](prezentacja/ZGLOSZENIE.pdf), slajdy w PDF (eksport z Claude),
+  `media/demo_z_napisami.mp4` i `media/zwiastun.mp4` albo link do nich, link do repozytorium. Sposób wysyłki potwierdzony z Borysem.
+- [ ] W zgłoszeniu: nazwiska i role członków zespołu, lider, kontakt (dziś w ZGLOSZENIE.md są pola do wpisania).
+- [ ] Slajdy udostępnione (menu Share), jeśli wysyłacie link, a nie tylko PDF.
+- [ ] Udział w hackathonie zgłoszony przez formularz; nikt z zespołu nie podlega wykluczeniu z §3 ust. 7.
 - [ ] Potwierdzenie z organizatorem, że odcinek do serwisów streamingowych mieści się w zadaniu (hasło „Kino szuka nowej formy”).
 - [ ] Zespół przerobił scenariusz i zapisał autorstwo poszczególnych części.
 - [ ] Wygląd postaci (zwłaszcza Bzyczki) zatwierdzony jako oryginalny.
 - [ ] Muzyka i efekty własne; warunki generatorów obrazu i głosu sprawdzone.
 - [ ] Napisy końcowe uzupełnione (nazwiska, informacja o AI).
 - [ ] Decyzja o licencji repozytorium.
-- [ ] Data prezentacji potwierdzona z organizatorem (literówka „18.10.2022” w §2 ust. 3).
 - [ ] Na nagraniach z pokazu i testów nie ma dzieci bez zgody rodziców.
-- [ ] Na pokazie: Edge albo Chrome, modele pobrane wcześniej, wersja liniowa wygenerowana.
+- [ ] Do 25.10 (aktualizacja, mail do Borysa): wyniki testu z rodzinami, nowe pętle mapy i mostka, badania zespołu.
+- [ ] Na sesję online 29.10: Edge albo Chrome, udostępnianie karty z dźwiękiem, słuchawki, modele pobrane wcześniej,
+  wersja liniowa i nagranie z napisami na zapas ([DEMO_DLA_JURY.md](DEMO_DLA_JURY.md)).

@@ -38,6 +38,14 @@ def words(text: str) -> list[str]:
     return _WORD.findall(normalize(text))
 
 
+# „Nie wiem” to odpowiedź, a nie wybór: postać ma dopytać, zamiast zgadywać po podobnych słowach („nie” ~ „niebo”).
+_DONT_KNOW = re.compile(r"\bnie (wiem|umiem|pamietam|rozumiem|mam pojecia)\b")
+
+
+def dont_know(transcript: str) -> bool:
+    return _DONT_KNOW.search(" ".join(words(transcript))) is not None
+
+
 def same_word(spoken: str, keyword: str) -> bool:
     """Ten sam wyraz mimo odmiany: "lasu" ~ "las", "jaskini" ~ "jaskinia", ale nie "lato" ~ "las"."""
     if spoken == keyword:
@@ -45,7 +53,11 @@ def same_word(spoken: str, keyword: str) -> bool:
     # Krótkie wyrazy i liczby tylko dosłownie: inaczej „do” pasowałoby do „dom”, a „lato” do „las”.
     if spoken.isdigit() or keyword.isdigit() or min(len(spoken), len(keyword)) < 3:
         return False
-    if spoken.startswith(keyword) or keyword.startswith(spoken):
+    if spoken.startswith(keyword):  # odmiana: "lasu" ~ "las"
+        return True
+    if len(spoken) < 4:  # krótkie słowo dziecka to nie początek dłuższego: „nie” to nie „niebo”
+        return False
+    if keyword.startswith(spoken):  # skrót: "most" ~ "mostek"
         return True
     common = 0
     for a, b in zip(spoken, keyword):
@@ -116,9 +128,10 @@ def matches(transcript: str, choice: Choice, index: int | None = None) -> bool:
     # 2. Identyfikator i etykieta wyboru
     clean_id = compact(choice.id)
     clean_label = compact(choice.display_label)
-    if clean_id and (clean_id in clean_spoken or (len(clean_spoken) >= 3 and clean_spoken in clean_id)):
+    # Fragment wypowiedzi w nazwie wyboru liczy się od 4 liter: inaczej „nie” wybierałoby „niebieską”.
+    if clean_id and (clean_id in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_id)):
         return True
-    if clean_label and (clean_label in clean_spoken or (len(clean_spoken) >= 3 and clean_spoken in clean_label)):
+    if clean_label and (clean_label in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_label)):
         return True
 
     # 3. Synonimy i słowa kluczowe
@@ -127,7 +140,8 @@ def matches(transcript: str, choice: Choice, index: int | None = None) -> bool:
         clean_kw = compact(kw)
         if not clean_kw:
             continue
-        if clean_kw in clean_spoken or (len(clean_spoken) >= 3 and clean_spoken in clean_kw):
+        # Krótkie słowa („nie”, „tak”, „hu”) tylko jako całe wyrazy (krok 4): „spokojnie” kończy się na „nie”.
+        if (len(clean_kw) >= 4 and clean_kw in clean_spoken) or (len(clean_spoken) >= 4 and clean_spoken in clean_kw):
             return True
 
     # 4. Dopasowanie wyraz po wyrazie
@@ -149,6 +163,9 @@ class KeywordIntentResolver:
     """
 
     def resolve(self, scene: Scene, transcript: str) -> Interpretation:
+        if dont_know(transcript):
+            log.info("Dziecko nie wie (%r), dopytuję", transcript)
+            return Interpretation(choice_id=None, reply="")
         choices = list(scene.choices.values())
         found = [choice.id for idx, choice in enumerate(choices) if matches(transcript, choice, idx)]
         if len(found) == 1:

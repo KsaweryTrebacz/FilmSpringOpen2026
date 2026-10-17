@@ -23,6 +23,8 @@ def test_normalize_drops_case_and_polish_letters():
         ("3", "3", True),
         ("13", "3", False),
         ("do", "dom", False),
+        ("nie", "niebo", False),
+        ("most", "mostek", True),
     ],
 )
 def test_same_word_tolerates_polish_inflection(spoken, keyword, expected):
@@ -56,6 +58,26 @@ def test_answer_matching_two_choices_is_unclear(scenario):
 
 def test_off_topic_answer_is_unclear(scenario):
     assert KeywordIntentResolver().resolve(scenario.scene("intro"), "banan").choice_id is None
+
+
+@pytest.mark.parametrize("answer", ["nie wiem", "Nie wiem, las?", "nie umiem", "nie pamiętam"])
+def test_dont_know_is_unclear_even_with_similar_words(scenario, answer):
+    # „Nie wiem” ma prowadzić do dopytania, nawet gdy w zdaniu jest słowo pasujące do wyboru.
+    assert KeywordIntentResolver().resolve(scenario.scene("intro"), answer).choice_id is None
+
+
+def test_short_keyword_counts_only_as_a_whole_word(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["jaskinia"]["keywords"] = ["nie"]
+    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
+    resolver = KeywordIntentResolver()
+
+    assert resolver.resolve(scenario.scene("intro"), "nie, do lasu nie").choice_id is None  # oba wybory: dopytanie
+    assert resolver.resolve(scenario.scene("intro"), "spokojnie do lasu").choice_id == "las"  # „…nie” to nie „nie”
+
+
+def test_short_fragment_does_not_pick_a_choice_by_its_name(scenario):
+    # Strzęp rozpoznawanej mowy („jas…”) nie wybiera opcji, której nazwa się od niego zaczyna.
+    assert KeywordIntentResolver().resolve(scenario.scene("intro"), "jas").choice_id is None
 
 
 class BrokenResolver:
