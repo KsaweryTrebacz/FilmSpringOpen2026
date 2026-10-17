@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import threading
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -187,10 +188,6 @@ class StoryEngine:
         visited: list[str] = []
         scene = self._scenario.scene(self._scenario.start)
         entering = Cut()  # pierwsza scena wchodzi cięciem
-        if self._pulse is not None and self._baseline is None:
-            self._baseline = self._read_bpm()
-            if self._baseline is not None:
-                self._emit("odniesienie", bpm=self._baseline)
         try:
             while True:
                 self._check_stopped()

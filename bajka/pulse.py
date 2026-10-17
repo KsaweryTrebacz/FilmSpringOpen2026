@@ -108,16 +108,18 @@ class SimulatedPulse:
         with self._lock:
             return self._target
 
-    def set_target(self, bpm: float) -> None:
+    def set_target(self, bpm: float, immediate: bool = False) -> None:
         with self._lock:
             self._advance()
             self._script = None
             self._target = min(MAX_BPM, max(MIN_BPM, float(bpm)))
+            if immediate:
+                self._bpm = self._target
 
     def preset(self, name: str) -> None:
         if name not in PRESETS:
             raise ValueError(f"nieznany stan widza {name!r}, dostępne: {', '.join(PRESETS)}")
-        self.set_target(PRESETS[name])
+        self.set_target(PRESETS[name], immediate=True)
 
     def play_script(self, script: Sequence[tuple[float, float]] = DEMO_SCRIPT) -> None:
         with self._lock:

@@ -266,7 +266,7 @@ class _Handler(BaseHTTPRequestHandler):
                 target = float(command["target"])
             except (TypeError, ValueError):
                 raise ValueError("'target' musi być liczbą uderzeń na minutę") from None
-            pulse.set_target(target)
+            pulse.set_target(target, immediate=True)
         elif "preset" in command:
             pulse.preset(str(command["preset"]))
         elif command.get("script") == "demo":

@@ -77,18 +77,14 @@ class RuleEditor:
 
     def cut(self, context: CutContext) -> Cut:
         if context.edge == "reakcja":
-            if context.viewer == BORED:
-                return checked_cut(CUT, 0.0, "Tętno widza spada (znużenie) -> dynamiczny montaż: natychmiastowa reakcja cięciem (0 s).")
-            if context.viewer == EXCITED:
-                return checked_cut(DISSOLVE, 0.8, "Tętno widza wysokie (pobudzenie) -> wolniejszy montaż: łagodne przenikanie reakcji (0,8 s), aby wyciszyć.")
             return checked_cut(DISSOLVE, 0.4, "Reakcja postaci w tym samym miejscu: krótkie przenikanie.")
 
         moving = bool(context.from_place and context.to_place and context.from_place != context.to_place)
 
-        if context.to_ending:
-            transition, base_why = FADE_BLACK, "Zakończenie historii"
-        elif context.hint and context.viewer not in (EXCITED, BORED):
+        if context.hint:
             transition, base_why = context.hint, "Przejście wskazane przez autora scenariusza"
+        elif context.to_ending:
+            transition, base_why = FADE_BLACK, "Zakończenie historii"
         elif moving:
             transition, base_why = WIPE, f"Nowe miejsce ({context.to_place})"
         else:
@@ -96,31 +92,18 @@ class RuleEditor:
 
         seconds = DEFAULT_SECONDS[transition]
 
-        # Adaptacja dynamiki montażu wg biofeedbacku tętna:
         if context.viewer == BORED:
             # Tętno widza spada (znużenie) -> montaż staje się bardziej dynamiczny!
-            if context.to_ending:
-                transition = FADE_BLACK
-                seconds = 0.8
-                why = "Tętno widza spada (znużenie) -> dynamiczne, krótsze zaciemnienie (0,8 s) na finał."
-            elif moving:
-                transition = WIPE
-                seconds = 0.35
-                why = f"Tętno widza spada (znużenie) -> dynamiczny montaż w {context.to_place}: szybkie przetarcie (0,35 s) dla ożywienia uwagi."
-            else:
-                transition = CUT
-                seconds = 0.0
-                why = "Tętno widza spada (znużenie) -> dynamiczny montaż: natychmiastowe cięcie (0 s), aby obudzić ciekawość i zdynamizować film."
+            transition = WIPE
+            seconds = 0.4
+            why = f"Widz znużony (spadek tętna): dynamiczny montaż i energiczne przetarcie ({seconds} s), aby ożywić uwagę."
         elif context.viewer == EXCITED:
             # Tętno widza za wysokie (pobudzenie) -> montaż staje się wolniejszy, aby zrelaksować widza!
-            if context.to_ending:
-                transition = FADE_BLACK
-                seconds = 2.0
-                why = "Tętno widza za wysokie (pobudzenie) -> wolne, 2-sekundowe zaciemnienie, wyciszające emocje."
-            else:
-                transition = DISSOLVE
-                seconds = 1.8
-                why = "Tętno widza za wysokie (pobudzenie) -> wolniejszy montaż: długie, łagodne przenikanie (1,8 s), aby zrelaksować i uspokoić widza."
+            transition = DISSOLVE
+            seconds = 1.2
+            why = f"Widz pobudzony (wysokie tętno): wolniejszy montaż i łagodne przenikanie ({seconds} s), aby uspokoić i zrelaksować."
+        elif context.to_ending:
+            why = "Zakończenie historii: spokojne zaciemnienie."
         else:
             why = f"{base_why}: {describe_cut(Cut(transition, seconds))}."
 
