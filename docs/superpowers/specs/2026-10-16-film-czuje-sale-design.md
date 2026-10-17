@@ -1,5 +1,7 @@
 # Film, który czuje salę — projekt demo dla jury
 
+> **Zmiana z 17.10:** projekt przeszedł z seansu kinowego na odcinek interaktywny do serwisów streamingowych (okna wyboru, pilot albo głos, tętno jednego widza, drugi ekran zamiast aplikacji widowni, bez krzykomierza). Ten dokument opisuje stan z 16.10; aktualny opis: [STREAMING.md](../../STREAMING.md).
+
 Data: 16.10.2026. Zastępuje część „obraz na żywo” z [projektu flow filmu](2026-10-16-flow-filmu-design.md):
 rysowanie na żywo znika z projektu, a jego miejsce zajmuje dopasowanie filmu do tętna widowni i panel dla jury.
 

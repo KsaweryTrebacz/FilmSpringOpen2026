@@ -31,7 +31,7 @@ from bajka.scenario import Choice, Scenario, Scene
 log = logging.getLogger(__name__)
 
 DEFAULT_FALLBACK = "Dobrze, to ja wybiorę!"
-DEFAULT_CHOICE_SECONDS = 12.0  # dzieci 4–7 lat potrzebują więcej czasu niż dorośli widzowie (ok. 10 s)
+DEFAULT_CHOICE_SECONDS = 12.0  # dzieci 4–7 lat potrzebują na wybór więcej czasu niż dorośli
 
 
 class _Stopped(Exception):

@@ -1,74 +1,82 @@
 # Do zrobienia
 
-Stan na 16.10.2026 (324 testy przechodzą, 1 jest pomijany). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md). Prezentacja przed jury: **18.10.2026, 19:00**.
-Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe. Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md).
+Stan na 17.10.2026 (368 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md).
+Prezentacja przed jury: **18.10.2026, 19:00**. Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe.
+Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dlaczego streaming: [STREAMING.md](STREAMING.md).
 
-## Kod i podpięcie (przed pokazem)
+## Zrobione
 
-- [x] Rysowanie na żywo usunięte z projektu (16.10): wszystkie animacje filmu są przygotowane wcześniej.
-  W zamian [film, który czuje salę](superpowers/specs/2026-10-16-film-czuje-sale-design.md): tętno widowni,
-  wersje scen i panel dla jury.
-- [x] Film, który czuje salę: symulowane tętno sali, panel dla jury (`--panel`) i [przebieg pokazu](DEMO_DLA_JURY.md).
-  Pola `variants` (spokojne wersje) scen `las`, `wiaterek` i `swieto` są w scenariuszu, a same klipy spokojnych
-  wersji jeszcze trzeba przygotować (punkt „Spokojne wersje montażu” niżej).
-- [x] Przegląd serwera aplikacji mobilnej (`bajka/mobile.py`, moduł osoby A) po wycofaniu rysowania, 16.10:
-  zajęty port nie jest już współdzielony na Windows (film nie wystartuje, zamiast po cichu oddać telefony zapomnianemu
-  podglądowi), odrzucone zapytania nie zrywają połączeń (WinError 10053), teksty o prywatności mówią o pliku
-  tymczasowym, a przycisk „Dołączam do seansu” działa też, gdy przeglądarka blokuje `localStorage`.
+- [x] Rysowanie na żywo usunięte z projektu (16.10): wszystkie animacje są przygotowane wcześniej.
+- [x] Panel podglądu, symulowane tętno i wersje scen (16.10).
+- [x] **Zmiana formy na odcinek do serwisów streamingowych (17.10):**
+  - okno wyboru z obrazkami i odliczaniem; wybór pilotem, dotykiem, myszą, cyframi albo głosem (`bajka/web_player.py`
+    + `bajka/player_app/`), sprawdzone w Chromium: przyciski, dopytanie po ciszy, wybór domyślny, „obejrzyj jeszcze raz”
+    i odpowiedź z mikrofonu (udawany mikrofon w przeglądarce, udawany Whisper),
+  - nagrane klipy reakcji (`reaction`) zamiast kwestii z syntezatora, napisy dla kwestii na żywo,
+  - krzykomierz usunięty; telefony to teraz opcjonalny drugi ekran,
+  - tętno jednego widza, nastrój zrównoważony z wersjami spokojną i żywą,
+  - wersja liniowa (`python -m bajka.linear`) i manifest JSON (`python -m bajka.manifest`),
+  - scenariusz przepisany na odcinek: zwroty do jednego widza bez form zależnych od płci, obrazki opcji,
+  - tryb `--text` przechodzi cały odcinek w konsoli, bez wideo.
 
-## Testy na prawdziwym sprzęcie (nic z tego nie było jeszcze uruchomione)
+## Testy na prawdziwym sprzęcie (przed pokazem)
 
-- [ ] VLC 64-bit i płynne przejście klip → pętla: `python -m bajka.player KLIP PĘTLA`.
+- [ ] Odtwarzacz w Edge albo Chrome na laptopie pokazowym: płynne przejście klip → pętla, okno wyboru na projektorze,
+  pełny ekran (F), pilot do prezentacji (strzałki i Enter).
+- [ ] Mikrofon w przeglądarce z prawdziwym głosem: czy wykrywanie mowy łapie dzieci i nie łapie dźwięku z pętli
+  (redukcja echa), ewentualnie `BAJKA_WEB_ANSWER_SECONDS`.
 - [ ] Foundry Local na laptopie do pokazu:
   - pobranie `phi-4-mini` i `whisper-tiny`, wariant na NPU (`python -m bajka.foundry --device NPU`),
   - jak Whisper rozumie polską mowę dzieci (ewentualnie większy wariant Whispera),
   - czy serwer przyjmuje odpowiedź w formacie wymuszonym schematem JSON (w logu: „odrzucił format odpowiedzi”).
-- [ ] Polski głos Windows (`python -m bajka.local_tts --list`), dobór wysokości i tempa głosu Lili.
-- [ ] Aplikacja mobilna na prawdziwych telefonach (Android i iPhone):
-  - akceptacja ostrzeżenia o certyfikacie i dostęp do mikrofonu,
-  - Wi-Fi bez izolacji urządzeń, port 8443 otwarty w zaporze Windows,
-  - kilka telefonów naraz i czas rozpoznania odpowiedzi,
-  - telefon z zablokowanymi danymi stron (ciasteczka): przycisk „Dołączam do seansu” ma przejść dalej,
-  - dotąd stronę sprawdzono tylko w przeglądarce na komputerze, bez mikrofonu: dołączanie i odpowiedź dotykiem działają.
-- [ ] Kalibracja krzykomierza na sali: `python -m bajka.vote`.
-- [ ] Próba z panelem na laptopie pokazowym: `--mobile --panel`, panel na ekranie laptopa albo tablecie jury
-  (`BAJKA_PANEL_HOST=0.0.0.0`), „Przebieg demo” i ręczne „Sala się ekscytuje” przed sceną `wiaterek`.
-- [ ] Próba generalna całego filmu obiema ścieżkami: z telefonami (`--mobile`) i bez.
+- [ ] Polski głos syntezatora w przeglądarce (lokalny głos Windows) i jego tempo; bez głosu zostają napisy.
+- [ ] Panel z symulowanym tętnem: „Pobudzenie” przed Wiaterkiem (wersja spokojna), „Znużenie” przed Świętem (wersja żywa).
+- [ ] Wersja liniowa z prawdziwymi klipami (`python -m bajka.linear …`): długość, napisy, dźwięk w pętlach.
+- [ ] Drugi ekran na prawdziwych telefonach (Android i iPhone): certyfikat, mikrofon, Wi-Fi bez izolacji urządzeń.
+- [ ] `--player vlc` na laptopie pokazowym (zapasowy tryb): VLC 64-bit, mikrofon komputera.
+- [ ] Próba generalna według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md), także wariant `--no-llm --no-mic`.
 
-## Produkcja filmu
+## Produkcja odcinka
 
 - [ ] Karta postaci (Lila, Fiku, Bzyczka, Fiufiu, Kuferek) z oryginalnym wyglądem; Bzyczka nie może przypominać
   znanych pszczółek z animacji.
-- [ ] 18 klipów z [listy w scenariuszu](../scenarios/klub_ciekawskich.md#lista-klipów-do-produkcji). Minimum na pokaz:
+- [ ] Klipy z [listy w scenariuszu](../scenarios/klub_ciekawskich.md#lista-klipów-do-produkcji). Minimum na pokaz:
   ilustracje z ruchem kamery dla wszystkich scen i jedna scena w pełnej animacji (SC. 4, Wiaterek).
-- [ ] Spokojne wersje montażu trzech scen (dłuższe ujęcia, wolniejsze tempo): `03b_las_spokojna.mp4`,
-  `04_wiaterek_spokojna.mp4`, `07_swieto_spokojna.mp4` (pola `variants` w scenariuszu).
-- [ ] Nagrania dialogów (głos Lili zbliżony do syntezatora), własna muzyka i piosenki.
-- [ ] Plansza z kodem QR (`…/qr`), sygnał „Świecąca Lupka” w pętlach oczekiwania.
+- [ ] Pętle oczekiwania z wolną dolną jedną trzecią kadru (tam jest okno wyboru).
+- [ ] Klipy reakcji SC. 1 (`01_reakcja_hopsasa.mp4`, `01_reakcja_pukanie.mp4`); w kolejnej wersji reakcje na wszystkie wybory.
+- [ ] Wersje montażu: spokojne (`03b_las`, `04_wiaterek`, `07_swieto`) i żywe (`03b_las`, `07_swieto`).
+- [ ] Obrazki opcji w produkcji: miniatury w stylu odcinka zamiast emoji.
+- [ ] Nagrania dialogów aktorskich, własna muzyka i piosenki.
 - [ ] Napisy końcowe z nazwiskami i informacją o AI.
 
 ## Regulamin i formalności
 
+- [ ] Potwierdzenie z organizatorem, że forma streamingowa mieści się w zadaniu (hasło „Kino szuka nowej formy”).
 - [ ] Zgłoszenie wysłane przez formularz; nikt z zespołu nie podlega wykluczeniu z §3 ust. 7.
 - [ ] Zespół przerabia scenariusz i zapisuje, kto co zrobił (wymóg własnych praw autorskich, §3 ust. 9).
 - [ ] Sprawdzone licencje: generatory obrazu (i wideo, jeśli użyte), głosy syntezatora do publikacji, fonty w napisach.
 - [ ] Data prezentacji potwierdzona z organizatorem (w §2 ust. 3 regulaminu stoi „18.10.2022”).
-- [ ] Informacja dla opiekunów o mikrofonie i prywatności; na nagraniach z pokazu bez dzieci bez zgody opiekunów.
+- [ ] Na nagraniach z pokazu i testów nie ma dzieci bez zgody rodziców.
 - [ ] Decyzja o licencji repozytorium (dziś nie ma pliku `LICENSE`).
 
 ## Pokaz dla jury (18.10, 19:00)
 
-- [ ] Prezentacja oparta na kryteriach jury (innowacyjność, adekwatność, oryginalność, kreatywność) —
-  argumenty w [raporcie zgodności](ZGODNOSC_Z_REGULAMINEM.md#pitch-wobec-kryteriów-jury-4-ust-5).
-- [ ] Demo na żywo z jury jako widownią, najlepiej na telefonach jurorów.
-- [ ] Pokaz według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md): drzewo scen, głosy i tętno sali na panelu.
+- [ ] Prezentacja oparta na kryteriach jury — argumenty w [raporcie zgodności](ZGODNOSC_Z_REGULAMINEM.md#pitch-wobec-kryteriów-jury-4-ust-5),
+  realia rynku w [STREAMING.md](STREAMING.md#realia-rynku-dlaczego-urealnić).
+- [ ] Demo na żywo według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md): pilot, głos, wersje scen na panelu, ekran końcowy,
+  wersja liniowa.
 
 ## Po hackathonie
 
-- [ ] Prawdziwe tętno z zegarków widzów zamiast symulatora (Health Connect, HealthKit albo Bluetooth „Heart Rate”
-  w aplikacji mobilnej), za zgodą opiekunów; wizja w [README](../README.md#film-który-czuje-salę-tętno-i-panel-dla-jury).
+Propozycje z uzasadnieniem: [STREAMING.md](STREAMING.md#propozycje-usprawnień).
+
+- [ ] Sygnały uwagi bez biometrii (czas reakcji, serie cisz) jako wejście dla wersji scen — przed zegarkiem.
+- [ ] Prawdziwe tętno z zegarka (Health Connect, HealthKit, Bluetooth „Heart Rate”) za osobną zgodą rodzica.
+- [ ] Napisy WebVTT do klipów, audiodeskrypcja opcji, profil dziecka z ustawieniami tylko na urządzeniu.
+- [ ] Pakowanie HLS/DASH i wstępne wczytywanie tylko klipów możliwych po bieżącym oknie wyboru.
+- [ ] Aplikacja na telewizor (Tizen, webOS, Android TV) z tym samym `player_app`; Whisper w przeglądarce przez WebNN.
 - [ ] Natywna aplikacja z Phi Silica i dostrajaniem LoRA ([LOKALNE_AI.md](LOKALNE_AI.md)).
 - [ ] Testy uruchamiane automatycznie na GitHubie (GitHub Actions z `pytest`).
-- [ ] Limity w serwerze aplikacji mobilnej (limit czasu połączeń HTTP, limit liczby telefonów). W sieci lokalnej to
-  niskie ryzyko, ale przed publicznym pokazem warto je dodać.
-- [ ] Seans próbny z prawdziwą publicznością (plan w [raporcie zgodności](ZGODNOSC_Z_REGULAMINEM.md#test-z-prawdziwą-publicznością-5-ust-3)).
+- [ ] Limity w serwerach (czas połączeń HTTP, liczba telefonów) przed publicznym udostępnieniem.
+- [ ] Sprawdzenie patentów na odtwarzanie rozgałęzionych treści przed komercjalizacją.
+- [ ] Test z rodzinami (plan w [raporcie zgodności](ZGODNOSC_Z_REGULAMINEM.md#test-z-prawdziwą-publicznością-5-ust-3)).

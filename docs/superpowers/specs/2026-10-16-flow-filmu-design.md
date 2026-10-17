@@ -1,5 +1,7 @@
 # Flow filmu i dobór modeli — projekt
 
+> **Zmiana z 17.10:** projekt przeszedł z seansu kinowego na odcinek interaktywny do serwisów streamingowych (okna wyboru, pilot albo głos, tętno jednego widza, drugi ekran zamiast aplikacji widowni, bez krzykomierza). Ten dokument opisuje stan z 16.10; aktualny opis: [STREAMING.md](../../STREAMING.md).
+
 **Projekt:** Interaktywna Bajka Głosowa Zero-UI (hackathon Film Spring Open 2026)
 **Data:** 2026-10-16 · **Status:** zaakceptowany
 **Obszar pracy:** „obraz na żywo” — trzeci obok „ucha i mózgu” (A) i „oka i głosu” (B) z [podziału pracy](../../PODZIAL_PRACY.md)

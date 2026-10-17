@@ -5,3 +5,6 @@ __pycache__/
 *.egg-info/
 .env
 scenarios/clips/
+# wersje liniowe odcinków (python -m bajka.linear) — wynik budowania, nie źródło
+*_liniowy.mp4
+*_liniowy.srt

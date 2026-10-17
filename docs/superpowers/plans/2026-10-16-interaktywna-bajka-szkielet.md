@@ -1,5 +1,7 @@
 # Interaktywna Bajka Głosowa Zero-UI — plan implementacji szkieletu
 
+> **Zmiana z 17.10:** projekt przeszedł z seansu kinowego na odcinek interaktywny do serwisów streamingowych (okna wyboru, pilot albo głos, tętno jednego widza, drugi ekran zamiast aplikacji widowni, bez krzykomierza). Ten dokument opisuje stan z 16.10; aktualny opis: [STREAMING.md](../../STREAMING.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Szkielet aplikacji w Pythonie, który odtwarza klip bajki, po nim słucha dziecka przez mikrofon, wysyła mowę do Azure Speech-to-Text, analizuje intencję przez Azure OpenAI, wypowiada reakcję bohatera przez Azure TTS i odtwarza wybrany kolejny klip.

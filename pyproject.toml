@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bajka"
 version = "0.1.0"
-description = "Interaktywna Bajka Głosowa Zero-UI — prototyp hackathonowy"
+description = "Bajka interaktywna do serwisów streamingowych: okna wyboru, pilot albo głos — prototyp hackathonowy"
 requires-python = ">=3.11"
 dependencies = [
     "python-vlc>=3.0.21203",
@@ -28,7 +28,7 @@ local = [
     "winrt-Windows.Storage.Streams>=3.2; sys_platform == 'win32'",
 ]
 
-# Aplikacja mobilna widowni: certyfikat HTTPS dla mikrofonu w telefonach i kod QR na ekran kina.
+# Drugi ekran (telefony jako pilot z mikrofonem): certyfikat HTTPS dla mikrofonu w telefonach i kod QR.
 mobile = ["cryptography>=42", "segno>=1.6"]
 
 [tool.setuptools]

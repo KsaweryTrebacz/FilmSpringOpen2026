@@ -1,49 +1,46 @@
-# Interaktywna Bajka Głosowa Zero-UI
+# Bajka interaktywna: odcinek, w którym decyduje widz
 
-Prototyp na hackathon FilmSpring Open 2026: bajka, w której ekran słucha i odpowiada.
-Bohater odwraca się do widza i zadaje pytanie, dziecko odpowiada głosem, a historia idzie
-w wybraną stronę. Bez myszki i klawiatury.
+Prototyp na hackathon FilmSpring Open 2026: animowana bajka dla dzieci do oglądania w serwisie streamingowym.
+W kluczowych momentach postać zadaje pytanie, a na ekranie pojawia się **okno wyboru** z obrazkami i odliczaniem.
+Dziecko wybiera **pilotem, dotykiem albo głosem** („przez ten kolorowy mostek!”), a historia idzie w wybraną stronę.
+W przyszłości tempo odcinka może dopasowywać się do **tętna widza** z zegarka (dziś: symulator).
 
-Pracujemy na niezależnych modułach w trzech obszarach (A, B, C) — kto co robi i zasady: [docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md).
+Domyślnie całe AI działa **lokalnie na urządzeniu** (Foundry Local z Whisper i Phi na NPU/GPU/CPU) — bez chmury
+i bez kluczy: [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md). Usługi Azure zostają jako alternatywa (`--backend azure`).
 
-Domyślnie całe AI działa **lokalnie na Windows** (Foundry Local z Whisper i Phi na NPU/GPU/CPU, głos
-z syntezatora Windows) — bez chmury i bez kluczy: [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md).
-Usługi Azure zostają jako alternatywa (`--backend azure`).
-
-Film: **„Bzyczka szuka domu”** — interaktywny animowany film krótkometrażowy dla widowni kinowej
-([scenariusz filmowy](scenarios/klub_ciekawskich.md), [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)).
-Zgodność z regulaminem hackathonu: [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
-**Nowa osoba w zespole? Zacznij od [docs/ONBOARDING.md](docs/ONBOARDING.md).**
-Co jeszcze zostało do zrobienia: [docs/DO_ZROBIENIA.md](docs/DO_ZROBIENIA.md).
+Odcinek: **„Klub Ciekawskich: Bzyczka szuka domu”** ([scenariusz odcinka](scenarios/klub_ciekawskich.md),
+[graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)). Dlaczego streaming, jak to wygląda na rynku i jak
+odcinek trafia do serwisów: [docs/STREAMING.md](docs/STREAMING.md). Zgodność z regulaminem hackathonu:
+[docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
+**Nowa osoba w zespole? Zacznij od [docs/ONBOARDING.md](docs/ONBOARDING.md).** Podział pracy:
+[docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md). Co zostało do zrobienia: [docs/DO_ZROBIENIA.md](docs/DO_ZROBIENIA.md).
 
 ## Jak to działa
 
-1. VLC odtwarza klip, w którym bohater zadaje pytanie (np. „mostek czy las?”).
-2. Startuje cicha pętla oczekiwania, a mikrofon słucha; koniec wypowiedzi wykrywa detektor ciszy.
-3. Whisper (Foundry Local) zamienia mowę na tekst; Phi (Foundry Local) rozpoznaje intencję dziecka
-   i pisze reakcję bohatera. Gdy model zawiedzie, wybór rozpoznają słowa kluczowe ze scenariusza.
-4. Syntezator Windows wypowiada reakcję, potem startuje klip wybranej ścieżki.
-5. Cisza albo niejasna odpowiedź: bohater dopytuje (domyślnie 2 razy), potem sam wybiera ścieżkę domyślną.
+1. Odtwarzacz (strona w przeglądarce, jak w serwisie streamingowym) gra klip, w którym postać zadaje pytanie.
+2. Klip przechodzi w cichą pętlę oczekiwania, a na dole ekranu wysuwa się okno wyboru: 2–3 opcje z obrazkami,
+   nazwami i paskiem odliczania (domyślnie 12 s). Pytanie jest też w napisach i czytane na głos.
+3. Widz wybiera:
+   - **pilotem** (strzałki i OK; w przeglądarce strzałki i Enter), **dotykiem**, myszą albo cyfrą 1–3 — wybór od razu;
+   - **głosem**, jeśli rodzic zostawił włączony mikrofon: strona nagrywa odpowiedź w trakcie okna wyboru, Whisper
+     (Foundry Local) zamienia ją na tekst, a Phi (Foundry Local) rozpoznaje intencję i może dopisać krótką osobistą
+     kwestię. Gdy model zawiedzie, wybór rozpoznają słowa kluczowe ze scenariusza.
+4. Po wyborze gra nagrany klip reakcji postaci, a gdzie go nie ma — postać mówi kwestię ze scenariusza
+   (napisy + głos syntezatora przeglądarki). Potem startuje klip wybranej ścieżki.
+5. Czas minął bez wyboru albo odpowiedź była niejasna: postać dopytuje (domyślnie 2 razy), potem wybiera sama.
+   Odcinek nigdy nie staje.
+6. Na końcu ekran „Koniec odcinka!” pokazuje wybory widza i proponuje obejrzenie jeszcze raz (cztery zakończenia).
 
-W trybie `--backend azure` kroki 2–4 wykonują Azure AI Speech i Azure OpenAI.
-
-**W kinie odpowiedzi widowni zbiera aplikacja mobilna** (szczegóły w sekcji [Aplikacja mobilna widowni](#aplikacja-mobilna-widowni)):
-widzowie skanują kod QR z ekranu, a kiedy Lila zadaje pytanie, telefon nagrywa odpowiedź mikrofonem i wysyła ją
-do komputera z filmem. Komputer rozpoznaje odpowiedzi lokalnie i liczy głosy — wygrywa wybór większości.
-Gdy żaden telefon nie jest połączony, bajka słucha sali: decyzje (sceny `vote: true`) rozstrzyga **krzykomierz**
-(wygrywa najgłośniejszy okrzyk), a zagadki rozpoznaje mikrofon przy ekranie. Kwestie pisane na żywo przez model
-przechodzą przez filtr treści (`bajka/safety.py`).
-
-Mikrofon jest wyłączony, gdy bohater mówi, więc nie słyszy sam siebie. Awaria STT, LLM albo TTS
-nie zatrzymuje bajki: zamiast tego wybierana jest ścieżka domyślna albo kwestia ze scenariusza.
+Kwestie pisane na żywo przez model przechodzą przez filtr treści (`bajka/safety.py`). Awaria rozpoznawania mowy,
+modelu albo głosu nie zatrzymuje odcinka: zostaje wybór pilotem, a w ostateczności wybór domyślny.
 
 ## Wymagania
 
-- Windows 10/11 (działa też na Linuksie; na macOS VLC otworzy osobne okno)
-- Python 3.11+ w wersji 64-bit
-- VLC 3.x 64-bit: `winget install --id VideoLAN.VLC -e`
-- ffmpeg, tylko do klipów-zaślepek: `winget install --id Gyan.FFmpeg -e`
-- Tryb lokalny (domyślny): Windows 11, polski głos w Ustawienia → Czas i język → Mowa; najlepiej Copilot+ PC z NPU
+- Windows 10/11 (działa też na Linuksie i macOS), Python 3.11+ w wersji 64-bit
+- Przeglądarka: Edge albo Chrome (odtwarzacz i mikrofon); polski głos syntezatora w Ustawienia → Czas i język → Mowa
+- ffmpeg do klipów-zaślepek i wersji liniowej: `winget install --id Gyan.FFmpeg -e`
+- Tryb lokalny (domyślny): najlepiej Copilot+ PC z NPU; bez NPU modele idą na GPU albo CPU
+- Opcjonalnie VLC 3.x 64-bit (`--player vlc`): `winget install --id VideoLAN.VLC -e`
 - Tryb `azure`: zasób AI Speech oraz zasób Azure OpenAI z wdrożeniem modelu `gpt-4o-mini`
 
 ## Instalacja
@@ -58,79 +55,74 @@ Copy-Item .env.example .env   # tryb lokalny działa bez zmian; klucze tylko dla
 ## Uruchomienie
 
 ```powershell
-# klipy-zaślepki (kolorowe plansze), dopóki nie ma animacji
+# klipy-zaślepki (kolorowe plansze z nazwą pliku), dopóki nie ma animacji
 python -m bajka.placeholders scenarios/klub_ciekawskich.yaml
 
-# próba bez mikrofonu i bez żadnego AI: odpowiedzi z konsoli, wybór po słowach kluczowych
-python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed
+# najszybsza próba: cały odcinek w konsoli, bez wideo, mikrofonu i AI (cyfra = przycisk pilota, tekst = głos)
+python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm
 
-# próba bez mikrofonu z lokalnym modelem językowym (Phi w Foundry Local)
-python -m bajka scenarios/klub_ciekawskich.yaml --text --windowed
+# odcinek w przeglądarce bez modeli: okna wyboru pilotem i dotykiem, wybór po słowach kluczowych
+python -m bajka scenarios/klub_ciekawskich.yaml --no-llm --no-mic
 
-# pokaz: pełny ekran, mikrofon i głos bohaterki, wszystko lokalnie
+# pełny prototyp: okna wyboru, odpowiedzi głosem, Whisper i Phi lokalnie
 python -m bajka scenarios/klub_ciekawskich.yaml
 
-# seans w kinie: odpowiedzi widowni z aplikacji mobilnej (telefony w tej samej sieci Wi-Fi)
-python -m bajka scenarios/klub_ciekawskich.yaml --mobile
+# z panelem podglądu (drzewo wyborów, symulowane tętno widza) i drugim ekranem (telefony jako pilot z mikrofonem)
+python -m bajka scenarios/klub_ciekawskich.yaml --panel --mobile
 
-# to samo na usługach Azure
-python -m bajka scenarios/klub_ciekawskich.yaml --backend azure
+# dawny tryb: pełny ekran VLC, odpowiedzi tylko głosem z mikrofonu komputera
+python -m bajka scenarios/klub_ciekawskich.yaml --player vlc
 ```
 
-`Esc` zamyka aplikację. W trybie `--text` kliknij okno konsoli, żeby wpisać odpowiedź.
+Aplikacja sama otwiera przeglądarkę z odcinkiem (`http://127.0.0.1:8080/`; `--no-browser`, żeby nie otwierać).
+Przycisk **▶ Oglądaj** odblokowuje dźwięk i mikrofon (zasada przeglądarek), **⚙** to ustawienia rodzica
+(mikrofon, głos postaci, napisy), **F** — pełny ekran, **✕** kończy odcinek i aplikację. Zamknięta karta wstrzymuje
+odcinek: po ponownym otwarciu bieżący klip gra od początku. Ctrl+C w konsoli kończy aplikację.
 
-## Aplikacja mobilna widowni
+## Odcinek w serwisie streamingowym
 
-Odpowiedzi publiczności zbiera aplikacja na telefony, zintegrowana z resztą projektu:
+Prototyp sam jest odtwarzaczem (`bajka/web_player.py`), ale odcinek da się też oddać serwisowi:
 
-1. Komputer z filmem uruchamia lokalny serwer (`--mobile` albo `BAJKA_MOBILE=1`) i wypisuje adres, np.
-   `https://192.168.1.20:8443/`. Pod `…/qr` jest strona z dużym kodem QR do wyświetlenia na ekranie przed seansem.
-2. Widz skanuje kod, otwiera aplikację w przeglądarce telefonu (bez instalowania; można ją dodać do ekranu
-   głównego) i dotyka „Dołączam do seansu”, zezwalając na **dostęp do mikrofonu**.
-3. Gdy Lila zadaje pytanie, telefon wibruje, pokazuje pytanie z opcjami i sam nagrywa odpowiedź: wykrywa początek
-   i koniec wypowiedzi, a nagranie wysyła jako WAV 16 kHz. Dziecko, które nie chce mówić, może dotknąć opcji.
-4. Komputer rozpoznaje nagrania lokalnie (Whisper; w trybie `azure` — Azure Speech), ustala wybór (najpierw słowa
-   kluczowe, model językowy tylko dla niejasnych odpowiedzi) i liczy głosy. Wygrywa większość; remis albo brak
-   odpowiedzi to kolejna runda, a po dwóch Lila wybiera sama. Gdy odpowie jedna osoba, Lila reaguje na jej słowa.
-5. Runda kończy się, gdy odpowiedzą wszystkie połączone telefony albo po `BAJKA_MOBILE_ROUND_SECONDS`.
+| Droga | Polecenie | Dla kogo |
+|---|---|---|
+| **Wersja interaktywna z naszym silnikiem** | `python -m bajka …` | Pokaz, aplikacja na tablet/PC, test z rodzinami |
+| **Manifest odcinka** (JSON) | `python -m bajka.manifest scenarios/klub_ciekawskich.yaml --out odcinek.json` | Serwis z własnym odtwarzaczem interaktywnym: graf scen, okna wyboru, reakcje, wersje scen, opisy do rozpoznawania głosu |
+| **Wersja liniowa** (zwykły film) | `python -m bajka.linear scenarios/klub_ciekawskich.yaml` | Serwisy i telewizory bez interakcji: ścieżka wyborów domyślnych, postać sama wybiera, kwestie w napisach `.srt` |
 
-Ważne na sali:
-- Telefony i komputer muszą być w **tej samej sieci Wi-Fi**; zapora Windows musi wpuszczać port `BAJKA_MOBILE_PORT`.
-- Przeglądarki dają dostęp do mikrofonu tylko przez **HTTPS**. Aplikacja tworzy samopodpisany certyfikat, więc telefon
-  raz pokaże ostrzeżenie o połączeniu, które trzeba zaakceptować („Zaawansowane → Przejdź do strony”). Bez ostrzeżeń:
-  własny certyfikat w `BAJKA_MOBILE_CERT` i `BAJKA_MOBILE_KEY`.
-- Ekran aplikacji jest ciemny, żeby telefony nie rozświetlały sali.
-- Nagrania nie są przechowywane: trafiają do komputera z filmem, na chwilę do pliku tymczasowego (dla rozpoznawania
-  mowy) i są usuwane zaraz po rozpoznaniu. W trybie lokalnym nic nie idzie do chmury. Telefon mówi o tym przed dołączeniem.
+Szczegóły, realia rynku i plan dystrybucji: [docs/STREAMING.md](docs/STREAMING.md).
 
-Próba z telefonami bez filmu: `python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek --no-llm`
-(Enter otwiera kolejną rundę, w konsoli widać odpowiedzi i głosy). Pod adresem `…/?tekst` aplikacja ma też pole
-do wpisania odpowiedzi — na próby bez mówienia.
+## Drugi ekran: telefon jako pilot z mikrofonem
 
-## Film, który czuje salę (tętno i panel dla jury)
+Telewizor często nie ma mikrofonu. Wtedy domownik może odpowiadać z telefonu (`--mobile` albo `BAJKA_MOBILE=1`):
 
-Film dopasowuje się do widowni nie tylko głosami. Scenariusz mówi, czego widzowie oczekują od filmu
-(`mood: spokojny` albo `mood: zywy`), a wybrane sceny mają drugą wersję montażu (`variants`). Gdy tętno sali odbiega
-od nastroju filmu (na spokojnym filmie sala się ekscytuje), scena gra wersję, która przywraca nastrój: dłuższe ujęcia,
-wolniejszy montaż. Punktem odniesienia jest tętno sali tuż po pierwszej scenie
-([projekt](docs/superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
+1. Komputer z odcinkiem uruchamia lokalny serwer HTTPS i wypisuje adres, np. `https://192.168.1.20:8443/`
+   (pod `…/qr` jest strona z kodem QR).
+2. Telefon w tej samej sieci Wi-Fi otwiera stronę (bez instalowania) i po dotknięciu „Dołączam” zezwala na mikrofon.
+3. Gdy postać zadaje pytanie, telefon wibruje, pokazuje opcje i sam nagrywa odpowiedź; można też dotknąć opcji.
+   Komputer rozpoznaje nagrania lokalnie i liczy głosy — przy kilku telefonach (rodzeństwo) wygrywa większość.
 
-```powershell
-python -m bajka scenarios/klub_ciekawskich.yaml --mobile --panel                     # telefony widzów + panel dla jury
-python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed --panel   # próba bez mikrofonu
-```
+Gdy połączony jest choć jeden telefon, decyzje zbierają telefony; okno wyboru na dużym ekranie wraca, gdy telefony
+się rozłączą. Przeglądarki dają mikrofon tylko przez HTTPS: aplikacja tworzy samopodpisany certyfikat, więc telefon
+raz pokaże ostrzeżenie do zaakceptowania (bez ostrzeżeń: `BAJKA_MOBILE_CERT` i `BAJKA_MOBILE_KEY`). Nagrania trafiają
+do komputera na chwilę do pliku tymczasowego i są usuwane zaraz po rozpoznaniu. Próba bez odcinka:
+`python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek --no-llm`.
 
-**Panel dla jury** to strona, którą otwieracie sami w przeglądarce pod adresem z konsoli (domyślnie
-`http://127.0.0.1:8090/`; tablet jury w tej samej sieci: `BAJKA_PANEL_HOST=0.0.0.0`). Pokazuje drzewo scen
-z przebytą ścieżką, głosy z telefonów albo krzykomierza, wykres tętna sali z pasmem normy i dziennik: jednym zdaniem,
-co film zrobił i dlaczego.
-Przebieg pokazu krok po kroku: [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md).
+## Odcinek, który czuje widza (tętno — pomysł na przyszłość)
 
-**Tętno jest na razie symulowane** (`bajka/pulse.py`): suwak, gotowe stany sali i „Przebieg demo” w panelu.
-Wizja: aplikacja mobilna czyta tętno z zegarka sparowanego z telefonem — przez Health Connect (Android), HealthKit
-(iOS) albo standardową usługę Bluetooth „Heart Rate” — i wysyła do komputera z filmem tylko uśrednione, anonimowe
-tempo całej sali. Dane o zdrowiu to szczególna kategoria danych osobowych (RODO, art. 9), więc wymagałoby to
-wyraźnej zgody opiekunów, udziału wyłącznie dobrowolnego, przetwarzania tylko w trakcie seansu i żadnego zapisywania.
+Scenariusz mówi, jakiej dynamiki chcemy (`mood: spokojny`, `zywy` albo `zrownowazony`), a wybrane sceny mają
+inne wersje montażu (`variants: spokojna / zywa`). Gdy tętno widza odbiega od punktu odniesienia z początku odcinka,
+scena gra wersję, która przywraca uwagę albo spokój: przy pobudzeniu — spokojną (dłuższe ujęcia, cichszy dźwięk),
+przy znużeniu — żywą (szybszy montaż, zabawny gag). Odcinek „Bzyczka” jest zrównoważony i ma obie wersje
+w trzech scenach ([projekt](docs/superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
+
+**Tętno jest dziś symulowane** (`bajka/pulse.py`), a **panel podglądu** (`--panel`, `http://127.0.0.1:8090/`)
+pokazuje drzewo scen z przebytą ścieżką, wybory widza, wykres tętna z pasmem normy i dziennik decyzji odcinka;
+suwak i gotowe stany (spokój, pobudzenie, znużenie) sterują symulatorem. Przebieg pokazu: [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md).
+
+Wizja: zegarek dziecka sparowany z telefonem rodzica przekazuje tętno przez Health Connect (Android), HealthKit (iOS)
+albo standardową usługę Bluetooth „Heart Rate” do urządzenia, na którym gra odcinek. Dane o zdrowiu to szczególna
+kategoria danych osobowych (RODO, art. 9), więc: wyraźna zgoda rodzica, przetwarzanie tylko na urządzeniu i tylko
+w trakcie odcinka, żadnego zapisywania ani wysyłania do serwisu, a tętno służy wyłącznie do wyboru wersji sceny.
 
 ## Sprawdzanie modułów osobno
 
@@ -139,85 +131,84 @@ Każdy moduł ma własne demo, które działa bez reszty aplikacji:
 ```powershell
 python -m bajka.foundry --device NPU                 # katalog modeli Foundry Local i ich warianty
 python -m bajka.local_stt --repeat 3                 # mikrofon → tekst (Whisper lokalnie)
-python -m bajka.local_tts "Cześć! Jestem Lila Lupka!"  # tekst → głos bohaterki (Windows)
+python -m bajka.local_tts "Cześć! Jestem Lila Lupka!"  # tekst → głos postaci (Windows)
 python -m bajka.local_intent scenarios/klub_ciekawskich.yaml "tam gdzie ciemno" --scene kuferek   # wypowiedź → wybór (Phi)
 python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik   # wypowiedź → wybór (słowa kluczowe)
-python -m bajka.vote                                 # kalibracja krzykomierza na sali: gwar i okrzyk
-python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek   # rundy pytań na telefonach widzów
+python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek   # rundy pytań na telefonach (drugi ekran)
+python -m bajka.manifest scenarios/klub_ciekawskich.yaml   # manifest odcinka (JSON) na ekran
+python -m bajka.linear scenarios/klub_ciekawskich.yaml --plan   # plan montażu wersji liniowej
 python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure STT)
-python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos bohatera (Azure TTS)
+python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos postaci (Azure TTS)
 python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
 python -m bajka.player scenarios/clips/intro.mp4 scenarios/clips/intro_idle.mp4   # klip → pętla (VLC)
-python -m bajka.pulse --script                       # symulator tętna sali: spokojnie, ekscytacja, uspokojenie
-python -m bajka.panel scenarios/klub_ciekawskich.yaml   # panel dla jury bez filmu (symulator tętna)
+python -m bajka.pulse --script                       # symulator tętna widza: spokój, pobudzenie, uspokojenie
+python -m bajka.panel scenarios/klub_ciekawskich.yaml   # panel podglądu bez odcinka (symulator tętna)
 ```
-
-Każde demo wypisuje czas odpowiedzi, co pomaga stroić `BAJKA_INITIAL_SILENCE_MS`, `BAJKA_END_SILENCE_MS`
-i prompt. Bez kluczy w `.env` demo kończy się komunikatem, których zmiennych brakuje.
 
 ## Scenariusz
 
-Bajka to graf scen w YAML ([pełna bajka](scenarios/klub_ciekawskich.yaml),
+Odcinek to graf scen w YAML ([pełny odcinek](scenarios/klub_ciekawskich.yaml),
 [najprostszy przykład](scenarios/las_czy_jaskinia.yaml)). Ścieżki klipów są względne wobec pliku
-scenariusza. Scena bez `choices` kończy bajkę.
+scenariusza. Scena bez `choices` kończy odcinek.
 
 | Pole | Opis |
 |---|---|
-| `hero` | Opis bohatera dla LLM: imię, charakter, sposób mówienia |
+| `title` | Opcjonalnie: tytuł odcinka na ekranie startowym i w manifeście |
+| `hero` | Opis postaci dla modelu językowego: imię, charakter, sposób mówienia, do kogo mówi |
 | `start` | Identyfikator pierwszej sceny |
-| `scenes.<id>.clip` | Klip sceny (bohater zadaje pytanie albo kończy historię) |
-| `scenes.<id>.idle` | Cicha pętla oczekiwania na odpowiedź (wymagana, gdy są `choices`) |
-| `scenes.<id>.question` | Pytanie zadane w klipie; trafia do promptu LLM |
-| `scenes.<id>.reprompt` | Kwestia bohatera, gdy dziecko milczy |
-| `scenes.<id>.fallback` | Opcjonalnie: wstęp, gdy bohater sam wybiera (domyślnie „Dobrze, to ja wybiorę!”) |
-| `scenes.<id>.default` | Wybór, gdy po dopytaniach nadal brak decyzji albo LLM zawiedzie |
-| `choices.<id>.description` | Znaczenie wyboru dla LLM, np. „pójść do mrocznego lasu” |
+| `mood` | Opcjonalnie: `spokojny`, `zywy` albo `zrownowazony` — jak odcinek reaguje na tętno widza |
+| `scenes.<id>.clip` | Klip sceny (postać zadaje pytanie albo kończy historię) |
+| `scenes.<id>.variants` | Opcjonalnie: wersje montażu sceny według tętna, np. `spokojna: las_spokojna.mp4`, `zywa: …` |
+| `scenes.<id>.idle` | Cicha pętla oczekiwania, tło okna wyboru (wymagana, gdy są `choices`) |
+| `scenes.<id>.question` | Pytanie zadane w klipie; nagłówek okna wyboru i kontekst dla modelu |
+| `scenes.<id>.reprompt` | Kwestia postaci, gdy czas minie bez wyboru |
+| `scenes.<id>.fallback` | Opcjonalnie: wstęp, gdy postać sama wybiera (domyślnie „Dobrze, to ja wybiorę!”) |
+| `scenes.<id>.default` | Wybór, gdy po dopytaniach nadal brak decyzji albo model zawiedzie |
+| `scenes.<id>.timeout` | Opcjonalnie: ile sekund trwa okno wyboru (3–60; domyślnie `BAJKA_CHOICE_SECONDS`, 12 s) |
+| `choices.<id>.label` | Krótka nazwa opcji w oknie wyboru i na telefonie (domyślnie identyfikator) |
+| `choices.<id>.icon` | Obrazek opcji dla dzieci, które nie czytają (w prototypie emoji) |
+| `choices.<id>.description` | Znaczenie wyboru dla modelu, np. „pójść do mrocznego lasu” |
 | `choices.<id>.next` | Scena, która nastąpi po tym wyborze |
-| `choices.<id>.reply` | Statyczna reakcja bohatera, gdy LLM nie odpowie |
-| `choices.<id>.keywords` | Opcjonalnie: słowa, po których wybór rozpozna się bez LLM (identyfikator wyboru liczy się zawsze) |
-| `scenes.<id>.vote` | Opcjonalnie `true`: widownia wybiera okrzykiem (krzykomierz) zamiast słowami |
-| `choices.<id>.call` | W scenie `vote`: wezwanie do okrzyku mówione przez bohaterkę, np. „Kto za mostkiem? Krzyczymy… Mostek!” |
-| `choices.<id>.call_clip` | W scenie `vote`: to samo wezwanie jako nagrany klip (ma pierwszeństwo przed `call`) |
-| `choices.<id>.label` | Opcjonalnie: krótka nazwa opcji na ekranie telefonu widza (domyślnie identyfikator) |
+| `choices.<id>.reply` | Kwestia postaci po wyborze (gdy nie ma klipu reakcji) |
+| `choices.<id>.reaction` | Opcjonalnie: nagrany klip reakcji postaci na ten wybór (ma pierwszeństwo przed `reply`) |
+| `choices.<id>.keywords` | Opcjonalnie: słowa, po których odpowiedź głosem rozpozna się bez modelu |
 
 ## Wskazówki do klipów
 
-- Pętla oczekiwania musi być bez dźwięku, bo w tym czasie słucha mikrofon.
+- Pętla oczekiwania z bardzo cichym podkładem i bez dialogów; dolna jedna trzecia kadru wolna (tam jest okno wyboru).
 - Ostatnia klatka klipu z pytaniem = pierwsza klatka pętli, wtedy przejście jest niewidoczne.
-- Format: MP4, H.264 + AAC.
+- Format: MP4, H.264 + AAC z indeksem na początku pliku (`-movflags +faststart`) — szybki start w przeglądarce.
 - Klipy nie są w repozytorium (`scenarios/clips/` jest w `.gitignore`), trzymajcie je na dysku współdzielonym.
 
 ## Architektura
 
 | Moduł | Rola |
 |---|---|
-| `bajka/scenario.py` | Wczytanie i walidacja scenariusza YAML |
-| `bajka/config.py` | Wspólne narzędzia ustawień: `load_env`, `require`, `get_int` |
-| `bajka/ports.py` | Kontrakty: `Player`, `Listener`, `Voice`, `IntentResolver` |
-| `bajka/engine.py` | `StoryEngine`: przebieg bajki, dopytywanie, ścieżki awaryjne |
-| `bajka/stt.py` | Azure AI Speech: rozpoznawanie mowy z mikrofonu (`SttSettings`, `AzureListener`) |
-| `bajka/tts.py` | Azure AI Speech: głos bohatera, odtwarzanie do końca (`TtsSettings`, `AzureVoice`) |
-| `bajka/intent.py` | Azure OpenAI: intencja + kwestia bohatera (`LlmSettings`, `AzureIntentResolver`) |
+| `bajka/scenario.py` | Wczytanie i walidacja scenariusza YAML (`media_files`, `missing_media`) |
+| `bajka/config.py` | Wspólne narzędzia ustawień: `load_env`, `require`, `get_int`, `get_float` |
+| `bajka/ports.py` | Kontrakty: `Player`, `Viewer` (okno wyboru → `Answer`), `Listener`, `Voice`, `IntentResolver`, `Audience`, `AudiencePulse`, `ShowObserver` |
+| `bajka/engine.py` | `StoryEngine`: przebieg odcinka, okna wyboru, dopytywanie, reakcje, wersje scen, ścieżki awaryjne |
+| `bajka/web_player.py` | Odtwarzacz w przeglądarce: serwer HTTP, klipy z zakresami bajtów, okna wyboru, głos z przeglądarki (`WebEpisode`, `WebPlayerServer`) |
+| `bajka/player_app/` | Strona odtwarzacza: wideo, okno wyboru z odliczaniem, pilot/dotyk/głos, napisy, ustawienia rodzica, ekran końcowy |
+| `bajka/linear.py` | Wersja liniowa odcinka (ffmpeg) i napisy `.srt` |
+| `bajka/manifest.py` | Manifest odcinka (JSON) dla odtwarzacza serwisu |
 | `bajka/foundry.py` | Foundry Local: modele lokalne na NPU/GPU/CPU, serwer zgodny z OpenAI |
-| `bajka/local_stt.py` | Whisper lokalnie + wykrywanie wypowiedzi (`LocalSttSettings`, `LocalListener`) |
-| `bajka/local_intent.py` | Phi lokalnie: intencja + kwestia bohatera (`LocalLlmSettings`, `LocalIntentResolver`) |
-| `bajka/local_tts.py` | Głos z syntezatora Windows (`WindowsTtsSettings`, `WindowsVoice`) |
+| `bajka/local_stt.py` | Whisper lokalnie + wykrywanie wypowiedzi (`LocalListener`, `FoundryTranscriber`) |
+| `bajka/local_intent.py` | Phi lokalnie: intencja + kwestia postaci (`LocalIntentResolver`) |
+| `bajka/local_tts.py` | Głos z syntezatora Windows dla `--player vlc` (`WindowsVoice`) |
+| `bajka/stt.py`, `bajka/tts.py`, `bajka/intent.py` | To samo na usługach Azure (`--backend azure`) |
 | `bajka/keywords.py` | Wybór po słowach kluczowych, offline (`KeywordIntentResolver`, `FallbackResolver`) |
-| `bajka/audio.py` | Wspólne odtwarzanie WAV do końca wypowiedzi |
-| `bajka/vote.py` | Krzykomierz: głosowanie okrzykiem widowni (`VoteSettings`, `MicrophoneMeter`) |
 | `bajka/safety.py` | Filtr kwestii modelu językowego (`SafeReplyResolver`) |
-| `bajka/mobile.py` | Aplikacja mobilna widowni: serwer HTTPS, rundy pytań, nagrania z telefonów (`MobileAudience`, `MobileServer`) |
-| `bajka/mobile_app/` | Strona aplikacji na telefon: mikrofon, wykrywanie mowy, WAV 16 kHz, odpowiedź dotykiem |
-| `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter |
-| `bajka/console.py` | Tryb `--text` do prób bez mikrofonu |
-| `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg) |
-| `bajka/pulse.py` | Tętno sali: symulator na pokaz (`SimulatedPulse`) i stan sali (`hall_state`) |
-| `bajka/panel.py` | Panel dla jury: stan seansu ze zdarzeń silnika i serwer HTTP (`PanelState`, `PanelServer`) |
-| `bajka/panel_app/` | Strona panelu: drzewo scen, głosy, wykres tętna, dziennik decyzji, symulator |
+| `bajka/mobile.py`, `bajka/mobile_app/` | Drugi ekran: telefony jako pilot z mikrofonem (`MobileAudience`, `MobileServer`) |
+| `bajka/pulse.py` | Tętno widza: symulator (`SimulatedPulse`), stan widza (`hall_state`), wybór wersji (`pick_variant`) |
+| `bajka/panel.py`, `bajka/panel_app/` | Panel podglądu: drzewo scen, wybory, tętno, dziennik decyzji (`PanelState`, `PanelServer`) |
+| `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter (`--player vlc`) |
+| `bajka/console.py` | Tryb `--text`: odcinek w konsoli (`ConsolePlayer`, `ConsoleViewer`, `ConsoleVoice`) |
+| `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg; MP4 albo WebM) |
 | `bajka/app.py` | Złożenie całości i uruchomienie |
 
 Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne ustawienia
-(`XxxSettings.from_env`). Testy działają na atrapach, bez Azure, mikrofonu i VLC.
+(`XxxSettings.from_env`). Testy działają na atrapach, bez Azure, mikrofonu, przeglądarki i VLC.
 
 ## Testy
 
@@ -225,29 +216,25 @@ Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne 
 python -m pytest
 ```
 
-Test strony telefonu (`tests/test_mobile.py`) uruchamia jej skrypt w `node`; bez zainstalowanego `node` jest pomijany.
+Test strony telefonu (`tests/test_mobile.py`) uruchamia jej skrypt w `node`; bez `node` jest pomijany.
+Test wersji liniowej buduje mały film przez ffmpeg; bez ffmpeg jest pomijany.
 
 ## Problemy
 
-- `FileNotFoundError: ... libvlc.dll`: brak VLC albo zainstalowana wersja 32-bit.
-- Bohater nie słyszy dziecka: Ustawienia Windows → Prywatność → Mikrofon → zezwól aplikacjom klasycznym;
-  sprawdź domyślne urządzenie nagrywania.
-- `rozpoznawanie anulowane: ... 401` albo `synteza anulowana: ... 401`: zły `AZURE_SPEECH_KEY` lub `AZURE_SPEECH_REGION`.
-- Dziecko musi długo czekać albo jest ucinane: dostrój `BAJKA_INITIAL_SILENCE_MS` i `BAJKA_END_SILENCE_MS`.
-- Krzaki zamiast polskich znaków w konsoli: `$env:PYTHONUTF8 = "1"`.
+- Przeglądarka się nie otwiera: wejdź ręcznie na adres z konsoli (`http://127.0.0.1:8080/`).
+- `Nie udało się uruchomić serwera (port zajęty?)` (`WinError 10048`): port zajmuje inny proces, np. zapomniany
+  podgląd. Zamknij go (`netstat -ano | findstr 8080`) albo zmień `BAJKA_WEB_PORT` / `BAJKA_PANEL_PORT` / `BAJKA_MOBILE_PORT`.
+- Wideo nie gra albo jest czarne: przeglądarka bez kodeka H.264 (np. Chromium) — użyj Edge/Chrome albo klipów `.webm`.
+- Okno wyboru nie słucha głosu: w ustawieniach (⚙) włącz mikrofon i zezwól przeglądarce na mikrofon; strona musi być
+  otwarta pod `127.0.0.1` albo `localhost` (inaczej przeglądarka nie da mikrofonu bez HTTPS). Bez `--no-mic`.
+- Postać nie mówi, są tylko napisy: brak polskiego głosu syntezatora — dodaj go w Ustawienia → Czas i język → Mowa.
+- Dziecko jest ucinane albo nie zdąża: wydłuż `BAJKA_CHOICE_SECONDS` albo `timeout` sceny i `BAJKA_WEB_ANSWER_SECONDS`.
 - `Brak pakietu foundry-local-sdk` albo `Brak pakietów WinRT`: `pip install -e ".[local]"`.
-- `Brak głosu Windows dla pl-PL`: dodaj polski głos w Ustawienia → Czas i język → Mowa.
 - `Foundry Local nie zna modelu …`: sprawdź aliasy przez `python -m bajka.foundry` i popraw `FOUNDRY_CHAT_MODEL` / `FOUNDRY_STT_MODEL`.
-- Dziecko jest ucinane albo hałas uruchamia nasłuch (tryb lokalny): dostrój `BAJKA_VAD_THRESHOLD` i `BAJKA_END_SILENCE_MS`.
-- Telefon nie pyta o mikrofon albo pisze o braku bezpiecznego połączenia: otwórz adres `https://…` (nie `http://`)
-  i zaakceptuj ostrzeżenie o certyfikacie; sprawdź `pip install -e ".[mobile]"`.
-- Telefon nie otwiera strony: ta sama sieć Wi-Fi co komputer, port `BAJKA_MOBILE_PORT` otwarty w zaporze Windows;
-  sieci gościnne często blokują ruch między urządzeniami.
-- Telefon pokazuje „Patrz na ekran”, a pytania nie przychodzą: strona musi być otwarta pod adresem z konsoli
-  (`https://…`), nie jako plik z dysku ani z podglądu edytora. Tam nie ma połączenia z komputerem ani mikrofonu.
-  Przeglądarka z zablokowanymi danymi stron też działa; telefon pamięta wtedy swój numer tylko do odświeżenia strony.
-- `Nie udało się uruchomić serwera aplikacji mobilnej` albo `… panelu dla jury` (`WinError 10048`): port zajmuje inny
-  proces, na przykład zapomniany podgląd. Zamknij go (`netstat -ano | findstr 8443` pokaże numer procesu) albo zmień
-  `BAJKA_MOBILE_PORT` / `BAJKA_PANEL_PORT`.
-- Krzykomierz ciągle mówi „za cicho” albo każdą ciszę uznaje za okrzyk: `python -m bajka.vote` na sali i ustaw
-  `BAJKA_VOTE_MIN_LEVEL` / `BAJKA_VOTE_MIN_RATIO` według podpowiedzi.
+- `Brak plików wideo`: `python -m bajka.placeholders scenarios/klub_ciekawskich.yaml` (albo `--text`, które działa bez wideo).
+- Krzaki zamiast polskich znaków w konsoli: `$env:PYTHONUTF8 = "1"`.
+- `--player vlc`: `FileNotFoundError: ... libvlc.dll` — brak VLC albo wersja 32-bit; postać nie słyszy dziecka —
+  Ustawienia Windows → Prywatność → Mikrofon → zezwól aplikacjom klasycznym; dostrój `BAJKA_VAD_THRESHOLD`.
+- Telefon (drugi ekran) nie pyta o mikrofon: otwórz adres `https://…` i zaakceptuj ostrzeżenie o certyfikacie;
+  ta sama sieć Wi-Fi co komputer, port `BAJKA_MOBILE_PORT` otwarty w zaporze; sieci gościnne blokują ruch między urządzeniami.
+- `rozpoznawanie anulowane: ... 401` (tryb azure): zły `AZURE_SPEECH_KEY` lub `AZURE_SPEECH_REGION`.

@@ -1,8 +1,14 @@
 # Lokalne AI na Windows (On-Device AI)
 
-Domyślnie bajka działa w całości na komputerze z Windows (`BAJKA_BACKEND=local`): rozpoznawanie mowy,
-model językowy i głos bohaterki. Po pierwszym pobraniu modeli nie potrzeba internetu ani kluczy, a nagrania
-dziecka nie opuszczają komputera. Tryb `azure` (usługi chmurowe) zostaje jako alternatywa.
+Domyślnie bajka działa w całości na urządzeniu (`BAJKA_BACKEND=local`): rozpoznawanie mowy, model językowy
+i głos postaci. Po pierwszym pobraniu modeli nie potrzeba internetu ani kluczy, a nagrania dziecka nie opuszczają
+urządzenia. Tryb `azure` (usługi chmurowe) zostaje jako alternatywa.
+
+**Droga głosu w odtwarzaczu w przeglądarce** (`--player web`, domyślnie): strona nagrywa odpowiedź tylko w trakcie
+okna wyboru (wykrywanie początku i końca mowy w przeglądarce), wysyła WAV 16 kHz do lokalnej aplikacji
+(`127.0.0.1`), a ta rozpoznaje ją Whisperem przez Foundry Local i usuwa plik tymczasowy zaraz po rozpoznaniu.
+Głos postaci w kwestiach na żywo czyta synteza mowy przeglądarki — na Windows to te same lokalne głosy systemu
+(np. Paulina), z których korzysta `bajka/local_tts.py` w trybie `--player vlc`.
 
 ## Co z zestawu Microsoftu i gdzie
 
@@ -12,7 +18,8 @@ dziecka nie opuszczają komputera. Tryb `azure` (usługi chmurowe) zostaje jako 
 | **Windows ML** | Silnik pod Foundry Local: na Windows pakiet SDK zawiera Windows ML i rejestruje akceleratory (NPU, GPU) — `download_and_register_eps()` | `bajka/foundry.py` |
 | **Model Phi** (domyślnie `phi-4-mini`) z katalogu Foundry Local | Rozumie odpowiedź dziecka i pisze reakcję Lili (JSON wymuszony schematem) | [`bajka/local_intent.py`](../bajka/local_intent.py) |
 | **Whisper** (domyślnie `whisper-tiny`) z katalogu Foundry Local | Mowa dziecka → tekst | [`bajka/local_stt.py`](../bajka/local_stt.py) |
-| **Windows.Media.SpeechSynthesis** (WinRT, wbudowany w Windows) | Głos Lili, polski głos „Microsoft Paulina”, offline | [`bajka/local_tts.py`](../bajka/local_tts.py) |
+| **Windows.Media.SpeechSynthesis** (WinRT, wbudowany w Windows) | Głos Lili w trybie `--player vlc`, polski głos „Microsoft Paulina”, offline | [`bajka/local_tts.py`](../bajka/local_tts.py) |
+| **Synteza mowy przeglądarki** (Web Speech API w Edge/Chrome) | Głos Lili w odtwarzaczu w przeglądarce; wybieramy lokalny polski głos systemu, zawsze z napisami | [`bajka/player_app/`](../bajka/player_app/index.html) |
 | — (bez modelu) | Rozpoznawanie po słowach kluczowych: zapas, gdy model zawiedzie, i tryb `--no-llm` | [`bajka/keywords.py`](../bajka/keywords.py) |
 
 Na **Copilot+ PC** Foundry Local sam wybiera wariant modelu na NPU, jeśli taki jest w katalogu.
@@ -29,7 +36,7 @@ python -m bajka.local_tts --list        # głosy zainstalowane w Windows; potrze
 python -m bajka.local_tts "Cześć! Jestem Lila Lupka!"
 python -m bajka.local_stt --repeat 3    # mikrofon → Whisper (pierwszy raz pobiera model)
 python -m bajka.local_intent scenarios/klub_ciekawskich.yaml "chcę przez ten kolorowy mostek" --scene kuferek
-python -m bajka scenarios/klub_ciekawskich.yaml --windowed
+python -m bajka scenarios/klub_ciekawskich.yaml        # odcinek w przeglądarce, odpowiedzi głosem
 ```
 
 Polski głos: Ustawienia → Czas i język → Mowa → Zarządzaj głosami → Dodaj głosy → polski.
@@ -44,7 +51,8 @@ Kolejne uruchomienia korzystają z pamięci podręcznej Foundry Local.
 | `FOUNDRY_CHAT_MODEL` | `phi-4-mini` | Inny alias z `python -m bajka.foundry`, np. lepszy w polskim albo mniejszy na słabszym sprzęcie |
 | `FOUNDRY_STT_MODEL` | `whisper-tiny` | Większy Whisper (jeśli jest w katalogu) lepiej rozumie dzieci, ale jest wolniejszy |
 | `FOUNDRY_DEVICE` | `auto` | `NPU` na Copilot+ PC, `GPU` przy mocnej karcie |
-| `BAJKA_VAD_THRESHOLD` | `500` | W głośnej sali zwiększ (np. 900), przy cichym dziecku zmniejsz |
+| `BAJKA_VAD_THRESHOLD` | `500` | `--player vlc`: w głośnym pokoju zwiększ (np. 900), przy cichym dziecku zmniejsz |
+| `BAJKA_WEB_ANSWER_SECONDS` | `6` | Odtwarzacz w przeglądarce: najdłuższe nagranie odpowiedzi |
 | `BAJKA_END_SILENCE_MS` | `1200` | Dzieci robią przerwy w zdaniu — przy ucinaniu zwiększ |
 | `BAJKA_WINDOWS_VOICE_PITCH` | `1.0` | 1.1–1.3 brzmi bardziej bajkowo |
 | `BAJKA_WINDOWS_VOICE_RATE` | `0.9` | Wolniej dla młodszych dzieci |
@@ -63,8 +71,9 @@ Kolejne uruchomienia korzystają z pamięci podręcznej Foundry Local.
   Skrypt w Pythonie tych warunków nie spełnia. To dobra droga dla przyszłej natywnej aplikacji
   WinUI 3 / .NET MAUI; wtedy także **LoRA** do dostrojenia Phi Silica do stylu Lili. Interfejs
   `IntentResolver` w `bajka/ports.py` pozwala podmienić model bez zmian w silniku.
-- **Edge / WebNN** — dotyczy aplikacji webowych w przeglądarce. Nasz pokaz to pełnoekranowa aplikacja
-  z VLC; wersja webowa bajki mogłaby z tego skorzystać w przyszłości.
+- **Edge / WebNN** — odtwarzacz działa już w przeglądarce, ale modele uruchamia lokalna aplikacja w Pythonie
+  (Foundry Local). WebNN to kierunek na przyszłość: Whisper i mały model językowy w samej przeglądarce telewizora
+  albo tabletu, bez aplikacji na komputerze — wtedy odcinek z serwisu działałby z głosem na samym urządzeniu widza.
 
 ## Co sprawdzić na prawdziwym sprzęcie
 

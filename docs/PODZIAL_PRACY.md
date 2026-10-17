@@ -7,27 +7,29 @@ i własne demo, więc dwie osoby mogą commitować równolegle na `main` bez wch
 ## Kto co rozwija
 
 **Osoba A — „ucho i mózg”**: wszystko, co zamienia głos dziecka na decyzję.
-**Osoba B — „oko i głos”**: wszystko, co dziecko widzi i słyszy.
-**Osoba C — „film czuje salę”**: tętno widowni, wersje scen i panel dla jury ([projekt](superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
+**Osoba B — „oko i głos”**: wszystko, co dziecko widzi i słyszy: odtwarzacz w przeglądarce, okno wyboru, głos postaci, dystrybucja.
+**Osoba C — „odcinek czuje widza”**: tętno widza, wersje scen i panel podglądu ([projekt](superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
 
 | Moduł | Kontrakt | Osoba | Demo bez reszty aplikacji | Testy |
 |---|---|---|---|---|
 | [`bajka/stt.py`](../bajka/stt.py) — mowa dziecka → tekst | `Listener` | A | `python -m bajka.stt --repeat 3` | `tests/test_stt.py` |
 | [`bajka/intent.py`](../bajka/intent.py) — tekst → wybór + kwestia bohatera | `IntentResolver` | A | `python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"` | `tests/test_intent.py` |
-| [`bajka/console.py`](../bajka/console.py) — zastępstwo mikrofonu i głosu do prób | `Listener`, `Voice` | A | `python -m bajka scenarios/las_czy_jaskinia.yaml --text --windowed` | `tests/test_console.py` |
+| [`bajka/console.py`](../bajka/console.py) — odcinek w konsoli do prób (okno wyboru, klipy, głos) | `Viewer`, `Player`, `Voice` | A | `python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm` | `tests/test_console.py` |
 | [`bajka/foundry.py`](../bajka/foundry.py) — modele Foundry Local na NPU/GPU/CPU | — | A | `python -m bajka.foundry --device NPU` | `tests/test_foundry.py` |
 | [`bajka/local_stt.py`](../bajka/local_stt.py) — mowa dziecka → tekst lokalnie (Whisper) | `Listener` | A | `python -m bajka.local_stt --repeat 3` | `tests/test_local_stt.py` |
 | [`bajka/local_intent.py`](../bajka/local_intent.py) — tekst → wybór lokalnie (Phi) | `IntentResolver` | A | `python -m bajka.local_intent scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik` | `tests/test_local_intent.py` |
 | [`bajka/keywords.py`](../bajka/keywords.py) — tekst → wybór po słowach kluczowych, zapas dla LLM | `IntentResolver` | A | `python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik` | `tests/test_keywords.py` |
-| [`bajka/vote.py`](../bajka/vote.py) — krzykomierz: decyzje widowni w kinie okrzykiem | `ShoutMeter` | A | `python -m bajka.vote` (kalibracja na sali) | `tests/test_vote.py` |
 | [`bajka/safety.py`](../bajka/safety.py) — filtr kwestii modelu (regulamin §3 ust. 8) | `IntentResolver` | A | — | `tests/test_safety.py` |
-| [`bajka/mobile.py`](../bajka/mobile.py) + [`bajka/mobile_app/`](../bajka/mobile_app/) — aplikacja mobilna widowni: odpowiedzi z mikrofonów telefonów | `Audience` | A | `python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek` | `tests/test_mobile.py` |
+| [`bajka/mobile.py`](../bajka/mobile.py) + [`bajka/mobile_app/`](../bajka/mobile_app/) — drugi ekran: telefon jako pilot z mikrofonem | `Audience` | A | `python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek` | `tests/test_mobile.py` |
 | [`bajka/tts.py`](../bajka/tts.py) — kwestia bohatera → głos | `Voice` | B | `python -m bajka.tts "Idziemy do lasu?"` | `tests/test_tts.py` |
 | [`bajka/local_tts.py`](../bajka/local_tts.py) — kwestia bohatera → głos Windows, offline | `Voice` | B | `python -m bajka.local_tts "Cześć!"` | `tests/test_local_tts.py` |
-| [`bajka/player.py`](../bajka/player.py) — VLC w pełnoekranowym oknie | `Player` | B | `python -m bajka.player KLIP PĘTLA` | ręcznie (wymaga VLC) |
+| [`bajka/web_player.py`](../bajka/web_player.py) + [`bajka/player_app/`](../bajka/player_app/) — odtwarzacz w przeglądarce: klipy, okno wyboru, napisy, głos, mikrofon | `Player`, `Viewer`, `Voice` | B | `python -m bajka scenarios/klub_ciekawskich.yaml --no-llm --no-mic` | `tests/test_web_player.py` |
+| [`bajka/player.py`](../bajka/player.py) — VLC w pełnoekranowym oknie (`--player vlc`) | `Player` | B | `python -m bajka.player KLIP PĘTLA` | ręcznie (wymaga VLC) |
+| [`bajka/linear.py`](../bajka/linear.py) — wersja liniowa odcinka dla serwisów bez interakcji | — | B | `python -m bajka.linear scenarios/klub_ciekawskich.yaml --plan` | `tests/test_linear.py` |
+| [`bajka/manifest.py`](../bajka/manifest.py) — manifest odcinka (JSON) dla odtwarzacza serwisu | — | B | `python -m bajka.manifest scenarios/klub_ciekawskich.yaml` | `tests/test_manifest.py` |
 | [`bajka/placeholders.py`](../bajka/placeholders.py) — klipy-zaślepki | — | B | `python -m bajka.placeholders scenarios/las_czy_jaskinia.yaml` | `tests/test_placeholders.py` |
-| [`bajka/pulse.py`](../bajka/pulse.py) — tętno sali (na pokazie z symulatora) i stan sali | `AudiencePulse` | C | `python -m bajka.pulse --script` | `tests/test_pulse.py` |
-| [`bajka/panel.py`](../bajka/panel.py) + [`bajka/panel_app/`](../bajka/panel_app/) — panel dla jury: drzewo scen, głosy, tętno, dziennik | `ShowObserver` | C | `python -m bajka.panel scenarios/klub_ciekawskich.yaml` | `tests/test_panel.py` |
+| [`bajka/pulse.py`](../bajka/pulse.py) — tętno widza (na pokazie z symulatora) i stan widza | `AudiencePulse` | C | `python -m bajka.pulse --script` | `tests/test_pulse.py` |
+| [`bajka/panel.py`](../bajka/panel.py) + [`bajka/panel_app/`](../bajka/panel_app/) — panel podglądu: drzewo scen, wybory, tętno, dziennik | `ShowObserver` | C | `python -m bajka.panel scenarios/klub_ciekawskich.yaml` | `tests/test_panel.py` |
 
 Wszystkie moduły działają na poziomie szkieletu (testy na atrapach). Najbliższe kroki:
 
@@ -35,10 +37,10 @@ Wszystkie moduły działają na poziomie szkieletu (testy na atrapach). Najbliż
   `python -m bajka.local_stt` i `python -m bajka.local_intent`); sprawdzić Whisper z dziećmi i w hałasie,
   dostroić `BAJKA_VAD_THRESHOLD` / `BAJKA_END_SILENCE_MS`; stroić prompt w `intent.py` i `keywords`
   w scenariuszu na prawdziwych wypowiedziach.
-- **B:** zainstalować VLC 64-bit (`winget install --id VideoLAN.VLC -e`) i sprawdzić przejście klip → pętla;
-  dodać polski głos Windows i dobrać wysokość i tempo Lili (`BAJKA_WINDOWS_VOICE_PITCH`, `BAJKA_WINDOWS_VOICE_RATE`)
-  przez `python -m bajka.local_tts`; przygotować klipy z [listy w scenariuszu](../scenarios/klub_ciekawskich.md#lista-klipów-do-produkcji).
-- **C:** próba z panelem (`python -m bajka scenarios/klub_ciekawskich.yaml --mobile --panel`), spokojne wersje trzech scen
+- **B:** odtwarzacz w Edge/Chrome na laptopie pokazowym (płynne przejście klip → pętla, okno wyboru na projektorze,
+  pilot do prezentacji jako „pilot telewizora”); polski głos syntezatora i jego tempo w przeglądarce; klipy
+  i reakcje z [listy w scenariuszu](../scenarios/klub_ciekawskich.md#lista-klipów-do-produkcji); wersja liniowa przed pokazem.
+- **C:** próba z panelem (`python -m bajka scenarios/klub_ciekawskich.yaml --panel`), wersje spokojne i żywe scen
   (`las`, `wiaterek`, `swieto`), przebieg pokazu według [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md).
 
 ## Zasady modułu
@@ -54,8 +56,8 @@ Wzór: [`bajka/stt.py`](../bajka/stt.py) i [`tests/test_stt.py`](../tests/test_s
 4. **Brak importów modułów drugiej osoby** — moduł importuje tylko `bajka.config`, `bajka.ports`
    i ewentualnie `bajka.scenario`.
 5. **Kontrakt sprawdzony testem**: `isinstance(moduł, Listener)` itp. (kontrakty są `@runtime_checkable`).
-6. **Testy bez sieci, mikrofonu i VLC** — zewnętrzne SDK zastępujemy atrapami (np. `FakeRecognizer`,
-   `FakeSynthesizer`). Testy nie importują `bajka.player`.
+6. **Testy bez sieci, mikrofonu, przeglądarki i VLC** — zewnętrzne SDK zastępujemy atrapami (np. `FakeRecognizer`,
+   `FakeSynthesizer`, strona odtwarzacza jako `FakePage`). Testy nie importują `bajka.player`.
 
 ## Pliki wspólne
 
@@ -64,7 +66,7 @@ Zmieniajcie je małymi, osobnymi commitami, od razu wypychajcie i dajcie znać d
 - `bajka/ports.py` — kontrakty; zmiana sygnatury wymaga zmian po obu stronach,
 - `bajka/scenario.py` — model scenariusza; używają go `intent.py` (A) i `placeholders.py` (B),
 - `bajka/engine.py` i `bajka/app.py` — składają moduły; rozwijacie je razem,
-- `bajka/config.py`, `bajka/audio.py`, `tests/conftest.py`, `pyproject.toml`, `.env.example`, `README.md`,
+- `bajka/config.py`, `bajka/audio.py`, `tests/conftest.py`, `pyproject.toml`, `.env.example`, `README.md`, `docs/STREAMING.md`,
 - scenariusze w `scenarios/` (np. [`klub_ciekawskich.yaml`](../scenarios/klub_ciekawskich.yaml) — test
   `tests/test_klub_ciekawskich.py` pilnuje grafu i rozpoznawania typowych odpowiedzi).
 

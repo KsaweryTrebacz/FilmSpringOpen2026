@@ -2,7 +2,9 @@
 
 Podstawa: Regulamin konkursu programistyczno-filmowego „KINO SZUKA NOWEJ FORMY. ZNAJDŹ JĄ. Hackathon o przyszłości
 odbioru dzieł audiowizualnych” (Fundacja Film Spring Open, 21. Plenery Film Spring Open, Kraków, 16–18.10.2026).
-Dotyczy filmu [„Bzyczka szuka domu”](../scenarios/klub_ciekawskich.md) i aplikacji `bajka`.
+Dotyczy odcinka interaktywnego [„Bzyczka szuka domu”](../scenarios/klub_ciekawskich.md) i aplikacji `bajka`.
+Od 17.10.2026 projekt to bajka interaktywna do serwisów streamingowych (okna wyboru, odpowiedź pilotem albo głosem),
+a nie seans kinowy z udziałem widowni ([co się zmieniło](STREAMING.md#co-się-zmieniło-17102026)).
 
 Oznaczenia: **OK** — spełnione · **POPRAWIONE** — naprawione w repozytorium · **ZESPÓŁ** — do zrobienia przez
 zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
@@ -11,19 +13,19 @@ zespół · **ZAPYTAĆ** — do wyjaśnienia z organizatorem.
 
 | Regulamin | Wymóg | Stan | Co zrobiliśmy / co zostaje |
 |---|---|---|---|
-| §2 ust. 2 | „Zarys filmów, aplikacji, gier… umożliwiających odbiór dzieł sztuki na nowej, interakcyjnej płaszczyźnie” | **OK** | Interaktywny film krótkometrażowy: widownia w kinie współdecyduje o przebiegu okrzykiem i odpowiedziami, a bohaterka reaguje na żywo. Do tego działający prototyp aplikacji |
-| §2 ust. 3 i 5 | Prezentacja przed jury 18.10 o 19:00 | **POPRAWIONE** / **ZAPYTAĆ** | Scenariusz ma [plan na hackathon](../scenarios/klub_ciekawskich.md#plan-na-hackathon-prezentacja-18102026-1900) (zarys całego filmu + jedna scena w pełnej animacji). W §2 ust. 3 jest data „18.10.2022” — oczywista literówka, ale warto ją potwierdzić z organizatorem |
+| §2 ust. 2 | „Zarys filmów, aplikacji, gier… umożliwiających odbiór dzieł sztuki na nowej, interakcyjnej płaszczyźnie” | **OK** / **ZAPYTAĆ** | Interaktywny odcinek animowany: widz w domu współdecyduje o przebiegu w oknach wyboru (pilot, dotyk, głos), a postacie reagują. Do tego działający prototyp odtwarzacza i aplikacji. Regulamin obejmuje „filmy, aplikacje, gry”, a temat to „przyszłość odbioru dzieł audiowizualnych”, więc odbiór w serwisie streamingowym mieści się w zadaniu. Hasło hackathonu brzmi jednak „Kino szuka nowej formy” — warto potwierdzić z organizatorem, że forma poza salą kinową jest w porządku, i w pitchu powiedzieć, że ten sam odcinek da się pokazać w kinie (wersja liniowa albo pokaz z jednym „pilotem” dla sali) |
+| §2 ust. 3 i 5 | Prezentacja przed jury 18.10 o 19:00 | **POPRAWIONE** / **ZAPYTAĆ** | Scenariusz ma [plan na hackathon](../scenarios/klub_ciekawskich.md#plan-na-hackathon-prezentacja-18102026-1900) (zarys całego odcinka + jedna scena w pełnej animacji), a [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md) — przebieg pokazu. W §2 ust. 3 jest data „18.10.2022” — oczywista literówka, ale warto ją potwierdzić z organizatorem |
 | §3 ust. 4, 6, 7 | Zgłoszenie przez formularz (nazwa zespołu, lider, e-mail); uczestnicy pełnoletni albo 13+ za zgodą opiekunów; wykluczenie pracowników organizatora i partnerów oraz ich rodzin | **ZESPÓŁ** | Sprawdzić, czy zgłoszenie jest wysłane i czy żaden członek zespołu nie podlega wykluczeniu |
 | §3 ust. 8 | Bez treści obraźliwych, wulgarnych, propagujących przemoc, niemoralnych, nieprawdziwych lub wprowadzających w błąd | **POPRAWIONE** | Szczegóły niżej: filtr kwestii AI, zasady w prompcie, sprawdzone fakty, poprawione dwa fakty w scenariuszu, informacja o AI w napisach |
 | §3 ust. 9 | Lider oświadcza, że zespołowi przysługują wyłączne prawa autorskie do pracy, która jest oryginalna i wolna od roszczeń osób trzecich | **POPRAWIONE** / **ZESPÓŁ** | Szczegóły niżej: oryginalne postacie, muzyka tylko własna, treści z AI jako szkic do opracowania przez zespół, licencje narzędzi |
 | §3 ust. 10 | Praca może zostać opublikowana na stronie i w mediach społecznościowych organizatora | **ZESPÓŁ** | Wszystko, co pokażemy, musi nadawać się do publikacji: bez nagrań dzieci bez zgody opiekunów, bez cudzych utworów |
 | §4 ust. 5 | Kryteria: innowacyjność, adekwatność do zadania, oryginalność, kreatywność | **OK** | Mapowanie na pitch niżej |
-| §5 ust. 3 | Najlepszy projekt to pomysł wart dalszego rozwijania i testowania z prawdziwą publicznością | **OK** / **ZESPÓŁ** | Projekt jest od początku zbudowany do seansu z widownią; plan testu niżej |
-| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie przechowuje głosu ani wypowiedzi (nagranie z telefonu trafia na chwilę do pliku tymczasowego, usuwanego zaraz po rozpoznaniu); lokalne AI przetwarza mowę na komputerze, bez wysyłania nagrań do chmury. Głos dzieci z telefonów — szczegóły niżej |
+| §5 ust. 3 | Najlepszy projekt to pomysł wart dalszego rozwijania i testowania z prawdziwą publicznością | **OK** / **ZESPÓŁ** | Odcinek da się przetestować w domach rodzin z dziećmi na zwykłym laptopie albo tablecie; plan testu niżej |
+| §6 | Ochrona danych (RODO) | **OK** / **ZESPÓŁ** | Aplikacja nie przechowuje głosu ani wypowiedzi (nagranie trafia na chwilę do pliku tymczasowego, usuwanego zaraz po rozpoznaniu); lokalne AI przetwarza mowę na urządzeniu, bez wysyłania nagrań do chmury. Mikrofon tylko w oknie wyboru i tylko za zgodą rodzica — szczegóły niżej |
 
 ## §3 ust. 8 — treści
 
-Film słuchają małe dzieci, a część kwestii Lili pisze na żywo model językowy. Dlatego zabezpieczenia są w trzech
+Odcinek oglądają małe dzieci, a część kwestii Lili pisze na żywo model językowy. Dlatego zabezpieczenia są w trzech
 warstwach:
 
 1. **Scenariusz** — wszystkie kwestie stałe są napisane i sprawdzone przez ludzi. Nie ma przemocy ani straszenia.
@@ -32,15 +34,15 @@ warstwach:
    nie powtarzaj brzydkich ani obraźliwych słów, nie mów o przemocy, poprawiaj pomyłki łagodnie. **POPRAWIONE**
 3. **Filtr kwestii** (`bajka/safety.py`): kwestia z wulgaryzmem, słowami o przemocy, linkiem albo dłuższa niż ok.
    dwa zdania nie zostaje wypowiedziana — Lila mówi zamiast niej sprawdzoną kwestię ze scenariusza. **POPRAWIONE**
-   W scenach decyzji z krzykomierzem model w ogóle nie pisze kwestii, a przy odpowiedziach z telefonów — tylko gdy
-   odpowie jedna osoba; przy wielu Lila mówi teksty ze scenariusza.
+   Przy wyborze pilotem model w ogóle nie pisze kwestii; tam, gdzie jest nagrany klip reakcji, gra klip.
+   Przy odpowiedziach z kilku telefonów Lila mówi teksty ze scenariusza.
 
 **Poprawione fakty w scenariuszu:**
 - Sowa w dzień: sowy są aktywne głównie nocą, więc Lila mówi teraz „Sowy w dzień zwykle śpią, a my ją chyba budzimy!”.
 - Ul: wcześniej „na wysokim drzewie”, co bardziej pasuje do dzikiego gniazda. Teraz ul stoi na końcu łąki pod lipą.
 
-**Bez wprowadzania w błąd:** napisy końcowe informują, że reakcje Lili tworzy na żywo sztuczna inteligencja i że
-głosów widowni nie przechowujemy. **POPRAWIONE**
+**Bez wprowadzania w błąd:** napisy końcowe informują, że część kwestii postaci tworzy na żywo sztuczna inteligencja
+i że nagrań odpowiedzi nie przechowujemy; kwestie na żywo mają zawsze napisy. **POPRAWIONE**
 
 ## §3 ust. 9 — prawa autorskie
 
@@ -50,7 +52,7 @@ głosów widowni nie przechowujemy. **POPRAWIONE**
 | Tekst scenariusza powstał z pomocą AI | **ZESPÓŁ** | Prawo autorskie chroni twórczość człowieka. Traktujcie tekst jako szkic: zespół go przerabia, wybiera i uzupełnia (dialogi, ujęcia, napisy) i zapisuje, kto co zrobił. Dopiero wtedy lider może z czystym sumieniem złożyć oświadczenie z §3 ust. 9 |
 | Ilustracje i animacje z generatorów (Azure AI Foundry, ewentualnie Kling, Runway, Veo) | **ZESPÓŁ** | Zgodnie z [projektem flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) przed prezentacją sprawdzamy warunki każdej usługi: czy zespół może korzystać z wyników i je publikować |
 | Muzyka, piosenki, efekty dźwiękowe | **POPRAWIONE** / **ZESPÓŁ** | Scenariusz wymaga muzyki i melodii skomponowanych przez zespół. Bez znanych melodii, gotowych podkładów i efektów z sieci — nawet darmowe licencje nie dają *wyłącznych* praw. Muzyka generowana przez AI tylko po sprawdzeniu licencji |
-| Głos syntezatora (Lila na żywo) | **ZESPÓŁ** | Sprawdzić warunki głosów Windows (Microsoft Paulina) i Azure TTS dla publicznego pokazu i publikacji nagrań. Alternatywa: głos aktorski w klipach, syntezator tylko na żywo |
+| Głos syntezatora (Lila na żywo) | **ZESPÓŁ** | Sprawdzić warunki głosów Windows (Microsoft Paulina), syntezy mowy przeglądarki i Azure TTS dla publicznego pokazu i publikacji nagrań. Reakcje na wybory nagrywamy aktorsko (klipy `reaction`), syntezator tylko dla kwestii pisanych na żywo |
 | Czcionki w napisach | **ZESPÓŁ** | Fonty z licencją pozwalającą na użycie w filmie (np. SIL Open Font License) |
 | Oprogramowanie zewnętrzne | **OK** | Biblioteki i modele zostają na swoich licencjach (tabela niżej); żadna nie odbiera zespołowi praw do własnego kodu, scenariusza i filmu |
 | Licencja repozytorium | **ZESPÓŁ** | Repozytorium nie ma pliku `LICENSE`. Zespół decyduje, na jakich zasadach udostępnia kod; bez pliku wszystkie prawa zostają przy autorach |
@@ -59,7 +61,7 @@ głosów widowni nie przechowujemy. **POPRAWIONE**
 
 | Komponent | Licencja | Rola |
 |---|---|---|
-| python-vlc / libVLC | LGPL-2.1+ | Odtwarzacz (VLC instalowany osobno) |
+| python-vlc / libVLC | LGPL-2.1+ | Odtwarzacz `--player vlc` (VLC instalowany osobno) |
 | foundry-local-sdk, onnxruntime | MIT | Lokalne AI (Foundry Local, Windows ML) |
 | onnxruntime-genai-core | MIT (repozytorium microsoft/onnxruntime-genai) | Silnik modeli Foundry Local |
 | Phi-4-mini, Whisper | MIT (karty modeli) | Model językowy, rozpoznawanie mowy |
@@ -69,55 +71,56 @@ głosów widowni nie przechowujemy. **POPRAWIONE**
 | PyYAML, sounddevice | MIT | Scenariusz, dźwięk |
 | python-dotenv | BSD-3-Clause | Ustawienia |
 | numpy | BSD-3-Clause (z komponentami MIT, Zlib, CC0) | Dźwięk |
-| ffmpeg | LGPL/GPL (zależnie od kompilacji) | Narzędzie do zaślepek; nie jest częścią filmu |
+| ffmpeg | LGPL/GPL (zależnie od kompilacji) | Narzędzie do zaślepek i wersji liniowej; nie jest częścią odcinka |
 
-## Aplikacja mobilna widowni — prywatność i bezpieczeństwo
+## Mikrofon w odtwarzaczu i drugi ekran — prywatność i bezpieczeństwo
 
-Odpowiedzi publiczności zbiera aplikacja na telefony z dostępem do mikrofonu ([README](../README.md#aplikacja-mobilna-widowni)).
-Głos dziecka to dane osobowe, a widzami są małe dzieci, dlatego:
+Odpowiedź głosem nagrywa strona odtwarzacza w trakcie okna wyboru, a opcjonalnie telefon domownika
+(drugi ekran, [README](../README.md#drugi-ekran-telefon-jako-pilot-z-mikrofonem)). Głos dziecka to dane osobowe,
+a widzami są małe dzieci, dlatego:
 
 | Kwestia | Rozwiązanie | Stan |
 |---|---|---|
-| Gdzie trafia nagranie | Tylko do komputera z filmem w sieci lokalnej, szyfrowane (HTTPS); rozpoznawane lokalnie, na chwilę przez plik tymczasowy, usuwany zaraz po rozpoznaniu; bez chmury w trybie lokalnym | **OK** |
-| Kiedy telefon nagrywa | Tylko w trakcie rundy pytania (pulsuje lupka), najwyżej kilka sekund; poza rundami nic nie jest wysyłane | **OK** |
-| Informacja dla widza | Przed dołączeniem aplikacja (ekran dołączania i strona z kodem QR) mówi, że nagranie służy tylko do rozpoznania odpowiedzi, trafia na chwilę do pliku tymczasowego, jest usuwane zaraz po rozpoznaniu i nie jest przechowywane | **OK** |
-| Dzieci i opiekunowie | Telefon należy zwykle do opiekuna, który dołącza i zezwala na mikrofon; przed seansem krótka informacja dla opiekunów (plansza przy wejściu albo słowo prowadzącego) | **ZESPÓŁ** |
-| Nadużycia | Jedna odpowiedź na telefon w rundzie, limit rozmiaru nagrania, odpowiedzi tylko w otwartej rundzie; kwestie modelu filtrowane (`bajka/safety.py`) | **OK** |
-| Odpowiedź bez mówienia | Dziecko, które nie chce albo nie może mówić, dotyka opcji | **OK** |
-| Tętno widowni | W demo wyłącznie symulowane (`bajka/pulse.py`), bez danych prawdziwych osób. Prawdziwa wersja z zegarków to dane o zdrowiu (RODO art. 9): wyraźna zgoda opiekunów, udział dobrowolny, tylko średnia całej sali, przetwarzanie w trakcie seansu, bez zapisywania | **OK** (demo) |
+| Gdzie trafia nagranie | Odtwarzacz: tylko do aplikacji na tym samym komputerze (`127.0.0.1`). Telefon: do komputera z odcinkiem w sieci domowej, szyfrowane (HTTPS). Rozpoznawane lokalnie, na chwilę przez plik tymczasowy, usuwany zaraz po rozpoznaniu; bez chmury w trybie lokalnym | **OK** |
+| Kiedy mikrofon nagrywa | Tylko w trakcie okna wyboru (na ekranie „Słucham…”), najwyżej kilka sekund; poza oknem nic nie jest wysyłane. Rodzic wyłącza mikrofon w ustawieniach (⚙) | **OK** |
+| Informacja dla rodzica | Ekran startowy odtwarzacza, ekran dołączania telefonu i strona z kodem QR mówią, że nagranie służy tylko do rozpoznania odpowiedzi, trafia na chwilę do pliku tymczasowego, jest usuwane zaraz po rozpoznaniu i nie jest przechowywane | **OK** |
+| Dzieci i rodzice | Zgodę na mikrofon daje rodzic w przeglądarce (ekran startowy, ustawienia). W produkcji: osobna zgoda rodzica w profilu dziecka i jasna informacja w opisie odcinka | **ZESPÓŁ** |
+| Nadużycia | Limit rozmiaru nagrania, odpowiedzi tylko w otwartym oknie wyboru, odtwarzacz przyjmuje zapytania tylko z `localhost` i tylko typy danych wysyłane przez jego stronę; kwestie modelu filtrowane (`bajka/safety.py`) | **OK** |
+| Odpowiedź bez mówienia | Pilot, dotyk, klawiatura — głos jest dodatkiem, nie warunkiem | **OK** |
+| Tętno widza | W demo wyłącznie symulowane (`bajka/pulse.py`), bez danych prawdziwych osób. Prawdziwa wersja z zegarka to dane o zdrowiu (RODO art. 9): osobna, wyraźna zgoda rodzica, funkcja domyślnie wyłączona, przetwarzanie tylko na urządzeniu i w trakcie odcinka, bez zapisywania i bez wysyłania do serwisu | **OK** (demo) |
 
 ## Pitch wobec kryteriów jury (§4 ust. 5)
 
 | Kryterium | Argument |
 |---|---|
-| **Innowacyjność** | Bohaterka filmu słucha widowni i odpowiada na żywo: każdy widz mówi do własnego telefonu, a komputer w kinie liczy głosy całej sali. Rozpoznawanie mowy, wybór ścieżki i głos działają lokalnie (Copilot+ PC z NPU, Foundry Local), bez nagrywania dzieci. Bez telefonów decyzje rozstrzyga krzykomierz. Film czuje też salę: gdy tętno widowni (w demo symulowane) odbiega od nastroju filmu, scena gra inną wersję montażu, a panel pokazuje jury każdą decyzję |
-| **Adekwatność do zadania** | „Przyszłość odbioru dzieł audiowizualnych”: widz przestaje być bierny — współdecyduje o filmie. Nawiązujemy do tradycji: w czechosłowackim Kinoautomacie (Expo 67) widzowie głosowali przyciskami; u nas głosują głosem, a postać reaguje na nich |
-| **Oryginalność** | Własny świat i postacie, film dla najmłodszych z pierwszym w życiu doświadczeniem kina jako wspólnej zabawy |
-| **Kreatywność** | Mechaniki zaprojektowane pod salę kinową: okrzyki, odpowiedzi chórem, wspólny oddech, liczenie; pomyłki widowni stają się częścią nauki |
+| **Innowacyjność** | Dziecko rozmawia z postacią bajki: w oknie wyboru może po prostu powiedzieć odpowiedź swoimi słowami, a postać reaguje. Rozpoznawanie mowy i zrozumienie odpowiedzi działają na urządzeniu (Copilot+ PC z NPU, Foundry Local), bez wysyłania głosu dziecka do chmury. Odcinek może też dopasowywać tempo do widza: przy pobudzeniu gra wersję spokojną sceny, przy znużeniu — żywą (w demo tętno jest symulowane, a panel pokazuje każdą decyzję) |
+| **Adekwatność do zadania** | „Przyszłość odbioru dzieł audiowizualnych”: odbiór przenosi się do serwisów streamingowych, a widz przestaje być bierny. Uczymy się na błędach rynku: Netflix wycofał drogie filmy interaktywne, więc nasz format jest tani w produkcji (zagadki zbiegają się do tej samej sceny) i zawsze ma wersję liniową. W tradycji Kinoautomatu (Expo 67), gdzie widzowie głosowali przyciskami — u nas pilotem albo głosem |
+| **Oryginalność** | Własny świat i postacie; interakcja projektowana dla dzieci 4–7 lat: obrazki zamiast tekstu, dłuższy czas na odpowiedź, brak kary za ciszę, odcinek z wyraźnym końcem |
+| **Kreatywność** | Mechaniki w oknach wyboru: zagadki, wspólny oddech, liczenie; pomyłki stają się częścią nauki; cztery zakończenia zachęcają do obejrzenia jeszcze raz |
 
-Technologia pasuje do partnerów hackathonu: nagrodą jest Copilot+ PC Lenovo, a film działa lokalnie właśnie na takim
-komputerze.
+Technologia pasuje do partnerów hackathonu: nagrodą jest Copilot+ PC Lenovo, a odcinek z głosem działa lokalnie właśnie
+na takim komputerze.
 
 ## Test z prawdziwą publicznością (§5 ust. 3)
 
-Propozycja pierwszego seansu próbnego po hackathonie:
+Propozycja pierwszego testu po hackathonie:
 
-1. Grupa przedszkolna (10–25 dzieci) z opiekunami, sala z ekranem. Przed seansem informacja dla opiekunów:
-   mikrofon słucha, nic nie jest nagrywane.
-2. Kalibracja krzykomierza na pełnej sali: `python -m bajka.vote`.
-3. Pomiary z logu aplikacji (bez nagrań): ile rund okrzyków rozstrzygnięto za pierwszym razem (`Okrzyki: …`),
-   jak często odpowiedź chórem została rozpoznana (`Intencja: …`), ile razy Lila musiała wybrać sama, czasy odpowiedzi.
-4. Obserwacja zaangażowania: czy dzieci krzyczą, oddychają i liczą razem z postaciami; krótka rozmowa z opiekunami.
+1. 5–10 rodzin z dziećmi w wieku 4–7 lat, w domu albo w bibliotece, na laptopie lub tablecie; rodzic obok dziecka.
+   Przed testem informacja dla rodziców: kiedy działa mikrofon i że nagrania są usuwane zaraz po rozpoznaniu.
+2. Bez instruktażu: czy dziecko samo rozumie okno wyboru (pierwsza scena uczy zasad)?
+3. Pomiary z logu aplikacji (bez nagrań): ile okien rozstrzygnięto pilotem, ile głosem (`Widz: wybór …, mowa …`),
+   ile razy postać musiała dopytać albo wybrać sama, czasy odpowiedzi.
+4. Krótka rozmowa z dzieckiem i rodzicem: czy chce obejrzeć jeszcze raz, co było trudne, czy mikrofon był w porządku.
 
 ## Lista kontrolna dla zespołu przed 18.10, 19:00
 
 - [ ] Zgłoszenie przez formularz wysłane; nikt z zespołu nie podlega wykluczeniu z §3 ust. 7.
+- [ ] Potwierdzenie z organizatorem, że odcinek do serwisów streamingowych mieści się w zadaniu (hasło „Kino szuka nowej formy”).
 - [ ] Zespół przerobił scenariusz i zapisał autorstwo poszczególnych części.
 - [ ] Wygląd postaci (zwłaszcza Bzyczki) zatwierdzony jako oryginalny.
 - [ ] Muzyka i efekty własne; warunki generatorów obrazu i głosu sprawdzone.
 - [ ] Napisy końcowe uzupełnione (nazwiska, informacja o AI).
 - [ ] Decyzja o licencji repozytorium.
 - [ ] Data prezentacji potwierdzona z organizatorem (literówka „18.10.2022” w §2 ust. 3).
-- [ ] Na nagraniach z pokazu nie ma dzieci bez zgody opiekunów.
-- [ ] Na pokazie: Wi-Fi dla telefonów (bez izolacji klientów), port aplikacji otwarty w zaporze, plansza z kodem QR,
-      informacja dla opiekunów o mikrofonie.
+- [ ] Na nagraniach z pokazu i testów nie ma dzieci bez zgody rodziców.
+- [ ] Na pokazie: Edge albo Chrome, polski głos syntezatora, modele pobrane wcześniej, wersja liniowa wygenerowana.
