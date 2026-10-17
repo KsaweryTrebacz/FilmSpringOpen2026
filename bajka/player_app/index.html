@@ -92,7 +92,11 @@
     <p id="question"></p>
     <div id="options" role="group" aria-label="Okno wyboru"></div>
     <div id="timer"><div></div></div>
-    <div id="listening" hidden><span class="dot"></span><span id="listeningText"></span></div>
+    <div id="listening" hidden>
+      <span class="dot"></span>
+      <span id="listeningText"></span>
+      <span id="micMeter" style="width: 80px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; display: inline-block; margin-left: 8px; vertical-align: middle;"><span id="micMeterFill" style="width: 0%; height: 100%; background: var(--ok); display: block; transition: width 0.05s ease;"></span></span>
+    </div>
   </div>
   <div id="caption" hidden aria-live="polite"></div>
 
@@ -113,7 +117,17 @@
         <label><input type="checkbox" id="speakSetting"> Postać czyta swoje kwestie na głos</label>
         <label><input type="checkbox" id="captionsSetting"> Napisy</label>
       </fieldset>
-      <button id="startButton" class="big">▶ Oglądaj</button>
+      <div style="margin: 0.6em 0;">
+        <button id="startButton" class="big">▶ Oglądaj</button>
+        <div><button id="testMicButton" type="button" class="ghost" style="font-size: 0.75em;">🎙️ Przetestuj mikrofon</button></div>
+      </div>
+      <div id="testMicBox" hidden style="margin: 0.8em auto; padding: 0.8em; background: rgba(24, 19, 14, 0.95); border: 1px solid var(--dim); border-radius: 12px; max-width: 440px;">
+        <div style="font-size: 0.85em; margin-bottom: 0.4em;">Poziom głosu (mikrofon):</div>
+        <div id="testMeter" style="height: 12px; background: rgba(255,255,255,0.2); border-radius: 6px; overflow: hidden; margin-bottom: 8px;">
+          <div id="testMeterFill" style="width: 0%; height: 100%; background: var(--ok); transition: width 0.05s ease;"></div>
+        </div>
+        <div id="testMicText" style="font-size: 0.9em; color: var(--accent);">Mów do mikrofonu (np. „Hop-sa-sa” lub „Puk, puk”)...</div>
+      </div>
       <p id="micNote" class="dim">Mikrofon działa tylko w trakcie okna wyboru. Nagranie odpowiedzi trafia wyłącznie
         do tego komputera, do rozpoznania mowy, i jest usuwane zaraz po rozpoznaniu.</p>
       <p id="micError" class="dim" hidden></p>
@@ -196,6 +210,19 @@ $("startButton").addEventListener("click", async () => {
   if (state) onState(state);
 });
 
+$("testMicButton").addEventListener("click", async () => {
+  $("testMicBox").hidden = false;
+  $("testMicText").textContent = "Łączę z mikrofonem… zezwól w przeglądarce...";
+  initSpeechRecognition();
+  if (recognition) {
+    try { recognition.start(); } catch (_) {}
+  }
+  await openMicrophone();
+  if (audio) {
+    $("testMicText").textContent = "Mikrofon aktywny! Mów teraz (np. „Hop-sa-sa”)...";
+  }
+});
+
 let recognition = null;
 let speechActive = false;
 
@@ -221,6 +248,9 @@ function initSpeechRecognition() {
       if (!heard) return;
 
       console.log("Heard speech:", heard);
+      if (!$("testMicBox").hidden) {
+        $("testMicText").textContent = `Usłyszano: „${heard}”!`;
+      }
 
       if (ask && !ask.picked) {
         listening(`🎤 Słyszę: „${heard}”…`, "on");
@@ -715,12 +745,19 @@ function startRecording(seq, seconds, maxSeconds) {
 }
 
 function onAudio(input, rate) {
-  const r = recorder;
-  if (!r || !ask || ask.seq !== r.seq) return;
   const samples = new Float32Array(input);
   let sum = 0;
   for (const s of samples) sum += s * s;
   const rms = Math.sqrt(sum / samples.length);
+
+  const pct = Math.min(100, Math.round(rms * 500)) + "%";
+  const m1 = $("micMeterFill");
+  if (m1) m1.style.width = pct;
+  const m2 = $("testMeterFill");
+  if (m2) m2.style.width = pct;
+
+  const r = recorder;
+  if (!r || !ask || ask.seq !== r.seq) return;
   const ms = samples.length / rate * 1000;
   r.rate = rate;
   if (!r.speaking) {
