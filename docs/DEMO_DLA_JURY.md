@@ -8,7 +8,8 @@ ze strzałkami), wszyscy mogą odpowiadać na głos, a ktoś z zespołu steruje 
 
 1. Klipy na miejscu: prawdziwe albo zastępcze z nazwą pliku na planszy
    (`python -m bajka.placeholders scenarios/klub_ciekawskich.yaml`). Polecenie tworzy tylko brakujące pliki,
-   więc uzupełnia też klipy reakcji (`01_reakcja_*.mp4`) i wersje scen (`*_spokojna.mp4`, `*_zywa.mp4`).
+   więc uzupełnia też klipy reakcji (`01_reakcja_*.mp4`), gałęzie zagadek, wersje scen (`*_spokojna.mp4`,
+   `*_zywa.mp4`) i przezroczyste warstwy kwiatków (`warstwa_*.webm`).
    Bez nich bajka się nie uruchomi („Brak plików wideo”).
 2. Przeglądarka Edge albo Chrome (Chromium bez kodeka H.264 nie odtworzy MP4). Polski głos syntezatora w Windows
    (Ustawienia → Czas i język → Mowa), inaczej postać „mówi” tylko napisami.
@@ -41,10 +42,10 @@ o mikrofon — zezwólcie. Panel podglądu: `http://127.0.0.1:8090/`.
 |---|---|---|
 | 0:00–0:30 | Ekran startowy, juror naciska **Oglądaj**. SC. 1, potem pierwsze okno wyboru („Hop-sa-sa!” / „Puk, puk!”) | „To odcinek z serwisu streamingowego. Netflix wycofał swoje filmy interaktywne — my pokazujemy, jak zrobić to prościej i dla dzieci.” |
 | 0:30–1:00 | Juror wybiera **strzałką i OK**. Gra nagrany klip reakcji. Na panelu: decyzja „wybór pilotem albo dotykiem” i wpis „Punkt odniesienia tętna widza” | „Pilot działa na każdym telewizorze. Dzieci, które nie czytają, mają obrazki.” |
-| 1:00–1:45 | SC. 2: okno „Tęczowy Mostek / Szumiący Las”. Juror **mówi** „przez las!”. Pod oknem: „Słyszę: …”. W trakcie tego okna klikamy na panelu **Pobudzenie** | „Głos rozpoznaje Whisper na tym laptopie. Nic nie idzie do chmury, nagranie znika zaraz po rozpoznaniu.” |
-| 1:45–2:30 | Las (albo mostek) i Wiaterek grają **wersję spokojną**; dziennik panelu mówi dlaczego. Okno z oddechem trwa 20 s | „Dziecko jest bardzo pobudzone, więc odcinek zwalnia: dłuższe ujęcia, cichszy dźwięk. Tętno dziś symulujemy, docelowo z zegarka, za zgodą rodzica.” |
+| 1:00–1:45 | SC. 2: okno „Tęczowy Mostek / Szumiący Las”. Juror **mówi** „przez las!”. Pod oknem: „Słyszę: …”. Las wchodzi przejściem wybranym przez montażystę (zwykle **przetarciem**, przy pobudzeniu łagodniejszym przenikaniem), a w dzienniku panelu: „Montaż kuferek → las: … (model AI): …”. W trakcie tego okna klikamy na panelu **Pobudzenie** | „Głos rozpoznaje Whisper na tym laptopie. O przejściu decyduje montażysta AI: wie, że ruszamy w nowe miejsce i że dziecko jest pobudzone.” |
+| 1:45–2:30 | W lesie juror celowo wybiera **Żabę**: gra osobna scena z żabką Kumką (gałąź), która wraca na wspólną drogę. Las i Wiaterek grają **wersję spokojną** | „Każda odpowiedź ma swoją scenę, a pomyłka jest częścią przygody. Dziecko jest pobudzone, więc odcinek zwalnia — tętno dziś symulujemy, docelowo z zegarka, za zgodą rodzica.” |
 | 2:30–3:15 | Przy oknie „Mapa, latarka czy lornetka?” nikt nic nie robi: postać dopytuje, a po czasie wybiera sama. Klikamy **Znużenie** | „Cisza nie zatrzymuje bajki. A gdy dziecko się nudzi, kolejna scena będzie żywsza.” |
-| 3:15–4:00 | Święto w **wersji żywej**, wybór zakończenia, finał. Ekran końcowy: „Twoje wybory” i „Obejrzyj jeszcze raz” | „Cztery zakończenia, każde inne. Ten sam odcinek jest też zwykłym filmem dla serwisów bez interakcji” — pokazujemy plik `_liniowy.mp4` |
+| 3:15–4:00 | Juror wybiera kwiatek dla mamy Bzyczki — Bzyczka trzyma go w Święcie (**wersja żywa**) i w finale: to **warstwa** nałożona na klip. Finał wchodzi rozjaśnieniem. Ekran końcowy: „Twoje wybory” i „Obejrzyj jeszcze raz” | „Wybory widza nakładamy na klipy jako warstwy, więc nie animujemy trzech finałów. Ten sam odcinek jest też zwykłym filmem dla serwisów bez interakcji” — pokazujemy plik `_liniowy.mp4` |
 
 Wiaterek jest zawsze na ścieżce, więc to najpewniejsze miejsce na wersję spokojną. Wersję żywą mają Las i Święto.
 
@@ -67,6 +68,8 @@ Wersję sceny odcinek wybiera w chwili, gdy scena się zaczyna, więc tętno trz
 - **Wideo się nie odtwarza:** przeglądarka bez H.264 — otwórzcie adres w Edge albo Chrome.
 - **Zamknięta karta:** odcinek czeka; otwórzcie `http://127.0.0.1:8080/` ponownie i naciśnijcie Oglądaj — bieżąca scena
   zagra od początku.
+- **Montaż na modelu za wolny** (w dzienniku „Model nie zdążył, zdecydowały reguły”): odcinek leci dalej z regułami;
+  na pokaz można ustawić `BAJKA_MONTAGE=reguly`, żeby decyzje były przewidywalne.
 - **Panel się nie odświeża:** odcinek leci dalej; błędy panelu nigdy go nie zatrzymują.
 - **Koniec:** „Zakończ” na ekranie końcowym zamyka odcinek i aplikację. Panel zostaje wygaszony z napisem
   „brak połączenia z odcinkiem” — to normalne.
@@ -80,5 +83,6 @@ Wersję sceny odcinek wybiera w chwili, gdy scena się zaczyna, więc tętno trz
 | Skąd weźmiecie tętno? | Z zegarka dziecka przez telefon rodzica: Health Connect, HealthKit albo Bluetooth „Heart Rate”. Tylko za zgodą rodzica, tylko na urządzeniu, bez zapisu. Wcześniej chcemy sygnałów bez biometrii: czas reakcji i serie cisz |
 | A RODO? | Tętno to dane o zdrowiu (art. 9): osobna zgoda, funkcja domyślnie wyłączona, nic nie trafia do serwisu |
 | Jak to trafi do serwisu? | Trzy drogi: nasz odtwarzacz (aplikacja), manifest JSON dla odtwarzacza serwisu albo wersja liniowa (zwykły MP4 z napisami) |
+| Co dokładnie robi AI w montażu? | Wybiera, jak połączyć klipy: rodzaj przejścia i jego długość, z powodem jednym zdaniem (widać go w panelu). Bierze pod uwagę miejsce akcji, wybór i słowa dziecka, jego tętno i podpowiedź autora. Nie tworzy treści i nie zmienia historii; gdy nie zdąży, decydują reguły. Następny krok: klatki pośrednie generowane przez AI tam, gdzie kadry do siebie nie pasują |
 | Czy zadziała z innym odcinkiem? | Tak. Historia to plik ze scenariuszem: sceny, okna wyboru, reakcje i wersje scen. Silnik się nie zmienia |
 | Ile to kosztuje? | Modele AI działają lokalnie, bez opłat za chmurę. Produkcja: 10 scen + kilka krótkich reakcji i wersji |

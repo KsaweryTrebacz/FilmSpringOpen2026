@@ -13,6 +13,7 @@ w serwisie streamingowym, jak wygląda rynek, jak odcinek trafia do serwisów i 
 | Kwestie po wyborze zawsze z syntezatora | Najpierw **nagrane klipy reakcji**; syntezator tylko dla kwestii pisanych na żywo, zawsze z napisami |
 | VLC na pełnym ekranie, mikrofon komputera | **Odtwarzacz w przeglądarce**, jak w serwisie: okno wyboru, odliczanie, napisy, ustawienia rodzica, „obejrzyj jeszcze raz” |
 | Tętno całej sali | Tętno jednego widza z zegarka (dziś symulator) — wersja spokojna albo żywa sceny |
+| Klipy po kolei, z cięciem między nimi | **Montaż AI**: model decyduje o przejściu (przenikanie, przetarcie, zaciemnienie, rozjaśnienie, cięcie), a odtwarzacz nakłada klipy na siebie; zagadki mają **własne sceny dla każdej odpowiedzi**, a wybory widza mogą być **warstwami** nad sceną |
 | Jeden plik do pokazu | Trzy drogi do serwisów: wersja interaktywna, **manifest JSON**, **wersja liniowa** |
 
 ## Realia rynku: dlaczego „urealnić”
@@ -40,8 +41,10 @@ Interaktywne filmy w serwisach to dziś nisza, a największy gracz się z nich w
 **Wnioski dla projektu:**
 1. Nie zakładamy, że duży serwis od razu przyjmie format interaktywny. Każdy odcinek ma **wersję liniową**
    z tych samych klipów (`python -m bajka.linear`) — tak jak Netflix zrobił z programami Bear Gryllsa.
-2. Interaktywność musi być **tania w produkcji**: zagadki zbiegają się do tej samej sceny, a różni je tylko krótka
-   reakcja. 10 scen + kilka reakcji zamiast drzewa kilkudziesięciu klipów.
+2. Interaktywność musi być **tania w produkcji**, ale wybór musi mieć widoczny skutek. Dlatego gałęzie zagadek
+   to krótkie sceny (15–25 s), które wracają na wspólną drogę, a wybory „kosmetyczne” (kwiatek dla mamy Bzyczki)
+   to warstwy nakładane na jedną animację zamiast osobnych wersji scen. Bzyczka: 10 scen głównych, 7 krótkich gałęzi
+   i 3 warstwy dają kilkanaście różnych ścieżek.
 3. Wartość, której linearny film nie da: dziecko **mówi do postaci swoimi słowami**, a postać odpowiada —
    z rozpoznawaniem mowy na urządzeniu, bez wysyłania głosu dziecka do chmury.
 4. Najbardziej realne pierwsze kanały: aplikacja na tablet/PC (np. edukacyjna albo biblioteczna), serwisy dla dzieci
@@ -52,11 +55,33 @@ Interaktywne filmy w serwisach to dziś nisza, a największy gracz się z nich w
 | Droga | Co dostaje serwis | Interakcja | Głos | Tętno |
 |---|---|---|---|---|
 | **1. Nasz odtwarzacz** (`python -m bajka`) | Aplikację: strona + silnik + modele lokalne | Pełna: okna wyboru, reakcje, dopytywanie | Tak, na urządzeniu | Tak (dziś symulator) |
-| **2. Manifest** (`python -m bajka.manifest`) | Klipy + `odcinek.json`: sceny, okna wyboru, obrazki, reakcje, wersje scen, opisy i słowa kluczowe do rozpoznawania głosu, `linear_path` | Odtwarzacz serwisu | Jeśli serwis doda rozpoznawanie (np. słowa kluczowe z manifestu) | Jeśli serwis zechce |
-| **3. Wersja liniowa** (`python -m bajka.linear`) | Jeden plik MP4 + napisy `.srt` | Brak: postać pyta, czeka chwilę i wybiera sama | — | — |
+| **2. Manifest** (`python -m bajka.manifest`) | Klipy + `odcinek.json`: sceny, gałęzie (`next`), okna wyboru, obrazki, reakcje, warstwy, wersje scen, propozycje przejść (`cut`), opisy i słowa kluczowe do rozpoznawania głosu, `linear_path` | Odtwarzacz serwisu | Jeśli serwis doda rozpoznawanie (np. słowa kluczowe z manifestu) | Jeśli serwis zechce |
+| **3. Wersja liniowa** (`python -m bajka.linear`) | Jeden plik MP4 (z warstwami i przejściami) + napisy `.srt` | Brak: postać pyta, czeka chwilę i wybiera sama | — | — |
 
 Format plików: MP4 (H.264/AAC) z indeksem na początku pliku. W produkcji serwisy pakują klipy do HLS/DASH;
 manifest wskazuje klipy po ścieżkach, więc wystarczy zamienić je na adresy segmentów.
+
+## Montaż AI: jak klipy łączą się według wyborów widza
+
+Interaktywny odcinek to nie jeden film, tylko klipy sklejane na żywo. Żeby nie było czarnych przerw i skoków:
+
+1. **Odtwarzacz nakłada klipy na siebie.** Strona ma dwa „pokłady” wideo: kolejne ujęcie ładuje się w tle i wchodzi
+   na wierzch przejściem, zachodząc na ostatnią sekundę poprzedniego klipu. Pętla oczekiwania zaczyna się cięciem
+   na ostatniej klatce klipu (tak ją animujemy), więc okno wyboru pojawia się bez szwu.
+2. **Warstwy.** Przezroczyste klipy (WebM VP9 z alfą) z wyborami widza leżą nad klipem i pętlą sceny — tyle warstw,
+   ile scena przewiduje (`layers`). Nowy wybór w tym samym miejscu (`slot`) zastępuje poprzedni.
+3. **Montażysta AI** (`bajka/montage.py`) przetwarza informacje o przejściu: skąd i dokąd (sceny i miejsca akcji),
+   co widz wybrał, czy pilotem, czy głosem, i co powiedział, stan widza według tętna, nastrój odcinka i podpowiedź
+   autora. Zwraca rodzaj przejścia, długość i powód jednym zdaniem (panel podglądu pokazuje go twórcom).
+   Model (Phi przez Foundry Local) pracuje w tle, gdy gra reakcja postaci, więc odcinek na niego nie czeka;
+   gdy nie zdąży, decydują reguły. Granice są twarde: znany rodzaj przejścia, długość w widełkach, rozjaśnienie
+   zawsze powoli (bez błysków), a decyzja nigdy nie zmienia treści — tylko sposób połączenia klipów.
+4. **Wersja liniowa** składa te same klipy, warstwy i przejścia (z reguł) w ffmpeg (`overlay` + `xfade`).
+
+**Następny krok (produkcja):** model generujący klatki pośrednie (interpolacja ruchu, np. RIFE albo FILM w ONNX
+przez Windows ML) dla przejść między gałęzią a wspólną sceną, gdy kadry końcowy i początkowy różnią się ułożeniem
+postaci. Graf scen jest znany z góry, więc takie przejścia da się wygenerować wcześniej dla każdej krawędzi grafu
+i podmieniać nimi przenikanie tam, gdzie montażysta wybierze „płynne przejście ruchu”.
 
 ## Okno wyboru: zasady projektowe
 
@@ -101,7 +126,11 @@ Uporządkowane od najtańszych. Odhaczone są już w repozytorium.
 - [x] Okno wyboru z obrazkami, odliczaniem, pilotem, dotykiem i głosem (`bajka/web_player.py`).
 - [x] Nagrane klipy reakcji zamiast syntezatora (`reaction`), napisy dla kwestii na żywo.
 - [x] Wersja liniowa i manifest JSON dla serwisów.
-- [x] Ekran końcowy z wyborami widza i „obejrzyj jeszcze raz” (cztery zakończenia), bez automatycznego kolejnego odcinka.
+- [x] Ekran końcowy z wyborami widza i „obejrzyj jeszcze raz”, bez automatycznego kolejnego odcinka.
+- [x] Gałęzie zagadek (każda odpowiedź ma własną scenę), warstwy według wyborów widza i montaż AI z płynnymi przejściami.
+- [ ] **Klatki pośrednie z AI** (RIFE/FILM przez Windows ML) dla przejść, przy których kadry do siebie nie pasują.
+- [ ] **Montażysta uczony na decyzjach montażysty-człowieka**: zespół poprawia decyzje w panelu, a poprawki trafiają do
+  przykładów w prompcie (albo do dostrojenia LoRA w Phi Silica, gdy powstanie aplikacja natywna).
 - [ ] **Sygnały uwagi bez biometrii** (czas reakcji, serie cisz) jako wejście dla wersji scen — przed zegarkiem.
 - [ ] **Profil dziecka bez danych osobowych**: tylko ustawienia (czas okna, mikrofon, napisy) zapisane na urządzeniu.
 - [ ] **Napisy WebVTT do klipów** (plik `.vtt` obok klipu) i audiodeskrypcja opcji przy fokusie.

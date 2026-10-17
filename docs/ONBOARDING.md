@@ -8,7 +8,8 @@ ok. 10 minut. Szczegóły techniczne są w dokumentach podlinkowanych po drodze.
 Program zamienia zwykły odcinek animowany w **bajkę interaktywną do oglądania w serwisie streamingowym**. Odcinek
 jest pocięty na sceny. Po scenie z pytaniem na ekranie pojawia się **okno wyboru**: dziecko wybiera pilotem,
 dotykiem albo mówi odpowiedź na głos. Program rozpoznaje, co wybrało, postać reaguje, a odcinek idzie dalej
-wybraną ścieżką. Sam program nie zna żadnej historii: historia jest wymiennym plikiem — **scenariuszem** —
+wybraną ścieżką — każda odpowiedź może mieć własną scenę, a wybory widza mogą być nakładane na kolejne sceny jako
+warstwy. O tym, jak płynnie połączyć klipy, decyduje montażysta AI. Sam program nie zna żadnej historii: historia jest wymiennym plikiem — **scenariuszem** —
 a program to **silnik**, który ją odtwarza. Rozpoznawanie mowy i modele działają na urządzeniu widza, bez chmury
 i bez przechowywania nagrań. W przyszłości tempo odcinka może się dopasowywać do **tętna** dziecka z zegarka.
 
@@ -25,10 +26,10 @@ i bez przechowywania nagrań. W przyszłości tempo odcinka może się dopasowyw
 ## Cykl jednej sceny
 
 ```
-klip ──▶ pętla oczekiwania + okno wyboru ──▶ wybór (pilot / dotyk / głos) ──▶ reakcja postaci ──▶ następna scena
-                     ▲                                                               │
-                     └──── czas minął / niejasna odpowiedź: dopytanie ◀──────────────┘
-                           (po dwóch dopytaniach: postać wybiera sama)
+klip ──▶ pętla oczekiwania + okno wyboru ──▶ wybór (pilot / dotyk / głos) ──▶ reakcja postaci ──▶ przejście ──▶ następna scena
+                     ▲                                │                                ▲          (gałąź albo wspólna droga,
+                     │                                └── montażysta AI myśli w tle ───┘           z warstwami wyborów widza)
+                     └──── czas minął / niejasna odpowiedź: dopytanie (po dwóch: postać wybiera sama)
 ```
 
 1. **Klip** — gotowe wideo kończy się pytaniem postaci do widza.
@@ -37,8 +38,11 @@ klip ──▶ pętla oczekiwania + okno wyboru ──▶ wybór (pilot / dotyk 
 3. **Wybór** — przycisk rozstrzyga od razu; wypowiedź przechodzi przez rozpoznawanie (niżej).
 4. **Reakcja** — gra nagrany klip reakcji postaci; jeśli go nie ma, postać mówi kwestię ze scenariusza
    (napisy + głos syntezatora). Przy odpowiedzi głosem model może dopisać krótką osobistą kwestię.
-5. **Następna scena** — według grafu. Scena bez pytań kończy odcinek; ekran końcowy pokazuje wybory widza
-   i proponuje obejrzenie jeszcze raz.
+5. **Przejście** — montażysta AI (model na urządzeniu, w zapasie reguły) wybiera, jak połączyć klipy: przenikanie,
+   przetarcie, zaciemnienie, rozjaśnienie albo cięcie, i jak długo; odtwarzacz nakłada nowy klip na koniec starego.
+6. **Następna scena** — według grafu: w zagadkach każda odpowiedź może mieć własną scenę (gałąź), która sama wraca
+   na wspólną drogę (`next`). Wybór może też nałożyć warstwę (np. kwiatek) na kolejne sceny. Scena bez pytań
+   i bez `next` kończy odcinek; ekran końcowy pokazuje wybory widza i proponuje obejrzenie jeszcze raz.
 
 ## Skąd przychodzą odpowiedzi
 
@@ -99,7 +103,8 @@ decyzji odcinka). Zegarek to plan na przyszłość, z twardymi zasadami prywatno
 |---|---|
 | Scenariusz | `bajka/scenario.py` — wczytanie i walidacja grafu scen |
 | Silnik | `bajka/engine.py` — cykl scen, okna wyboru, dopytywanie, reakcje, wersje scen; `bajka/app.py` — złożenie całości |
-| Interfejsy | `bajka/ports.py` — `Player`, `Viewer`, `Listener`, `Voice`, `IntentResolver`, `Audience`, `AudiencePulse`, `ShowObserver` |
+| Interfejsy | `bajka/ports.py` — `Player`, `Compositor`, `Viewer`, `Editor`, `Listener`, `Voice`, `IntentResolver`, `Audience`, `AudiencePulse`, `ShowObserver` |
+| Montaż | `bajka/montage.py` — montażysta AI (model + reguły), decyzje o przejściach w tle |
 | Odtwarzacz | `bajka/web_player.py` + `bajka/player_app/` (przeglądarka), `bajka/player.py` (VLC), `bajka/console.py` (próby) |
 | Dystrybucja | `bajka/manifest.py` (JSON), `bajka/linear.py` (wersja liniowa), `bajka/placeholders.py` (klipy zastępcze) |
 | Odpowiedzi | okno wyboru w `player_app`, `bajka/mobile.py` + `bajka/mobile_app/` (drugi ekran), `bajka/local_stt.py`, `bajka/stt.py` (mowa) |
@@ -135,6 +140,10 @@ przeglądarki i VLC.
 | **Okno wyboru** | Opcje z obrazkami i odliczaniem na dole ekranu, po pytaniu postaci |
 | **Pętla oczekiwania** (`idle`) | Cichy, zapętlony klip — tło okna wyboru |
 | **Reakcja** (`reaction`) | Krótki nagrany klip: jak postać reaguje na konkretny wybór |
+| **Gałąź** | Krótka scena bez pytania, pokazująca skutek odpowiedzi; sama wraca na wspólną drogę (`next`) |
+| **Warstwa** (`layer`) | Przezroczysty klip z wyborem widza (np. kwiatek), nakładany na kolejne sceny (`layers`) |
+| **Montażysta** | Model AI, który wybiera przejście między klipami; gdy nie zdąży, decydują reguły |
+| **Przejście** | Sposób połączenia klipów: cięcie, przenikanie, przetarcie, zaciemnienie, rozjaśnienie |
 | **Drugi ekran** | Telefon domownika jako pilot z mikrofonem (`--mobile`) |
 | **Wersja liniowa** | Zwykły film z tych samych klipów, bez okien wyboru |
 | **Manifest** | Graf scen jako JSON dla odtwarzacza serwisu |

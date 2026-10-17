@@ -1,6 +1,6 @@
 # Do zrobienia
 
-Stan na 17.10.2026 (368 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md).
+Stan na 17.10.2026 (415 testów przechodzi). Nowa osoba w zespole? Zacznij od [ONBOARDING.md](ONBOARDING.md).
 Prezentacja przed jury: **18.10.2026, 19:00**. Odhaczajcie punkty w tym pliku (`- [x]`) i dopisujcie nowe.
 Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dlaczego streaming: [STREAMING.md](STREAMING.md).
 
@@ -18,6 +18,9 @@ Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dl
   - wersja liniowa (`python -m bajka.linear`) i manifest JSON (`python -m bajka.manifest`),
   - scenariusz przepisany na odcinek: zwroty do jednego widza bez form zależnych od płci, obrazki opcji,
   - tryb `--text` przechodzi cały odcinek w konsoli, bez wideo.
+- [x] **Gałęzie, warstwy i montaż AI (17.10):** każda odpowiedź w zagadce ma własną scenę (gałąź wraca na wspólną
+  drogę), kwiatek wybrany przez widza jest warstwą do finału, a o przejściach decyduje montażysta AI (model w tle,
+  w zapasie reguły). Sprawdzone w Chromium na całym odcinku z zaślepkami: przejścia, warstwy z alfą, panel.
 
 ## Testy na prawdziwym sprzęcie (przed pokazem)
 
@@ -31,6 +34,8 @@ Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dl
   - czy serwer przyjmuje odpowiedź w formacie wymuszonym schematem JSON (w logu: „odrzucił format odpowiedzi”).
 - [ ] Polski głos syntezatora w przeglądarce (lokalny głos Windows) i jego tempo; bez głosu zostają napisy.
 - [ ] Panel z symulowanym tętnem: „Pobudzenie” przed Wiaterkiem (wersja spokojna), „Znużenie” przed Świętem (wersja żywa).
+- [ ] Montażysta na prawdziwym Phi: czas decyzji (`python -m bajka.montage …`), czy mieści się w czasie reakcji
+  postaci; ewentualnie `BAJKA_MONTAGE_WAIT` albo `BAJKA_MONTAGE=reguly` na pokaz.
 - [ ] Wersja liniowa z prawdziwymi klipami (`python -m bajka.linear …`): długość, napisy, dźwięk w pętlach.
 - [ ] Drugi ekran na prawdziwych telefonach (Android i iPhone): certyfikat, mikrofon, Wi-Fi bez izolacji urządzeń.
 - [ ] `--player vlc` na laptopie pokazowym (zapasowy tryb): VLC 64-bit, mikrofon komputera.
@@ -45,6 +50,9 @@ Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dl
 - [ ] Pętle oczekiwania z wolną dolną jedną trzecią kadru (tam jest okno wyboru).
 - [ ] Klipy reakcji SC. 1 (`01_reakcja_hopsasa.mp4`, `01_reakcja_pukanie.mp4`); w kolejnej wersji reakcje na wszystkie wybory.
 - [ ] Wersje montażu: spokojne (`03b_las`, `04_wiaterek`, `07_swieto`) i żywe (`03b_las`, `07_swieto`).
+- [ ] Gałęzie: `03a1_most_przejscie`, `03a2_most_chwiejny`, `03b1_las_sowa`, `03b2_las_zaba`, `04a_wiaterek_jeszcze`,
+  `06a_laka_liczenie` oraz scena `06b_kwiatek` z pętlą.
+- [ ] Warstwy kwiatków (`warstwa_slonecznik/koniczyna/stokrotka.webm`, WebM VP9 z alfą) na torze ruchu Bzyczki z SC. 7–8.
 - [ ] Obrazki opcji w produkcji: miniatury w stylu odcinka zamiast emoji.
 - [ ] Nagrania dialogów aktorskich, własna muzyka i piosenki.
 - [ ] Napisy końcowe z nazwiskami i informacją o AI.
@@ -71,6 +79,7 @@ Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dl
 Propozycje z uzasadnieniem: [STREAMING.md](STREAMING.md#propozycje-usprawnień).
 
 - [ ] Sygnały uwagi bez biometrii (czas reakcji, serie cisz) jako wejście dla wersji scen — przed zegarkiem.
+- [ ] Klatki pośrednie z AI (RIFE/FILM przez Windows ML) dla przejść między niepasującymi kadrami.
 - [ ] Prawdziwe tętno z zegarka (Health Connect, HealthKit, Bluetooth „Heart Rate”) za osobną zgodą rodzica.
 - [ ] Napisy WebVTT do klipów, audiodeskrypcja opcji, profil dziecka z ustawieniami tylko na urządzeniu.
 - [ ] Pakowanie HLS/DASH i wstępne wczytywanie tylko klipów możliwych po bieżącym oknie wyboru.

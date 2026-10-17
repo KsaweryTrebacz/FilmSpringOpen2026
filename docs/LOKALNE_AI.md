@@ -17,6 +17,7 @@ Głos postaci w kwestiach na żywo czyta synteza mowy przeglądarki — na Windo
 | **Foundry Local** (`foundry-local-sdk` 2.x) | Pobiera, ładuje i uruchamia modele lokalnie; wystawia serwer zgodny z OpenAI | [`bajka/foundry.py`](../bajka/foundry.py) |
 | **Windows ML** | Silnik pod Foundry Local: na Windows pakiet SDK zawiera Windows ML i rejestruje akceleratory (NPU, GPU) — `download_and_register_eps()` | `bajka/foundry.py` |
 | **Model Phi** (domyślnie `phi-4-mini`) z katalogu Foundry Local | Rozumie odpowiedź dziecka i pisze reakcję Lili (JSON wymuszony schematem) | [`bajka/local_intent.py`](../bajka/local_intent.py) |
+| Ten sam **model Phi** jako montażysta | Wybiera przejście między klipami (rodzaj, długość, powód) na podstawie wyboru widza, jego słów i tętna; pracuje w tle, w zapasie reguły | [`bajka/montage.py`](../bajka/montage.py) |
 | **Whisper** (domyślnie `whisper-tiny`) z katalogu Foundry Local | Mowa dziecka → tekst | [`bajka/local_stt.py`](../bajka/local_stt.py) |
 | **Windows.Media.SpeechSynthesis** (WinRT, wbudowany w Windows) | Głos Lili w trybie `--player vlc`, polski głos „Microsoft Paulina”, offline | [`bajka/local_tts.py`](../bajka/local_tts.py) |
 | **Synteza mowy przeglądarki** (Web Speech API w Edge/Chrome) | Głos Lili w odtwarzaczu w przeglądarce; wybieramy lokalny polski głos systemu, zawsze z napisami | [`bajka/player_app/`](../bajka/player_app/index.html) |
@@ -53,6 +54,8 @@ Kolejne uruchomienia korzystają z pamięci podręcznej Foundry Local.
 | `FOUNDRY_DEVICE` | `auto` | `NPU` na Copilot+ PC, `GPU` przy mocnej karcie |
 | `BAJKA_VAD_THRESHOLD` | `500` | `--player vlc`: w głośnym pokoju zwiększ (np. 900), przy cichym dziecku zmniejsz |
 | `BAJKA_WEB_ANSWER_SECONDS` | `6` | Odtwarzacz w przeglądarce: najdłuższe nagranie odpowiedzi |
+| `BAJKA_MONTAGE` | `model` | `reguly`: przejścia bez modelu (słabszy komputer, przewidywalny pokaz) |
+| `BAJKA_MONTAGE_WAIT` | `0.5` | Ile sekund czekać na decyzję modelu, gdy przejście trzeba już zagrać |
 | `BAJKA_END_SILENCE_MS` | `1200` | Dzieci robią przerwy w zdaniu — przy ucinaniu zwiększ |
 | `BAJKA_WINDOWS_VOICE_PITCH` | `1.0` | 1.1–1.3 brzmi bardziej bajkowo |
 | `BAJKA_WINDOWS_VOICE_RATE` | `0.9` | Wolniej dla młodszych dzieci |
@@ -60,6 +63,8 @@ Kolejne uruchomienia korzystają z pamięci podręcznej Foundry Local.
 ## Odporność na błędy
 
 - Model językowy zawiedzie (błąd, zły JSON) → wybór po słowach kluczowych ze scenariusza (`keywords`).
+- Montażysta nie zdąży albo zwróci bzdurę → przejście z reguł; decyzja modelu jest zawsze przycinana do dozwolonych
+  rodzajów i długości (rozjaśnienie co najmniej 0,8 s, bez błysków).
 - Serwer odrzuci format odpowiedzi ze schematem → aplikacja przechodzi na `json_object` i zostaje przy nim.
 - Whisper „usłyszy” w szumie napisy z filmów (np. „Amara.org”) → traktujemy to jak ciszę.
 - Brak pakietów, głosu albo modelu → aplikacja kończy się kodem 2 z komunikatem, co doinstalować.

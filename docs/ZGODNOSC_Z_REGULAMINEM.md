@@ -41,6 +41,10 @@ warstwach:
 - Sowa w dzień: sowy są aktywne głównie nocą, więc Lila mówi teraz „Sowy w dzień zwykle śpią, a my ją chyba budzimy!”.
 - Ul: wcześniej „na wysokim drzewie”, co bardziej pasuje do dzikiego gniazda. Teraz ul stoi na końcu łąki pod lipą.
 
+**Montaż AI nie tworzy treści:** montażysta (`bajka/montage.py`) wybiera tylko sposób połączenia gotowych klipów
+(rodzaj i długość przejścia); jego powód widać wyłącznie w panelu dla twórców i przechodzi przez ten sam filtr.
+Rozjaśnienie trwa zawsze co najmniej 0,8 s, więc nie powstają błyski (bezpieczeństwo osób z padaczką fotogenną).
+
 **Bez wprowadzania w błąd:** napisy końcowe informują, że część kwestii postaci tworzy na żywo sztuczna inteligencja
 i że nagrań odpowiedzi nie przechowujemy; kwestie na żywo mają zawsze napisy. **POPRAWIONE**
 

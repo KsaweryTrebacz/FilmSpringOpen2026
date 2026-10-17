@@ -2,7 +2,9 @@
 
 Prototyp na hackathon FilmSpring Open 2026: animowana bajka dla dzieci do oglądania w serwisie streamingowym.
 W kluczowych momentach postać zadaje pytanie, a na ekranie pojawia się **okno wyboru** z obrazkami i odliczaniem.
-Dziecko wybiera **pilotem, dotykiem albo głosem** („przez ten kolorowy mostek!”), a historia idzie w wybraną stronę.
+Dziecko wybiera **pilotem, dotykiem albo głosem** („przez ten kolorowy mostek!”), a historia idzie w wybraną stronę:
+każda odpowiedź może prowadzić do innej sceny, a wybory widza są **nakładane na klipy jako warstwy** (np. kwiatek,
+który Bzyczka niesie do finału). O **płynnym przejściu** między klipami decyduje **montażysta AI** na urządzeniu.
 W przyszłości tempo odcinka może dopasowywać się do **tętna widza** z zegarka (dziś: symulator).
 
 Domyślnie całe AI działa **lokalnie na urządzeniu** (Foundry Local z Whisper i Phi na NPU/GPU/CPU) — bez chmury
@@ -26,10 +28,16 @@ odcinek trafia do serwisów: [docs/STREAMING.md](docs/STREAMING.md). Zgodność 
      (Foundry Local) zamienia ją na tekst, a Phi (Foundry Local) rozpoznaje intencję i może dopisać krótką osobistą
      kwestię. Gdy model zawiedzie, wybór rozpoznają słowa kluczowe ze scenariusza.
 4. Po wyborze gra nagrany klip reakcji postaci, a gdzie go nie ma — postać mówi kwestię ze scenariusza
-   (napisy + głos syntezatora przeglądarki). Potem startuje klip wybranej ścieżki.
-5. Czas minął bez wyboru albo odpowiedź była niejasna: postać dopytuje (domyślnie 2 razy), potem wybiera sama.
+   (napisy + głos syntezatora przeglądarki). Potem startuje scena wybranej ścieżki: w zagadkach każda odpowiedź
+   może mieć własną scenę (gałąź), która wraca na wspólną drogę.
+5. **Montaż AI:** w trakcie reakcji montażysta (model Phi na urządzeniu) przetwarza informacje — skąd i dokąd
+   idziemy, co widz wybrał i powiedział, jak się czuje według tętna, co podpowiada autor — i wybiera przejście
+   (przenikanie, przetarcie, zaciemnienie, rozjaśnienie albo cięcie) oraz jego długość. Odtwarzacz nakłada kolejny
+   klip na koniec poprzedniego, a warstwy z wyborami widza (przezroczyste klipy) kładzie nad sceną. Gdy model
+   nie zdąży, decydują reguły (`bajka/montage.py`).
+6. Czas minął bez wyboru albo odpowiedź była niejasna: postać dopytuje (domyślnie 2 razy), potem wybiera sama.
    Odcinek nigdy nie staje.
-6. Na końcu ekran „Koniec odcinka!” pokazuje wybory widza i proponuje obejrzenie jeszcze raz (cztery zakończenia).
+7. Na końcu ekran „Koniec odcinka!” pokazuje wybory, które zmieniły odcinek, i proponuje obejrzenie jeszcze raz.
 
 Kwestie pisane na żywo przez model przechodzą przez filtr treści (`bajka/safety.py`). Awaria rozpoznawania mowy,
 modelu albo głosu nie zatrzymuje odcinka: zostaje wybór pilotem, a w ostateczności wybór domyślny.
@@ -91,6 +99,23 @@ Prototyp sam jest odtwarzaczem (`bajka/web_player.py`), ale odcinek da się też
 
 Szczegóły, realia rynku i plan dystrybucji: [docs/STREAMING.md](docs/STREAMING.md).
 
+## Montaż AI: gałęzie, warstwy i płynne przejścia
+
+- **Gałęzie.** Odpowiedź w zagadce prowadzi do własnej sceny (np. niebieska deska → mostek się chwieje i naprawiamy
+  go razem), a scena bez pytania wraca na wspólną drogę polem `next`.
+- **Warstwy.** Wybór może nałożyć przezroczysty klip (`layer`) na kolejne sceny, które go pokazują (`layers`):
+  jedna animacja finału + trzy małe warstwy kwiatków zamiast trzech wersji finału.
+- **Montażysta.** Zaraz po wyborze model dostaje informacje o przejściu i wybiera rodzaj oraz długość przejścia
+  z powodem jednym zdaniem (widać go w panelu podglądu). Pracuje w tle, gdy gra reakcja postaci; jeśli nie odpowie
+  w `BAJKA_MONTAGE_WAIT` (domyślnie 0,5 s od chwili, gdy przejście trzeba zagrać), decydują reguły. `--no-llm`
+  albo `BAJKA_MONTAGE=reguly`: same reguły. Rozjaśnienie zawsze trwa co najmniej 0,8 s — bez błysków.
+- **Odtwarzacz.** Strona ma dwa pokłady wideo: nowe ujęcie wchodzi na wierzch przejściem i zachodzi na ostatnią
+  sekundę poprzedniego klipu; pętla oczekiwania zaczyna się cięciem na ostatniej klatce. `--player vlc` gra klipy
+  po kolei, bez warstw i przejść; tryb `--text` wypisuje decyzje montażu w konsoli.
+
+Sprawdzenie decyzji bez reszty aplikacji:
+`python -m bajka.montage scenarios/klub_ciekawskich.yaml --from kuferek --choice las --viewer pobudzenie --said "do lasu"`.
+
 ## Drugi ekran: telefon jako pilot z mikrofonem
 
 Telewizor często nie ma mikrofonu. Wtedy domownik może odpowiadać z telefonu (`--mobile` albo `BAJKA_MOBILE=1`):
@@ -137,6 +162,7 @@ python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pom
 python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek   # rundy pytań na telefonach (drugi ekran)
 python -m bajka.manifest scenarios/klub_ciekawskich.yaml   # manifest odcinka (JSON) na ekran
 python -m bajka.linear scenarios/klub_ciekawskich.yaml --plan   # plan montażu wersji liniowej
+python -m bajka.montage scenarios/klub_ciekawskich.yaml --from kuferek --choice las --viewer pobudzenie   # decyzja montażysty (model i reguły)
 python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure STT)
 python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos postaci (Azure TTS)
 python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
@@ -165,6 +191,10 @@ scenariusza. Scena bez `choices` kończy odcinek.
 | `scenes.<id>.fallback` | Opcjonalnie: wstęp, gdy postać sama wybiera (domyślnie „Dobrze, to ja wybiorę!”) |
 | `scenes.<id>.default` | Wybór, gdy po dopytaniach nadal brak decyzji albo model zawiedzie |
 | `scenes.<id>.timeout` | Opcjonalnie: ile sekund trwa okno wyboru (3–60; domyślnie `BAJKA_CHOICE_SECONDS`, 12 s) |
+| `scenes.<id>.next` | Scena bez pytania (np. gałąź zagadki) przechodzi sama do tej sceny |
+| `scenes.<id>.place` | Miejsce akcji dla montażysty, np. „Szumiący Las”: zmiana miejsca to inne przejście niż ciąg dalszy |
+| `scenes.<id>.transition` | Opcjonalnie: podpowiedź autora, jakim przejściem scena wchodzi (`ciecie`, `przenikanie`, `przetarcie`, `zaciemnienie`, `rozjasnienie`) |
+| `scenes.<id>.layers` | Miejsca na warstwy (`slot`), które ta scena pokazuje nad swoim klipem i pętlą |
 | `choices.<id>.label` | Krótka nazwa opcji w oknie wyboru i na telefonie (domyślnie identyfikator) |
 | `choices.<id>.icon` | Obrazek opcji dla dzieci, które nie czytają (w prototypie emoji) |
 | `choices.<id>.description` | Znaczenie wyboru dla modelu, np. „pójść do mrocznego lasu” |
@@ -172,12 +202,18 @@ scenariusza. Scena bez `choices` kończy odcinek.
 | `choices.<id>.reply` | Kwestia postaci po wyborze (gdy nie ma klipu reakcji) |
 | `choices.<id>.reaction` | Opcjonalnie: nagrany klip reakcji postaci na ten wybór (ma pierwszeństwo przed `reply`) |
 | `choices.<id>.keywords` | Opcjonalnie: słowa, po których odpowiedź głosem rozpozna się bez modelu |
+| `choices.<id>.layer` | Opcjonalnie: przezroczysty klip (WebM VP9 z alfą albo MOV) nakładany na kolejne sceny po tym wyborze |
+| `choices.<id>.slot` | Miejsce na warstwę (domyślnie identyfikator sceny); nowy wybór w tym miejscu zastępuje poprzedni |
 
 ## Wskazówki do klipów
 
 - Pętla oczekiwania z bardzo cichym podkładem i bez dialogów; dolna jedna trzecia kadru wolna (tam jest okno wyboru).
 - Ostatnia klatka klipu z pytaniem = pierwsza klatka pętli, wtedy przejście jest niewidoczne.
 - Format: MP4, H.264 + AAC z indeksem na początku pliku (`-movflags +faststart`) — szybki start w przeglądarce.
+- Warstwy: pełna klatka z przezroczystym tłem, WebM VP9 z kanałem alfa (Edge, Chrome, Firefox; na Safari MOV HEVC
+  z alfą), bez dźwięku, zapętlane. Animujcie je na tym samym torze ruchu co postać w scenach, na które je nakładamy.
+- Gałęzie (sceny z `next`) są krótkie (15–25 s) i kończą się kadrem, z którego da się płynnie przejść do wspólnej
+  sceny — przejście robi odtwarzacz według decyzji montażysty, bez domontowywania.
 - Klipy nie są w repozytorium (`scenarios/clips/` jest w `.gitignore`), trzymajcie je na dysku współdzielonym.
 
 ## Architektura
@@ -186,11 +222,11 @@ scenariusza. Scena bez `choices` kończy odcinek.
 |---|---|
 | `bajka/scenario.py` | Wczytanie i walidacja scenariusza YAML (`media_files`, `missing_media`) |
 | `bajka/config.py` | Wspólne narzędzia ustawień: `load_env`, `require`, `get_int`, `get_float` |
-| `bajka/ports.py` | Kontrakty: `Player`, `Viewer` (okno wyboru → `Answer`), `Listener`, `Voice`, `IntentResolver`, `Audience`, `AudiencePulse`, `ShowObserver` |
+| `bajka/ports.py` | Kontrakty: `Player`, `Compositor` (ujęcia `Shot` z warstwami i przejściem `Cut`), `Viewer` (okno wyboru → `Answer`), `Editor` (montażysta), `Listener`, `Voice`, `IntentResolver`, `Audience`, `AudiencePulse`, `ShowObserver` |
 | `bajka/engine.py` | `StoryEngine`: przebieg odcinka, okna wyboru, dopytywanie, reakcje, wersje scen, ścieżki awaryjne |
-| `bajka/web_player.py` | Odtwarzacz w przeglądarce: serwer HTTP, klipy z zakresami bajtów, okna wyboru, głos z przeglądarki (`WebEpisode`, `WebPlayerServer`) |
-| `bajka/player_app/` | Strona odtwarzacza: wideo, okno wyboru z odliczaniem, pilot/dotyk/głos, napisy, ustawienia rodzica, ekran końcowy |
-| `bajka/linear.py` | Wersja liniowa odcinka (ffmpeg) i napisy `.srt` |
+| `bajka/web_player.py` | Odtwarzacz w przeglądarce: serwer HTTP, klipy z zakresami bajtów, ujęcia z warstwami i przejściami, okna wyboru, głos z przeglądarki (`WebEpisode`, `WebPlayerServer`) |
+| `bajka/player_app/` | Strona odtwarzacza: dwa pokłady wideo nakładane przejściami, warstwy z alfą, okno wyboru z odliczaniem, pilot/dotyk/głos, napisy, ustawienia rodzica, ekran końcowy |
+| `bajka/linear.py` | Wersja liniowa odcinka (ffmpeg: warstwy `overlay`, przejścia `xfade`) i napisy `.srt` |
 | `bajka/manifest.py` | Manifest odcinka (JSON) dla odtwarzacza serwisu |
 | `bajka/foundry.py` | Foundry Local: modele lokalne na NPU/GPU/CPU, serwer zgodny z OpenAI |
 | `bajka/local_stt.py` | Whisper lokalnie + wykrywanie wypowiedzi (`LocalListener`, `FoundryTranscriber`) |
@@ -198,6 +234,7 @@ scenariusza. Scena bez `choices` kończy odcinek.
 | `bajka/local_tts.py` | Głos z syntezatora Windows dla `--player vlc` (`WindowsVoice`) |
 | `bajka/stt.py`, `bajka/tts.py`, `bajka/intent.py` | To samo na usługach Azure (`--backend azure`) |
 | `bajka/keywords.py` | Wybór po słowach kluczowych, offline (`KeywordIntentResolver`, `FallbackResolver`) |
+| `bajka/montage.py` | Montaż AI: decyzje o przejściach (`ModelEditor` z Phi albo Azure, `RuleEditor`, `Montage` z pracą w tle) |
 | `bajka/safety.py` | Filtr kwestii modelu językowego (`SafeReplyResolver`) |
 | `bajka/mobile.py`, `bajka/mobile_app/` | Drugi ekran: telefony jako pilot z mikrofonem (`MobileAudience`, `MobileServer`) |
 | `bajka/pulse.py` | Tętno widza: symulator (`SimulatedPulse`), stan widza (`hall_state`), wybór wersji (`pick_variant`) |
@@ -227,6 +264,8 @@ Test wersji liniowej buduje mały film przez ffmpeg; bez ffmpeg jest pomijany.
 - Wideo nie gra albo jest czarne: przeglądarka bez kodeka H.264 (np. Chromium) — użyj Edge/Chrome albo klipów `.webm`.
 - Okno wyboru nie słucha głosu: w ustawieniach (⚙) włącz mikrofon i zezwól przeglądarce na mikrofon; strona musi być
   otwarta pod `127.0.0.1` albo `localhost` (inaczej przeglądarka nie da mikrofonu bez HTTPS). Bez `--no-mic`.
+- Warstwa (np. kwiatek) ma czarne tło albo jej nie widać: plik musi być WebM VP9 z kanałem alfa
+  (`-pix_fmt yuva420p`, zob. `bajka/placeholders.py`), a na Safari — MOV HEVC z alfą.
 - Postać nie mówi, są tylko napisy: brak polskiego głosu syntezatora — dodaj go w Ustawienia → Czas i język → Mowa.
 - Dziecko jest ucinane albo nie zdąża: wydłuż `BAJKA_CHOICE_SECONDS` albo `timeout` sceny i `BAJKA_WEB_ANSWER_SECONDS`.
 - `Brak pakietu foundry-local-sdk` albo `Brak pakietów WinRT`: `pip install -e ".[local]"`.
