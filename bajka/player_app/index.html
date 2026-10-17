@@ -183,6 +183,10 @@ if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.addEventListener
 
 $("startButton").addEventListener("click", async () => {
   if (started) { $("start").hidden = true; return; }  // powrót z ustawień
+  initSpeechRecognition();
+  if (recognition) {
+    try { recognition.start(); } catch (err) { console.warn("Recognition start error:", err); }
+  }
   if (settings.mic) await openMicrophone();
   if ("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(""));  // odblokowanie mowy
   started = true;
@@ -203,10 +207,9 @@ function initSpeechRecognition() {
     recognition.lang = "pl-PL";
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+    recognition.maxAlternatives = 3;
 
     recognition.onresult = event => {
-      if (!ask || ask.picked) return;
       let interim = "";
       let finalTranscript = "";
       for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -217,21 +220,36 @@ function initSpeechRecognition() {
       const heard = (finalTranscript || interim).trim();
       if (!heard) return;
 
-      listening(`Słyszę: „${heard}”…`, "on");
+      console.log("Heard speech:", heard);
 
-      const match = matchChoice(heard);
-      if (match) {
-        listening(`Słyszę: „${heard}” → ${match.label}!`, "heard");
-        pick(ask.seq, match.choiceId, match.button);
-      } else if (finalTranscript.trim()) {
-        sendSpokenTranscript(ask.seq, finalTranscript.trim());
+      if (ask && !ask.picked) {
+        listening(`🎤 Słyszę: „${heard}”…`, "on");
+
+        const match = matchChoice(heard);
+        if (match) {
+          listening(`✅ Wybrano głosem: „${match.label}”!`, "heard");
+          pick(ask.seq, match.choiceId, match.button);
+        } else if (finalTranscript.trim()) {
+          sendSpokenTranscript(ask.seq, finalTranscript.trim());
+        }
       }
     };
 
-    recognition.onerror = () => {};
+    recognition.onerror = event => {
+      console.warn("Speech recognition error:", event.error);
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        $("micError").hidden = false;
+        $("micError").textContent = "Mikrofon zablokowany w przeglądarce. Zezwól na dostęp do mikrofonu.";
+      }
+    };
+
     recognition.onend = () => {
-      if (speechActive && ask && !ask.picked) {
-        try { recognition.start(); } catch (_) {}
+      if (!closed) {
+        setTimeout(() => {
+          if (!closed && recognition) {
+            try { recognition.start(); } catch (_) {}
+          }
+        }, 200);
       }
     };
   } catch (err) {
@@ -542,7 +560,7 @@ function openChoice(command) {
       if (recognition) { try { recognition.start(); } catch (_) {} }
     }
     if (audio) startRecording(seq, Math.max(1, left - 0.3), ask.answerSeconds);
-    else listening("🎤 Słucham… powiedz odpowiedź na głos", "on");
+    listening("🎙️ Słucham… powiedz odpowiedź na głos!", "on");
   }
 }
 
@@ -622,10 +640,39 @@ function normalizeText(text) {
     .trim();
 }
 
+function textMatchesChoice(heardText, choiceId, label) {
+  const clean = t => (t || "").toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+  const h = clean(heardText);
+  const id = clean(choiceId);
+  const l = clean(label);
+
+  if (!h) return false;
+  if (h.includes(id) || (id.length >= 3 && id.includes(h))) return true;
+  if (h.includes(l) || (l.length >= 3 && l.includes(h))) return true;
+
+  const synonyms = {
+    hopsasa: ["hop", "sasa", "hopsasa", "hopsa", "zawolam", "wolam", "krzycz", "obudz", "glosno", "tak"],
+    pukanie: ["puk", "pukpuk", "zapukaj", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij"],
+    most: ["most", "mostek", "tecza", "teczowy", "woda", "strumyk", "kolory", "rzeka"],
+    las: ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy"],
+    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony"],
+    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski"],
+    sowa: ["sow", "sowa", "sowe", "ptak"],
+    krecik: ["kret", "krecik", "kreta"],
+    rumianek: ["rumianek", "rumian", "bialy"],
+    chaber: ["chaber", "chabr", "niebieski"],
+    mak: ["mak", "maki", "czerwony"]
+  };
+
+  const list = synonyms[choiceId] || [];
+  for (const s of list) {
+    if (h.includes(s)) return true;
+  }
+  return false;
+}
+
 function matchChoice(heardText) {
   if (!ask) return null;
-  const normHeard = normalizeText(heardText);
-  const words = normHeard.split(" ").filter(Boolean);
   const buttons = [...$("options").children];
 
   for (let i = 0; i < buttons.length; i++) {
@@ -633,23 +680,17 @@ function matchChoice(heardText) {
     const choiceId = btn.dataset.choice;
     const spans = btn.querySelectorAll("span");
     const label = (spans.length > 1 ? spans[1].textContent : (spans[0]?.textContent || "")).trim();
-    const normId = normalizeText(choiceId);
-    const normLabel = normalizeText(label);
 
-    const numWords = [
-      ["1", "jeden", "jedynka", "pierwsza", "pierwszy", "jedno"],
-      ["2", "dwa", "dwojka", "druga", "drugi", "drugie"],
-      ["3", "trzy", "trojka", "trzecia", "trzeci", "trzecie"],
-    ];
-    if (numWords[i] && numWords[i].some(w => words.includes(normalizeText(w)))) {
+    // 1. Sprawdź numer 1, 2, 3
+    const numWords = [["1", "jeden", "pierwsz", "jedynka"], ["2", "dwa", "drug", "dwojka"], ["3", "trzy", "trzec", "trojka"]];
+    const cleanHeard = heardText.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+    if (numWords[i] && numWords[i].some(w => cleanHeard.includes(w))) {
       return { choiceId, button: btn, label };
     }
 
-    const targetWords = [...normId.split(" "), ...normLabel.split(" ")].filter(w => w.length >= 3);
-    for (const target of targetWords) {
-      if (words.some(w => w === target || (w.length >= 4 && (w.startsWith(target.slice(0, 4)) || target.startsWith(w.slice(0, 4)))))) {
-        return { choiceId, button: btn, label };
-      }
+    // 2. Sprawdź po nazwie i synonimach
+    if (textMatchesChoice(heardText, choiceId, label)) {
+      return { choiceId, button: btn, label };
     }
   }
   return null;
@@ -671,7 +712,6 @@ function listening(text, cls) {
 function startRecording(seq, seconds, maxSeconds) {
   recorder = { seq, chunks: [], preRoll: [], speaking: false, floor: 0.01, silentMs: 0, spokenMs: 0,
     maxMs: maxSeconds * 1000, deadline: performance.now() + seconds * 1000 };
-  listening("Słucham… możesz powiedzieć odpowiedź", "on");
 }
 
 function onAudio(input, rate) {
@@ -707,7 +747,6 @@ async function stopRecording(sendIt) {
   if (!sendIt || !r || !ask || ask.seq !== r.seq) return;
   const current = ask;
   current.sending = true;
-  listening("Chwileczkę…", "on");
   let result = { status: "offline" };
   try {
     const response = await fetch(`api/voice?seq=${r.seq}`, {
@@ -721,11 +760,6 @@ async function stopRecording(sendIt) {
     listening(`Słyszę: „${result.transcript}”`, "heard");
   } else if (current.timerEnded) {
     post("api/event", { type: "timeout", seq: current.seq });
-  } else if (current.endsAt - performance.now() > 1500) {
-    startRecording(current.seq, (current.endsAt - performance.now()) / 1000 - 0.3, current.answerSeconds);
-    listening("Nie słychać odpowiedzi. Powiedz jeszcze raz albo wybierz pilotem.", "on");
-  } else {
-    listening("Wybierz pilotem albo dotknij odpowiedzi.", "");
   }
 }
 

@@ -110,6 +110,10 @@ class WebEpisode:
         self._restart = False
         self.on_stop: Callable[[], None] | None = None  # zatrzymanie silnika, gdy widz zamknie odcinek
 
+    def set_transcribe(self, transcribe: Callable[[np.ndarray], str]) -> None:
+        with self._cond:
+            self._transcribe = transcribe
+
     # --- kontrakty Player, Voice i Viewer (wątek silnika) ---
 
     def play(self, clip: Path) -> None:
