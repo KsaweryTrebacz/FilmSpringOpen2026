@@ -131,7 +131,7 @@ class PanelState:
         with self._lock:
             baseline = self._baseline
             bpm = self._last.bpm if self._last else None
-            state = hall_state(bpm, baseline, self._pulse_settings) if bpm is not None and baseline else None
+            state = hall_state(bpm, baseline or self._pulse_settings.start_bpm, self._pulse_settings) if bpm is not None else None
             return {
                 "scene": self._scene,
                 "path": list(self._path),

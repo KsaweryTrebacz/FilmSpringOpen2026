@@ -110,6 +110,7 @@ class WebEpisode:
         self._restart = False
         self.on_stop: Callable[[], None] | None = None  # zatrzymanie silnika, gdy widz zamknie odcinek
         self.panel_url: str | None = None  # adres panelu podglądu, gdy działa (--panel); strona pokaże przycisk
+        self.panel_state: Any | None = None  # stan panelu z biofeedbackiem tętna na żywo
 
     def set_transcribe(self, transcribe: Callable[[np.ndarray], str]) -> None:
         with self._cond:
@@ -190,6 +191,14 @@ class WebEpisode:
                      "answer_seconds": self._settings.answer_seconds, "panel": self.panel_url}  # fmt: skip
             if state["kind"] == "ask":
                 state["seconds_left"] = max(0.0, min(state["seconds"], self._remaining - self._settings.grace_seconds))
+            if self.panel_state is not None:
+                snap = self.panel_state.snapshot()
+                pulse_info = snap.get("pulse", {})
+                viewer = pulse_info.get("state") or ""
+                if viewer:
+                    state["viewer"] = viewer
+                    state["rate"] = 1.08 if viewer == "znużenie" else (0.92 if viewer == "pobudzenie" else 1.0)
+                    state["punch"] = viewer == "znużenie"
             return state
 
     def media(self, path: str) -> Path | None:

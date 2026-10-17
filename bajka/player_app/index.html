@@ -398,6 +398,8 @@ async function poll() {
   setTimeout(poll, 250);
 }
 
+let currentViewerState = null;
+
 function onState(next) {
   state = next;
   document.title = next.title;
@@ -406,6 +408,37 @@ function onState(next) {
   $("panelButton").hidden = $("panelLink").hidden = !next.panel;  // panel podglądu działa tylko z flagą --panel
   if (next.panel) $("panelLink").href = next.panel;
   if (next.kind === "closed") { closed = true; stopAll(); show("closed"); return; }
+
+  // Dynamiczne tempo i Punch Cut w czasie rzeczywistym dla WSZYSTKICH scen:
+  const activeViewer = next.viewer || "";
+  if (activeViewer && activeViewer !== currentViewerState) {
+    const oldState = currentViewerState;
+    currentViewerState = activeViewer;
+    const isBored = activeViewer === "znuzenie" || activeViewer === "znużenie";
+    const isExcited = activeViewer === "pobudzenie";
+    const targetRate = next.rate || (isBored ? 1.08 : (isExcited ? 0.92 : 1.0));
+
+    // Zastosuj tempo natychmiast do aktualnego wideo i warstw we wszystkich scenach
+    if (front && front.video) {
+      try { front.video.playbackRate = targetRate; } catch (_) {}
+      for (const layer of front.layerBox.children) {
+        try { layer.playbackRate = targetRate; } catch (_) {}
+      }
+    }
+
+    // Punch Cut / mikro-zoom: natychmiastowe ożywienie kadru przy znużeniu
+    if (isBored && oldState !== null && started && front && front.el) {
+      front.el.style.transformOrigin = "center center";
+      animate(front.el, [
+        { transform: "scale(1.05)" },
+        { transform: "scale(1.0)" }
+      ], 320, "cubic-bezier(0.12, 0.82, 0.3, 1.15)");
+      showBadge(`⚡ Montaż dynamiczny (${targetRate}x + Punch Cut)`, "dynamic");
+    } else if (isExcited && started) {
+      showBadge(`🌿 Montaż relaksujący (${targetRate}x · spokojne tempo)`, "calm");
+    }
+  }
+
   if (!started || next.seq === handled) return;
   handled = next.seq;
   chain = chain.then(() => perform(next)).catch(error => console.error("Polecenie odcinka:", error));
@@ -532,8 +565,10 @@ async function present(shot, loop, seq) {
   const ms = Math.min(2.5, cut.seconds || 0) * 1000;
   const kind = front && ms > 0 ? cut.transition : "ciecie";
   const through = kind === "zaciemnienie" || kind === "rozjasnienie";  // przez ciemność albo jasność
-  const rate = shot.rate || 1.0;
-  const punch = !!shot.punch;
+  const isBored = shot.viewer === "znuzenie" || shot.viewer === "znużenie" || currentViewerState === "znuzenie" || currentViewerState === "znużenie";
+  const isExcited = shot.viewer === "pobudzenie" || currentViewerState === "pobudzenie";
+  const rate = shot.rate || (isBored ? 1.08 : (isExcited ? 0.92 : 1.0));
+  const punch = !!shot.punch || isBored;
   const back = decks.find(deck => deck !== front);
   load(back, shot, loop);
   await ready(back.video);

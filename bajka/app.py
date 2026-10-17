@@ -306,6 +306,7 @@ def main(argv: list[str] | None = None) -> int:
             servers.append(panel.server)
             if web is not None:
                 web.episode.panel_url = panel_url  # odtwarzacz pokaże przycisk panelu
+                web.episode.panel_state = panel.state  # tętno i biofeedback na żywo we wszystkich scenach
             if not scenario.mood:
                 log.info("Scenariusz nie ma pola 'mood': panel pokazuje drzewo i wybory, a sceny grają zwykłe wersje")
         if web is not None:

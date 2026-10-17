@@ -83,6 +83,10 @@ class RuleEditor:
 
     def cut(self, context: CutContext) -> Cut:
         if context.edge == "reakcja":
+            if context.viewer == BORED:
+                return checked_cut(CUT, 0.0, "Reakcja postaci: natychmiastowe dynamiczne cięcie.", viewer=context.viewer)
+            if context.viewer == EXCITED:
+                return checked_cut(DISSOLVE, 0.8, "Reakcja postaci: wolniejsze, łagodne przenikanie (0,8 s).", viewer=context.viewer)
             return checked_cut(DISSOLVE, 0.4, "Reakcja postaci w tym samym miejscu: krótkie przenikanie.")
 
         moving = bool(context.from_place and context.to_place and context.from_place != context.to_place)
