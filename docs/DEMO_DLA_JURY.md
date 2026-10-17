@@ -11,8 +11,8 @@ ze strzałkami), wszyscy mogą odpowiadać na głos, a ktoś z zespołu steruje 
    więc uzupełnia też klipy reakcji (`01_reakcja_*.mp4`), gałęzie zagadek, wersje scen (`*_spokojna.mp4`,
    `*_zywa.mp4`) i przezroczyste warstwy kwiatków (`warstwa_*.webm`).
    Bez nich bajka się nie uruchomi („Brak plików wideo”).
-2. Przeglądarka Edge albo Chrome (Chromium bez kodeka H.264 nie odtworzy MP4). Polski głos syntezatora w Windows
-   (Ustawienia → Czas i język → Mowa), inaczej postać „mówi” tylko napisami.
+2. Przeglądarka Edge albo Chrome (Chromium bez kodeka H.264 nie odtworzy MP4). Kwestie postaci na żywo są w napisach
+   (lektor syntezatora w przeglądarce jest wyłączony).
 3. Pierwsze uruchomienie modeli (Whisper, Phi) **przed pokazem** — pobierają się raz, potem działają bez internetu.
 4. Zamknijcie podglądy po próbach (`python -m bajka.panel`, poprzednie uruchomienie bajki): zajęty port 8080
    albo 8090 kończy start komunikatem „Nie udało się uruchomić serwera (port zajęty?)”. Sprawdzenie:
@@ -33,7 +33,7 @@ ze strzałkami), wszyscy mogą odpowiadać na głos, a ktoś z zespołu steruje 
 ## Start
 
 Odcinek czeka na przycisk **▶ Oglądaj**, więc aplikację można uruchomić wcześniej. W ustawieniach na ekranie
-startowym zostawcie zaznaczone „Odpowiedzi głosem”, „Postać czyta swoje kwestie” i „Napisy”. Przeglądarka zapyta
+startowym zostawcie zaznaczone „Odpowiedzi głosem” i „Napisy na ekranie”. Przeglądarka zapyta
 o mikrofon — zezwólcie. Panel podglądu: `http://127.0.0.1:8090/`.
 
 ## Przebieg (około 4 minut)
@@ -63,7 +63,8 @@ Wersję sceny odcinek wybiera w chwili, gdy scena się zaczyna, więc tętno trz
 
 ## Gdy coś nie działa
 
-- **Nie słychać postaci:** brak polskiego głosu syntezatora — są napisy, pokaz idzie dalej.
+- **Nie słychać postaci:** w odtwarzaczu w przeglądarce kwestie na żywo są tylko w napisach (lektor wyłączony);
+  głosy postaci mają nagrane klipy. Pokaz idzie dalej.
 - **Głos nie działa** (mikrofon, model): wybieramy pilotem; w ostateczności uruchamiamy z `--no-llm --no-mic`.
 - **Wideo się nie odtwarza:** przeglądarka bez H.264 — otwórzcie adres w Edge albo Chrome.
 - **Zamknięta karta:** odcinek czeka; otwórzcie `http://127.0.0.1:8080/` ponownie i naciśnijcie Oglądaj — bieżąca scena

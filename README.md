@@ -14,6 +14,7 @@ Odcinek: **„Klub Ciekawskich: Bzyczka szuka domu”** ([scenariusz odcinka](sc
 [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)). Dlaczego streaming, jak to wygląda na rynku i jak
 odcinek trafia do serwisów: [docs/STREAMING.md](docs/STREAMING.md). Zgodność z regulaminem hackathonu:
 [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
+**Prezentacja produktu, pitch, Kreator Rodzica i badania: [docs/prezentacja/](docs/prezentacja/README.md).**
 **Nowa osoba w zespole? Zacznij od [docs/ONBOARDING.md](docs/ONBOARDING.md).** Podział pracy:
 [docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md). Co zostało do zrobienia: [docs/DO_ZROBIENIA.md](docs/DO_ZROBIENIA.md).
 
@@ -21,14 +22,15 @@ odcinek trafia do serwisów: [docs/STREAMING.md](docs/STREAMING.md). Zgodność 
 
 1. Odtwarzacz (strona w przeglądarce, jak w serwisie streamingowym) gra klip, w którym postać zadaje pytanie.
 2. Klip przechodzi w cichą pętlę oczekiwania, a na dole ekranu wysuwa się okno wyboru: 2–3 opcje z obrazkami,
-   nazwami i paskiem odliczania (domyślnie 12 s). Pytanie jest też w napisach i czytane na głos.
+   nazwami i paskiem odliczania (domyślnie 12 s). Pytanie jest też w napisach.
 3. Widz wybiera:
    - **pilotem** (strzałki i OK; w przeglądarce strzałki i Enter), **dotykiem**, myszą albo cyfrą 1–3 — wybór od razu;
    - **głosem**, jeśli rodzic zostawił włączony mikrofon: strona nagrywa odpowiedź w trakcie okna wyboru, Whisper
      (Foundry Local) zamienia ją na tekst, a Phi (Foundry Local) rozpoznaje intencję i może dopisać krótką osobistą
      kwestię. Gdy model zawiedzie, wybór rozpoznają słowa kluczowe ze scenariusza.
 4. Po wyborze gra nagrany klip reakcji postaci, a gdzie go nie ma — postać mówi kwestię ze scenariusza
-   (napisy + głos syntezatora przeglądarki). Potem startuje scena wybranej ścieżki: w zagadkach każda odpowiedź
+   (w odtwarzaczu w przeglądarce jako napisy; głosy postaci nagrywamy w klipach). Potem startuje scena wybranej
+   ścieżki: w zagadkach każda odpowiedź
    może mieć własną scenę (gałąź), która wraca na wspólną drogę.
 5. **Montaż AI:** w trakcie reakcji montażysta (model Phi na urządzeniu) przetwarza informacje — skąd i dokąd
    idziemy, co widz wybrał i powiedział, jak się czuje według tętna, co podpowiada autor — i wybiera przejście
@@ -45,7 +47,8 @@ modelu albo głosu nie zatrzymuje odcinka: zostaje wybór pilotem, a w ostateczn
 ## Wymagania
 
 - Windows 10/11 (działa też na Linuksie i macOS), Python 3.11+ w wersji 64-bit
-- Przeglądarka: Edge albo Chrome (odtwarzacz i mikrofon); polski głos syntezatora w Ustawienia → Czas i język → Mowa
+- Przeglądarka: Edge albo Chrome (odtwarzacz i mikrofon); polski głos syntezatora (Ustawienia → Czas i język → Mowa)
+  potrzebny tylko w trybie `--player vlc`
 - ffmpeg do klipów-zaślepek i wersji liniowej: `winget install --id Gyan.FFmpeg -e`
 - Tryb lokalny (domyślny): najlepiej Copilot+ PC z NPU; bez NPU modele idą na GPU albo CPU
 - Opcjonalnie VLC 3.x 64-bit (`--player vlc`): `winget install --id VideoLAN.VLC -e`
@@ -269,7 +272,8 @@ Test wersji liniowej buduje mały film przez ffmpeg; bez ffmpeg jest pomijany.
   otwarta pod `127.0.0.1` albo `localhost` (inaczej przeglądarka nie da mikrofonu bez HTTPS). Bez `--no-mic`.
 - Warstwa (np. kwiatek) ma czarne tło albo jej nie widać: plik musi być WebM VP9 z kanałem alfa
   (`-pix_fmt yuva420p`, zob. `bajka/placeholders.py`), a na Safari — MOV HEVC z alfą.
-- Postać nie mówi, są tylko napisy: brak polskiego głosu syntezatora — dodaj go w Ustawienia → Czas i język → Mowa.
+- Postać nie mówi, są tylko napisy: w odtwarzaczu w przeglądarce to zamierzone (lektor syntezatora wyłączony, głosy
+  postaci są w klipach); w `--player vlc` brakuje polskiego głosu syntezatora — Ustawienia → Czas i język → Mowa.
 - Dziecko jest ucinane albo nie zdąża: wydłuż `BAJKA_CHOICE_SECONDS` albo `timeout` sceny i `BAJKA_WEB_ANSWER_SECONDS`.
 - `Brak pakietu foundry-local-sdk` albo `Brak pakietów WinRT`: `pip install -e ".[local]"`.
 - `Foundry Local nie zna modelu …`: sprawdź aliasy przez `python -m bajka.foundry` i popraw `FOUNDRY_CHAT_MODEL` / `FOUNDRY_STT_MODEL`.

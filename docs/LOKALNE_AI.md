@@ -20,7 +20,7 @@ Głos postaci w kwestiach na żywo czyta synteza mowy przeglądarki — na Windo
 | Ten sam **model Phi** jako montażysta | Wybiera przejście między klipami (rodzaj, długość, powód) na podstawie wyboru widza, jego słów i tętna; pracuje w tle, w zapasie reguły | [`bajka/montage.py`](../bajka/montage.py) |
 | **Whisper** (domyślnie `whisper-tiny`) z katalogu Foundry Local | Mowa dziecka → tekst | [`bajka/local_stt.py`](../bajka/local_stt.py) |
 | **Windows.Media.SpeechSynthesis** (WinRT, wbudowany w Windows) | Głos Lili w trybie `--player vlc`, polski głos „Microsoft Paulina”, offline | [`bajka/local_tts.py`](../bajka/local_tts.py) |
-| **Synteza mowy przeglądarki** (Web Speech API w Edge/Chrome) | Głos Lili w odtwarzaczu w przeglądarce; wybieramy lokalny polski głos systemu, zawsze z napisami | [`bajka/player_app/`](../bajka/player_app/index.html) |
+| **Rozpoznawanie mowy przeglądarki** (Web Speech API w Edge/Chrome) | Zapasowe rozpoznawanie odpowiedzi w odtwarzaczu, gdy Whisper nie działa. Lektor syntezatora w przeglądarce jest wyłączony: kwestie na żywo są w napisach | [`bajka/player_app/`](../bajka/player_app/index.html) |
 | — (bez modelu) | Rozpoznawanie po słowach kluczowych: zapas, gdy model zawiedzie, i tryb `--no-llm` | [`bajka/keywords.py`](../bajka/keywords.py) |
 
 Na **Copilot+ PC** Foundry Local sam wybiera wariant modelu na NPU, jeśli taki jest w katalogu.

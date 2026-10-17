@@ -127,4 +127,4 @@ Propozycja pierwszego testu po hackathonie:
 - [ ] Decyzja o licencji repozytorium.
 - [ ] Data prezentacji potwierdzona z organizatorem (literówka „18.10.2022” w §2 ust. 3).
 - [ ] Na nagraniach z pokazu i testów nie ma dzieci bez zgody rodziców.
-- [ ] Na pokazie: Edge albo Chrome, polski głos syntezatora, modele pobrane wcześniej, wersja liniowa wygenerowana.
+- [ ] Na pokazie: Edge albo Chrome, modele pobrane wcześniej, wersja liniowa wygenerowana.

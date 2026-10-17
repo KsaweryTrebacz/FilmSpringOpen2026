@@ -253,7 +253,7 @@ pod nazwami ze scenariusza (`scenarios/clips/klub_ciekawskich/`), a brakujące s
 | 03 `01_reakcja_hopsasa` | Chest_springs_open_in_workshop | 🟡 użyteczny | Styl 3D, okrągłe okna — inna dziupla niż w 01 i 05. |
 | 04 `01_reakcja_pukanie` | Chest_stretching_in_workshop | ✅ dobry | Jak wyżej (3D); gra aktorska kuferka (ziewnięcie, buzia) zgodna z opisem. |
 | 05 `02_kuferek` | Lila_reveals_adventure_map_props | ✅ dobry | Brak lornetki; mapa pokazuje dobrze oba wybory (tęczowy mostek i las). |
-| 06 `02_kuferek_idle` | Fairytale_map_glowing_on_timber | 🔴 do wymiany | Świeci mostek i **zamek** (którego nie ma w historii), las nie świeci; inna mapa niż w 05. Dziecko nie zobaczy obu opcji. |
+| 06 `02_kuferek_idle` | Fairytale_map_glowing_on_timber | 🟡 do wymiany w następnej partii | Świecą na zmianę mostek (kamienny, nie tęczowy), **zamek** (którego nie ma w historii) i las; inna mapa niż w 05. Zamek myli: wygląda jak trzecia opcja. |
 | 07 `03a_most` | Girl_comforts_squirrel_at_bridge | ✅ dobry | Deski czerwone/niebieskie i wolne miejsce są; Fiku ma białą chustkę zamiast zielonego szalika. |
 | 08 `03a_most_idle` | Planks_bobbing_over_river | 🔴 do wymiany | Inny most (z poręczą, bez kolorowych desek i bez wyrwy), styl 3D; deski unoszą się nad wodą, nie nad luką. |
 

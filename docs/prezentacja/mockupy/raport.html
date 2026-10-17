@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Po odcinku — makieta</title>
+<!-- Makieta do prezentacji (nie działa: nie ma za nią logiki). Wybory i sposób odpowiedzi silnik już zapisuje
+     (StoryEngine.decisions, zdarzenie "decyzja" z polem how); umiejętności i pytania do rozmowy to propozycja. -->
+<style>
+  :root { --bg: #f7f1e6; --card: #fffaf2; --ink: #2a2118; --dim: #6b5d4d; --line: #e6dccb; --accent: #f2b33d;
+          --blue: #2f6f9f; --ok: #3f8f55; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 "Segoe UI", system-ui, sans-serif; }
+  .app { width: 1440px; min-height: 900px; padding: 32px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-content: start; }
+  header { grid-column: 1 / -1; }
+  header h1 { font-size: 30px; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--dim); }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 26px; }
+  section h2 { font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .path { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .step { padding: 6px 12px; border-radius: 10px; background: #fff; border: 1px solid var(--line); font-weight: 600; }
+  .step small { display: block; font-weight: 400; font-size: 13px; color: var(--dim); }
+  .arrow { color: var(--dim); }
+  .skill { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .skill:first-of-type { border-top: none; }
+  .skill .tag { font-size: 14px; font-weight: 700; padding: 3px 10px; border-radius: 8px; }
+  .good { background: #e3f1e6; color: var(--ok); }
+  .try { background: #fdf0d6; color: #8a5a00; }
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .how div { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .how b { display: block; font-size: 34px; }
+  .how small { color: var(--dim); }
+  .talk { grid-column: 1 / -1; background: #2a2118; color: #f6efe4; border: none; }
+  .talk h2 { color: #c2b5a3; }
+  .talk ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .talk li { background: rgba(255,255,255,0.07); border-radius: 14px; padding: 16px; }
+  .talk li b { color: #ffc94d; display: block; margin-bottom: 6px; }
+  .privacy { color: var(--dim); font-size: 15px; margin: 12px 0 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🐝 Ola i Staś obejrzeli „Bzyczka szuka domu”</h1>
+    <p>Dziś, 18:40 · 13 min · 4 okna wyboru · wszystkie rozwiązane</p>
+  </header>
+
+  <section>
+    <h2>Ich droga przez odcinek</h2>
+    <div class="path">
+      <span class="step">Puk, puk!<small>kuferek</small></span><span class="arrow">→</span>
+      <span class="step">Tęczowy Mostek<small>mapa</small></span><span class="arrow">→</span>
+      <span class="step">Niebieska deska<small>wzór</small></span><span class="arrow">→</span>
+      <span class="step">Naprawiamy razem<small>druga próba</small></span><span class="arrow">→</span>
+      <span class="step">Trzy pszczółki<small>liczenie</small></span>
+    </div>
+    <p class="privacy">Inna odpowiedź = inna scena. Obejrzyjcie jeszcze raz i sprawdźcie, co dzieje się w lesie.</p>
+  </section>
+
+  <section>
+    <h2>Jak odpowiadali</h2>
+    <div class="how">
+      <div><b>3</b><small>głosem</small></div>
+      <div><b>1</b><small>pilotem</small></div>
+      <div><b>0</b><small>postać wybrała sama</small></div>
+    </div>
+    <p class="privacy">🔒 Głos rozpoznany na tym urządzeniu. Zapisane nagrania: 0.</p>
+  </section>
+
+  <section style="grid-column: 1 / -1">
+    <h2>Co ćwiczyli</h2>
+    <div class="skill"><span>🎨</span><span><b>Wzory kolorów</b> — wybrali niebieską deskę, a potem razem z Lilą poprawili wzór</span><span class="tag try">warto powtórzyć</span></div>
+    <div class="skill"><span>🔢</span><span><b>Liczenie do 3</b> — od razu dobra odpowiedź</span><span class="tag good">opanowane</span></div>
+    <div class="skill"><span>🌬️</span><span><b>Oddech i spokój</b> — trzy wdechy z Wiaterkiem Fiufiu</span><span class="tag good">zrobione razem</span></div>
+  </section>
+
+  <section class="talk">
+    <h2>Porozmawiajcie po bajce (bez ekranu)</h2>
+    <ul>
+      <li><b>Wzór z klocków</b>Ułóżcie mostek: czerwony, niebieski, czerwony… Jaki klocek będzie następny?</li>
+      <li><b>Trzy wdechy</b>Kiedy Wy czujecie się jak rozdmuchany Wiaterek? Zróbcie razem trzy spokojne wdechy.</li>
+      <li><b>Pszczoły w ogrodzie</b>Na spacerze policzcie pszczoły albo kwiaty, które lubią pszczoły.</li>
+    </ul>
+  </section>
+</div>
+</body>
+</html>

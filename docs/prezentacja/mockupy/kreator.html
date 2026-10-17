@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kreator Rodzica — makieta</title>
+<!-- Makieta do prezentacji (nie działa: nie ma za nią logiki). Opis funkcji: docs/prezentacja/KREATOR_RODZICA.md -->
+<style>
+  :root { --bg: #f7f1e6; --card: #fffaf2; --ink: #2a2118; --dim: #6b5d4d; --line: #e6dccb; --accent: #f2b33d;
+          --accent-ink: #3a2a08; --blue: #2f6f9f; --ok: #3f8f55; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 "Segoe UI", system-ui, sans-serif; }
+  .app { width: 1440px; min-height: 900px; padding: 32px 40px; display: grid; grid-template-columns: 1fr 420px; gap: 28px; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 18px; }
+  header h1 { font-size: 30px; margin: 0; }
+  header .who { margin-left: auto; display: flex; gap: 10px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
+          border: 1.5px solid var(--line); background: var(--card); font-weight: 600; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .chip small { font-weight: 400; color: inherit; opacity: 0.75; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 26px; }
+  section h2 { font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; }
+  .col { display: flex; flex-direction: column; gap: 20px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .row { display: grid; grid-template-columns: 250px 1fr 120px; align-items: center; gap: 16px; padding: 10px 0;
+         border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: none; }
+  .row b { font-size: 18px; }
+  .row .hint { display: block; font-size: 14px; color: var(--dim); font-weight: 400; }
+  .slider { position: relative; height: 8px; border-radius: 4px; background: var(--line); }
+  .slider i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; background: var(--accent); }
+  .slider em { position: absolute; top: -8px; width: 24px; height: 24px; border-radius: 50%; background: #fff;
+               border: 3px solid var(--accent); transform: translateX(-12px); }
+  .val { font-weight: 700; text-align: right; font-size: 20px; }
+  .seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .seg span { padding: 6px 14px; }
+  .seg .on { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .toggle { display: grid; grid-template-columns: 1fr 60px; align-items: center; gap: 16px; padding: 10px 0;
+            border-top: 1px solid var(--line); }
+  .toggle:first-of-type { border-top: none; }
+  .switch { width: 54px; height: 30px; border-radius: 15px; background: var(--line); position: relative; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; }
+  .switch.on { background: var(--ok); }
+  .switch.on::after { left: 27px; }
+  .badge { font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #e9eef5; color: var(--blue); margin-left: 6px; }
+  .plan { background: #2a2118; color: #f6efe4; border: none; }
+  .plan h2 { color: #c2b5a3; }
+  .plan .title { font-size: 26px; font-weight: 700; margin: 0 0 4px; }
+  .plan .sub { color: #c2b5a3; margin: 0 0 16px; }
+  .plan ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+  .plan li span { color: #ffc94d; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0; }
+  .stats div { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 10px 12px; }
+  .stats b { display: block; font-size: 26px; color: #ffc94d; }
+  .stats small { color: #c2b5a3; font-size: 14px; }
+  .limit .bar { height: 14px; border-radius: 7px; background: var(--line); overflow: hidden; margin: 10px 0 6px; }
+  .limit .bar i { display: block; height: 100%; width: 45%; background: var(--blue); }
+  .limit p { margin: 0; color: var(--dim); font-size: 15px; }
+  .cta { display: block; width: 100%; padding: 16px; border: none; border-radius: 14px; background: var(--accent);
+         color: var(--accent-ink); font: 700 22px "Segoe UI", system-ui, sans-serif; }
+  .ai { font-size: 15px; color: var(--dim); margin: 12px 0 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>✨ Kreator Rodzica</h1>
+    <span class="chip">Klub Ciekawskich</span>
+    <div class="who"><span class="chip on">Ola <small>5 lat</small></span><span class="chip on">Staś <small>7 lat</small></span><span class="chip">+ profil</span></div>
+  </header>
+
+  <div class="col">
+    <section>
+      <h2>Czego dziś się uczymy?</h2>
+      <div class="chips">
+        <span class="chip on">🔢 Liczenie</span><span class="chip on">🎨 Kolory i wzory</span>
+        <span class="chip on">🌬️ Emocje i oddech</span><span class="chip on">🐝 Przyroda: pszczoły</span>
+        <span class="chip">🤝 Dzielenie się</span><span class="chip">🔤 Pierwsze słowa po angielsku</span><span class="chip">🦷 Mycie zębów</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Ile interakcji?</h2>
+      <div class="row"><b>Liczba zagadek<span class="hint">okna wyboru w odcinku</span></b>
+        <div class="slider"><i style="width:57%"></i><em style="left:57%"></em></div><div class="val">4 z 8</div></div>
+      <div class="row"><b>Długość odcinka<span class="hint">mniej zagadek = krótszy odcinek</span></b>
+        <div class="slider"><i style="width:45%"></i><em style="left:45%"></em></div><div class="val">ok. 12 min</div></div>
+      <div class="row"><b>Czas na odpowiedź<span class="hint">potem postać dopytuje</span></b>
+        <div class="slider"><i style="width:50%"></i><em style="left:50%"></em></div><div class="val">15 s</div></div>
+      <div class="row"><b>Podpowiedzi<span class="hint">zanim postać wybierze sama</span></b>
+        <div class="slider"><i style="width:66%"></i><em style="left:66%"></em></div><div class="val">2</div></div>
+      <div class="row"><b>Trudność<span class="hint">opcje w oknie, zakres liczenia</span></b>
+        <div><span class="seg"><span>Łatwa · 2 opcje</span><span class="on">Średnia · 3 opcje</span><span>Trudniejsza</span></span></div><div></div></div>
+    </section>
+
+    <section>
+      <h2>Jak dziecko odpowiada i ogląda</h2>
+      <div class="toggle"><span><b>Odpowiedzi głosem</b> — rozpoznawanie na tym urządzeniu, nagrania od razu usuwane</span><div class="switch on"></div></div>
+      <div class="toggle"><span><b>Napisy</b> — dla dzieci, które zaczynają czytać</span><div class="switch on"></div></div>
+      <div class="toggle"><span><b>Oglądamy razem</b> — pytania dla rodzica w trakcie i rozmowa po odcinku</span><div class="switch on"></div></div>
+      <div class="toggle"><span><b>Tempo dopasowane do tętna</b><span class="badge">BETA · zgoda rodzica</span> — dane z zegarka tylko na urządzeniu, bez zapisu</span><div class="switch"></div></div>
+    </section>
+  </div>
+
+  <div class="col">
+    <section class="plan">
+      <h2>Plan odcinka</h2>
+      <p class="title">Bzyczka szuka domu</p>
+      <p class="sub">Dobrany do celów: pszczoły, wzory, oddech, liczenie</p>
+      <ol>
+        <li>Kuferek — <span>jak go obudzimy?</span> (nauka okna wyboru)</li>
+        <li>Mapa — <span>mostek czy las?</span> (własna scena dla każdej drogi)</li>
+        <li>Mostek — <span>która deska pasuje?</span> (wzór kolorów)</li>
+        <li>Wiaterek — wspólny oddech <i>(bez okna: robi to postać)</i></li>
+        <li>Łąka — <span>ile pszczółek?</span> (liczenie)</li>
+      </ol>
+      <div class="stats"><div><b>4</b><small>okna wyboru</small></div><div><b>6+</b><small>różnych ścieżek</small></div><div><b>12 min</b><small>z napisami</small></div></div>
+      <button class="cta">▶ Utwórz i oglądaj</button>
+      <p class="ai" style="color:#c2b5a3">Sceny pochodzą z biblioteki zatwierdzonych modułów. Nowe klipy AI trafiają na ekran dopiero po sprawdzeniu przez człowieka.</p>
+    </section>
+    <section class="limit">
+      <h2>Czas przed ekranem dziś</h2>
+      <div class="bar"><i></i></div>
+      <p><b>27 z 60 min</b> — Twój limit. Po odcinku bajka zaproponuje zabawę bez ekranu.</p>
+    </section>
+  </div>
+</div>
+</body>
+</html>
