@@ -59,19 +59,36 @@ def same_word(spoken: str, keyword: str) -> bool:
 SYNONYMS: dict[str, list[str]] = {
     "hopsasa": [
         "hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz",
-        "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek"
+        "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek",
+        "krope", "kropie", "kroce", "kroczę", "kropa", "krop", "hopsy", "hopla", "chopsasa", "chop",
+        "hops", "zawolajmy", "krzyczymy", "krzyknij"
     ],
-    "pukanie": ["puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie"],
-    "most": ["most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek", "woda", "mostkiem", "mostka"],
-    "las": ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu", "dolasu", "borem", "bor"],
-    "czerwona": ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka"],
-    "niebieska": ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo"],
-    "sowa": ["sow", "sowa", "sowe", "ptak", "dziupla"],
-    "krecik": ["kret", "krecik", "kreta"],
-    "zaba": ["zab", "zaba", "zabka", "kum"],
+    "pukanie": [
+        "puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie",
+        "bog", "buk", "pogo", "pog", "buku", "stuku", "pukpukpuk", "puk puk", "stuk stuk", "pukaj", "puknij", "puku",
+        "bogbog", "pogpog", "bukbuk", "buki", "bogow", "boga", "boki", "boku", "zapukam", "stuknij", "stukac", "pukne", "zapukamy", "stukamy", "pugu"
+    ],
+    "most": [
+        "most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek",
+        "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka"
+    ],
+    "las": [
+        "las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu",
+        "dolasu", "borem", "bor", "szum", "szumiaco", "szumia", "szumi las", "szumilas", "przez las", "do lasu", "lasku", "laskiem"
+    ],
+    "czerwona": ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka", "pierwsza", "jeden", "1"],
+    "niebieska": ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo", "druga", "dwa", "2"],
+    "sowa": ["sow", "sowa", "sowe", "sowka", "ptak", "dziupla", "hu", "huhu", "hu-hu", "hu hu", "u-hu", "uhu"],
+    "zaba": ["zab", "zaba", "zabe", "zabka", "kum", "kumkum", "kum-kum", "kum kum", "rechot"],
     "rumianek": ["rumianek", "rumian", "bialy", "biala"],
     "chaber": ["chaber", "chabry", "niebieski"],
     "mak": ["mak", "maki", "czerwony", "czerwona"],
+    "spokojnie": ["spokojnie", "udalo", "tak", "juz", "fu", "fuu", "uff", "dmucham", "wdech", "wydech"],
+    "jeszcze": ["jeszcze", "znowu", "powtorz", "powtorzmy", "nie", "jeszcze raz"],
+    "mapa": ["mapa", "mape", "mapy", "rozkladanka"],
+    "latarka": ["latarka", "latarke", "latarki", "swietliczka", "swiatlo"],
+    "lornetka": ["lornetka", "lornetke", "lornetki", "patrzalka", "daleko"],
+    "trzy": ["trzy", "trojka", "trzecia", "trzech", "3", "jeden dwa trzy"],
 }
 
 ORDINALS: list[list[str]] = [

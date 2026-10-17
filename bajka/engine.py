@@ -235,7 +235,7 @@ class StoryEngine:
         line = personal or choice.reply
         if prefix:
             line = f"{prefix} {line}" if line else prefix
-        if line:
+        if line and choice.reaction is None:
             self._say(line)
         if choice.reaction is not None:
             reaction = self._take_cut(self._request_cut(scene, scene.id, "reakcja"))

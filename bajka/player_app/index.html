@@ -115,8 +115,7 @@
         wybierz pilotem (strzałki i OK) albo dotykiem<span id="voiceHint">, możesz też powiedzieć odpowiedź na głos</span>.</p>
       <fieldset id="settings">
         <label id="micOption"><input type="checkbox" id="micSetting"> Odpowiedzi głosem (mikrofon)</label>
-        <label><input type="checkbox" id="speakSetting"> Postać czyta swoje kwestie na głos</label>
-        <label><input type="checkbox" id="captionsSetting"> Napisy</label>
+        <label id="captionsOption"><input type="checkbox" id="captionsSetting"> Napisy na ekranie</label>
       </fieldset>
       <div style="margin: 0.6em 0;">
         <button id="startButton" class="big">▶ Oglądaj</button>
@@ -159,10 +158,14 @@ const TARGET_RATE = 16000;
 const LEAD_S = 1.0;          // koniec klipu zgłaszamy tyle sekund wcześniej: następne ujęcie może na niego zajść
 const LOOP_VOLUME = 0.02;     // pętla oczekiwania bardzo cicho (0.02), żeby nie zagłuszać mikrofonu laptopa
 const END_SILENCE_MS = 1000;
-const DEFAULTS = { mic: true, speak: true, captions: true };
+const DEFAULTS = { mic: true, speak: false, captions: true };
 
 const settings = (() => {  // przeglądarka może zablokować localStorage; wtedy obowiązują ustawienia domyślne
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem("bajka-odtwarzacz") || "{}") }; }
+  try {
+    const s = { ...DEFAULTS, ...JSON.parse(localStorage.getItem("bajka-odtwarzacz") || "{}") };
+    s.speak = false;  // lektor wyłączony
+    return s;
+  }
   catch (_) { return { ...DEFAULTS }; }
 })();
 let state = null;         // ostatni stan od komputera
@@ -527,32 +530,23 @@ function duck(on) {
   if (front) fadeVolume(front.video, on ? 0.25 : front.loop ? LOOP_VOLUME : 1, 300);  // ściszenie, gdy mówi postać
 }
 
-// --- kwestie postaci: napisy i synteza mowy przeglądarki ---
+// --- kwestie postaci: napisy (lektor wyłączony) ---
 
 function speak(command) {
   const seq = command.seq;
   const text = command.text;
-  const readAloud = settings.speak && "speechSynthesis" in window && polish;
-  if (settings.captions || !readAloud) caption(text);
+  if ("speechSynthesis" in window) {
+    try { speechSynthesis.cancel(); } catch (_) {}
+  }
+  if (settings.captions) caption(text);
   let finished = false;
   const finish = () => {
     if (finished) return;
     finished = true;
-    duck(false);
     if (handled === seq) caption(null);
     done(seq);
   };
-  if (!readAloud) { setTimeout(finish, 1200 + text.length * 65); return; }  // czas na przeczytanie napisu
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "pl-PL";
-  utterance.voice = polish;
-  utterance.rate = 0.95;
-  utterance.pitch = 1.15;
-  utterance.onend = utterance.onerror = finish;
-  duck(true);
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utterance);
-  setTimeout(finish, 4000 + text.length * 110);  // część przeglądarek gubi zdarzenie końca mowy
+  setTimeout(finish, Math.min(2000, 600 + (text ? text.length * 30 : 0)));
 }
 
 function caption(text) {
@@ -695,18 +689,38 @@ function textMatchesChoice(heardText, choiceId, label) {
   if (h.includes(l) || (l.length >= 3 && l.includes(h))) return true;
 
   const synonyms = {
-    hopsasa: ["hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz", "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek"],
-    pukanie: ["puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie"],
-    most: ["most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek", "woda", "mostkiem", "mostka"],
-    las: ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu", "dolasu", "borem", "bor"],
-    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka"],
-    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo"],
-    sowa: ["sow", "sowa", "sowe", "ptak", "dziupla"],
-    krecik: ["kret", "krecik", "kreta"],
-    zaba: ["zab", "zaba", "zabka", "kum"],
+    hopsasa: [
+      "hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz",
+      "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek",
+      "krope", "kropie", "kroce", "kroczę", "kropa", "krop", "hopsy", "hopla", "chopsasa", "chop",
+      "hops", "zawolajmy", "krzyczymy", "krzyknij"
+    ],
+    pukanie: [
+      "puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie",
+      "bog", "buk", "pogo", "pog", "buku", "stuku", "pukpukpuk", "puk puk", "stuk stuk", "pukaj", "puknij", "puku",
+      "bogbog", "pogpog", "bukbuk", "buki", "bogow", "boga", "boki", "boku", "zapukam", "stuknij", "stukac", "pukne", "zapukamy", "stukamy", "pugu"
+    ],
+    most: [
+      "most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek",
+      "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka"
+    ],
+    las: [
+      "las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu",
+      "dolasu", "borem", "bor", "szum", "szumiaco", "szumia", "szumi las", "szumilas", "przez las", "do lasu", "lasku", "laskiem"
+    ],
+    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka", "pierwsza", "jeden", "1"],
+    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo", "druga", "dwa", "2"],
+    sowa: ["sow", "sowa", "sowe", "sowka", "ptak", "dziupla", "hu", "huhu", "hu-hu", "hu hu", "u-hu", "uhu"],
+    zaba: ["zab", "zaba", "zabe", "zabka", "kum", "kumkum", "kum-kum", "kum kum", "rechot"],
     rumianek: ["rumianek", "rumian", "bialy", "biala"],
     chaber: ["chaber", "chabry", "niebieski"],
-    mak: ["mak", "maki", "czerwony", "czerwona"]
+    mak: ["mak", "maki", "czerwony", "czerwona"],
+    spokojnie: ["spokojnie", "udalo", "tak", "juz", "fu", "fuu", "uff", "dmucham", "wdech", "wydech"],
+    jeszcze: ["jeszcze", "znowu", "powtorz", "powtorzmy", "nie", "jeszcze raz"],
+    mapa: ["mapa", "mape", "mapy", "rozkladanka"],
+    latarka: ["latarka", "latarke", "latarki", "swietliczka", "swiatlo"],
+    lornetka: ["lornetka", "lornetke", "lornetki", "patrzalka", "daleko"],
+    trzy: ["trzy", "trojka", "trzecia", "trzech", "3", "jeden dwa trzy"]
   };
 
   const list = synonyms[choiceId] || [];
