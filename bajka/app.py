@@ -7,6 +7,9 @@ Foundry Local (NPU/GPU/CPU). `--backend azure` przełącza rozpoznawanie mowy, m
 dotykiem albo głosem (mikrofon w przeglądarce), napisy i głos postaci z przeglądarki.
 `--player vlc`: pełny ekran VLC, odpowiedzi tylko głosem z mikrofonu komputera, głos postaci z syntezatora Windows.
 `--text`: próba w konsoli, bez wideo, mikrofonu i modeli mowy.
+
+Montaż: o przejściach między klipami decyduje model (ten sam co do rozumienia odpowiedzi), a bez modelu
+(`--no-llm` albo `BAJKA_MONTAGE=reguly`) — reguły z `bajka/montage.py`.
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ from bajka.keywords import (
     KeywordsFirstResolver,
 )
 from bajka.local_tts import VoiceNotFoundError
+from bajka.montage import ModelEditor, Montage, MontageSettings
 from bajka.ports import IntentResolver, Listener, Player, Viewer, Voice
 from bajka.safety import SafeReplyResolver
 from bajka.scenario import Scenario, ScenarioError, load_scenario, missing_media
@@ -123,6 +127,18 @@ def build_resolver(env: Mapping[str, str], backend: str, use_llm: bool, hero: st
 
         llm = LocalIntentResolver.from_settings(LocalLlmSettings.from_env(env), hero)
     return FallbackResolver(SafeReplyResolver(llm), keywords)
+
+
+def build_montage(env: Mapping[str, str], backend: str, use_llm: bool) -> Montage:
+    """Montażysta: model decyduje o przejściach w tle, a reguły odpowiadają, gdy modelu nie ma albo nie zdąży."""
+    settings = MontageSettings.from_env(env)
+    if not use_llm or not settings.use_model:
+        return Montage(settings=settings)
+    if backend == "azure":
+        return Montage(ModelEditor.azure(LlmSettings.from_env(env)), settings)
+    from bajka.local_intent import LocalLlmSettings
+
+    return Montage(ModelEditor.local(LocalLlmSettings.from_env(env)), settings)
 
 
 def build_transcriber(env: Mapping[str, str], backend: str) -> Callable[[np.ndarray], str]:
@@ -237,6 +253,7 @@ def main(argv: list[str] | None = None) -> int:
         elif player == "vlc":
             speech = build_speech(env, backend)
         resolver = build_resolver(env, backend, not args.no_llm, scenario.hero)
+        montage = build_montage(env, backend, not args.no_llm)
         mobile = build_mobile(env, backend, resolver) if mobile_enabled(args, env) else None
     except (ConfigError, FoundryError, VoiceNotFoundError, OSError) as exc:
         log.error("%s", exc)
@@ -258,6 +275,7 @@ def main(argv: list[str] | None = None) -> int:
             pulse_settings=panel.pulse_settings if panel else None,
             observer=panel.state if panel else None,
             choice_seconds=seconds,
+            montage=montage,
         )
 
     servers: list[MobileServer | PanelServer | WebPlayerServer] = []
@@ -280,6 +298,7 @@ def main(argv: list[str] | None = None) -> int:
         log.error("Nie udało się uruchomić serwera (port zajęty?): %s", exc)
         for server in servers:
             server.stop()
+        montage.close()
         return 2
     try:
         if web is not None:
@@ -302,6 +321,7 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         for server in servers:
             server.stop()
+        montage.close()
     return 0
 
 
@@ -316,7 +336,7 @@ def run_episodes(episode: WebEpisode, make_engine: Callable[[], StoryEngine]) ->
         except Exception:
             log.exception("Odcinek przerwany błędem")
             visited = []
-        if not episode.finish(visited):
+        if not episode.finish(visited, getattr(engine, "decisions", None)):
             return
 
 

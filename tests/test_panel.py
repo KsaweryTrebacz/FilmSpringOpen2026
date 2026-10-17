@@ -339,3 +339,24 @@ def test_pulse_commands_accept_json_with_charset(server):
 
     assert post_as(url + "pulse", "application/json; charset=utf-8") == (200, {"ok": True, "target": 150.0})
     assert simulator.target == 150.0
+
+
+def test_montage_decision_and_layers_are_explained_in_the_log(scenario):
+    state = PanelState(scenario, PulseSettings())
+
+    state.event("scena", {"scene": "las", "clip": "las.mp4", "variant": "zwykla", "layers": ["kwiatek_mak.webm"]})
+    state.event("montaz", {"scene": "intro", "to": "las", "edge": "wybor", "transition": "przetarcie", "seconds": 0.8,
+                           "reason": "Ruszamy do lasu.", "source": "model"})  # fmt: skip
+
+    assert texts(state.snapshot()) == [
+        "Scena las, nałożone warstwy: kwiatek_mak",
+        "Montaż intro → las: przetarcie 0,8 s (model AI): Ruszamy do lasu.",
+    ]
+
+
+def test_graph_has_edges_of_scenes_that_go_on_by_themselves(scenario_dict):
+    scenario_dict["scenes"]["las"]["next"] = "jaskinia"
+    graph = scenario_graph(parse_scenario(scenario_dict, base_dir=Path("film")))
+
+    assert {"from": "las", "to": "jaskinia", "choice": None, "label": ""} in graph["edges"]
+    assert {s["id"]: s["depth"] for s in graph["scenes"]} == {"intro": 0, "las": 1, "jaskinia": 1}

@@ -87,7 +87,7 @@ def test_keywords_are_optional_and_numbers_become_words(scenario_dict):
     assert scenario.scene("intro").choices["jaskinia"].keywords == ()
 
 
-@pytest.mark.parametrize("field", ["kind", "image_prompt", "fallback_clips", "next"])
+@pytest.mark.parametrize("field", ["kind", "image_prompt", "fallback_clips", "narration"])
 def test_live_drawing_scene_fields_are_rejected_with_a_clear_message(scenario_dict, field):
     scenario_dict["scenes"]["las"][field] = "open"
     with pytest.raises(ScenarioError, match=f"scena 'las': pola {field} .*rysowanie na żywo usunięto"):
@@ -197,3 +197,71 @@ def test_reaction_clips_are_media_files_of_the_episode(tmp_path, scenario_dict):
     assert media_files(scenario) == [tmp_path / name for name in
                                      ("intro.mp4", "intro_idle.mp4", "reakcja_las.mp4", "las.mp4", "jaskinia.mp4")]
     assert tmp_path / "reakcja_las.mp4" in missing_media(scenario)
+
+
+# Gałęzie, sceny przejściowe i warstwy
+
+
+def branching(scenario_dict):
+    """Las ma własną scenę dalszego ciągu bez pytania, która wraca do wspólnej drogi (jaskini)."""
+    scenario_dict["scenes"]["las"] = {"clip": "las.mp4", "next": "jaskinia", "place": "Las", "transition": "przetarcie"}
+    return scenario_dict
+
+
+def test_scene_without_question_goes_on_by_itself(scenario_dict):
+    scenario = parse_scenario(branching(scenario_dict), base_dir=Path("film"))
+
+    las = scenario.scene("las")
+    assert not las.is_ending and las.next == "jaskinia" and las.successors == ["jaskinia"]
+    assert las.place == "Las" and las.transition == "przetarcie"
+    assert scenario.scene("intro").successors == ["las", "jaskinia"]
+    assert scenario.scene("jaskinia").is_ending and scenario.scene("jaskinia").successors == []
+
+
+def test_next_must_point_to_a_scene_and_cannot_mix_with_choices(scenario_dict):
+    scenario_dict["scenes"]["las"]["next"] = "gory"
+    with pytest.raises(ScenarioError, match="'gory'"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+    scenario_dict["scenes"]["las"]["next"] = "jaskinia"
+    scenario_dict["scenes"]["intro"]["next"] = "las"
+    with pytest.raises(ScenarioError, match="bez pola 'next'"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_scenes_without_questions_cannot_go_in_circles(scenario_dict):
+    scenario_dict["scenes"]["las"]["next"] = "jaskinia"
+    scenario_dict["scenes"]["jaskinia"]["next"] = "las"
+    with pytest.raises(ScenarioError, match="w koło"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_unknown_transition_hint_is_refused(scenario_dict):
+    scenario_dict["scenes"]["las"]["transition"] = "eksplozja"
+    with pytest.raises(ScenarioError, match="transition"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_choice_layer_fills_a_slot_shown_by_later_scenes(tmp_path, scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"].update(layer="warstwa_latarka.webm", slot="pomocnik")
+    scenario_dict["scenes"]["intro"]["choices"]["jaskinia"]["layer"] = "warstwa_lina.webm"
+    scenario_dict["scenes"]["las"]["layers"] = ["pomocnik"]
+    scenario_dict["scenes"]["jaskinia"]["layers"] = ["intro"]  # bez `slot` miejscem jest scena wyboru
+    scenario = parse_scenario(scenario_dict, base_dir=tmp_path)
+
+    las, lina = scenario.scene("intro").choices["las"], scenario.scene("intro").choices["jaskinia"]
+    assert (las.layer, las.slot) == (tmp_path / "warstwa_latarka.webm", "pomocnik")
+    assert lina.slot == "intro"
+    assert scenario.scene("las").layers == ("pomocnik",)
+    assert tmp_path / "warstwa_latarka.webm" in missing_media(scenario)
+
+
+def test_layer_needs_transparency_and_a_filled_slot(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["layer"] = "warstwa.mp4"
+    with pytest.raises(ScenarioError, match="przezroczystość"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["layer"] = "warstwa.webm"
+    scenario_dict["scenes"]["las"]["layers"] = ["kwiatek"]
+    with pytest.raises(ScenarioError, match="kwiatek"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))

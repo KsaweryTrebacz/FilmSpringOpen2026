@@ -6,14 +6,21 @@ syntezą mowy przeglądarki (na Windows to te same lokalne głosy systemu). Gdy 
 strona nagrywa odpowiedź widza w trakcie okna wyboru, a komputer rozpoznaje ją lokalnie (Whisper z Foundry Local).
 Nagranie trafia na chwilę do pliku tymczasowego, usuwanego zaraz po rozpoznaniu, i nie jest przechowywane.
 
+Montaż: strona ma dwa „pokłady” wideo i nakłada klipy na siebie. Kolejne ujęcie wchodzi przejściem wybranym przez
+montażystę (cięcie, przenikanie, zaciemnienie, rozjaśnienie, przetarcie), a warstwy wybrane przez widza
+(przezroczyste klipy WebM) leżą nad klipem sceny. Strona zgłasza koniec klipu chwilę przed jego końcem, żeby
+następne ujęcie mogło na niego zajść; cięcie czeka do ostatniej klatki (pętla zaczyna się od niej).
+
 Widz wybiera strzałkami i OK na pilocie (w przeglądarce: strzałki i Enter), cyframi 1–9, dotykiem, myszą albo głosem.
 Zamknięcie karty wstrzymuje odcinek: po ponownym otwarciu strony bieżący klip gra od początku, a odliczanie
-okna wyboru stoi, dopóki nikt nie patrzy. Moduł spełnia kontrakty `Player`, `Voice` i `Viewer` z `bajka.ports`.
+okna wyboru stoi, dopóki nikt nie patrzy. Moduł spełnia kontrakty `Player`, `Compositor`, `Voice` i `Viewer`
+z `bajka.ports`.
 """
 
 from __future__ import annotations
 
 import ipaddress
+import itertools
 import json
 import logging
 import mimetypes
@@ -34,7 +41,7 @@ import numpy as np
 from bajka.config import get_float, get_int
 from bajka.local_stt import clean_transcript
 from bajka.mobile import samples_from_wav
-from bajka.ports import Answer
+from bajka.ports import Answer, Shot
 from bajka.scenario import Scenario, Scene, media_files
 
 log = logging.getLogger(__name__)
@@ -91,7 +98,7 @@ class WebEpisode:
         self._seq = 0
         self._command: dict[str, Any] = {"kind": "idle"}
         self._done = 0
-        self._background: str | None = None
+        self._background: dict[str, Any] | None = None  # pętla oczekiwania z warstwami pod oknem wyboru
         self._scene: Scene | None = None  # scena otwartego okna wyboru
         self._answer: Answer | None = None
         self._remaining = 0.0  # sekundy do zamknięcia okna wyboru, razem z zapasem
@@ -104,13 +111,19 @@ class WebEpisode:
     # --- kontrakty Player, Voice i Viewer (wątek silnika) ---
 
     def play(self, clip: Path) -> None:
-        with self._cond:
-            self._background = None
-            self._wait_done(self._issue({"kind": "play", "clip": self._url(clip)}))
+        self.play_shot(Shot(clip))
 
     def loop(self, clip: Path) -> None:
+        self.loop_shot(Shot(clip))
+
+    def play_shot(self, shot: Shot) -> None:
         with self._cond:
-            self._background = self._url(clip)
+            self._background = None
+            self._wait_done(self._issue({"kind": "play", **self._shot(shot)}))
+
+    def loop_shot(self, shot: Shot) -> None:
+        with self._cond:
+            self._background = self._shot(shot)
             self._issue({"kind": "idle"})
 
     def say(self, text: str) -> None:
@@ -139,12 +152,13 @@ class WebEpisode:
 
     # --- koniec odcinka (wątek aplikacji) ---
 
-    def finish(self, visited: list[str]) -> bool:
+    def finish(self, visited: list[str], decisions: list[tuple[str, str]] | None = None) -> bool:
         """Ekran końcowy; zwraca True, gdy widz chce obejrzeć jeszcze raz, False, gdy zamknął odcinek."""
+        path = story_labels(self._scenario, decisions) if decisions else branch_labels(self._scenario, visited)
         with self._cond:
             self._restart = False
             self._background = None
-            self._issue({"kind": "end", "path": branch_labels(self._scenario, visited)})
+            self._issue({"kind": "end", "path": path})
             while not self._restart and not self._closed:
                 self._cond.wait(0.25)
             return self._restart and not self._closed
@@ -230,6 +244,10 @@ class WebEpisode:
 
     # --- pomocnicze (wywoływane z blokadą) ---
 
+    def _shot(self, shot: Shot) -> dict[str, Any]:
+        cut = {"transition": shot.cut.transition, "seconds": shot.cut.seconds}
+        return {"clip": self._url(shot.clip), "layers": [self._url(layer) for layer in shot.layers], "cut": cut}
+
     def _url(self, clip: Path) -> str:
         return self._urls.get(clip) or self._register(clip)
 
@@ -252,13 +270,24 @@ class WebEpisode:
             self._cond.wait(0.25)
 
 
+def story_labels(scenario: Scenario, decisions: list[tuple[str, str]]) -> list[str]:
+    """Nazwy wyborów, które zmieniły odcinek: poprowadziły inną drogą albo nałożyły warstwę (np. kwiatek)."""
+    labels = []
+    for scene_id, choice_id in decisions:
+        scene = scenario.scene(scene_id)
+        choice = scene.choices[choice_id]
+        if len({c.next for c in scene.choices.values()}) > 1 or choice.layer is not None:
+            labels.append(choice.display_label)
+    return labels
+
+
 def branch_labels(scenario: Scenario, visited: list[str]) -> list[str]:
     """Nazwy wyborów, które zmieniły bieg odcinka (np. „Tęczowy Mostek”), do ekranu końcowego.
 
     Zagadki, w których każda odpowiedź prowadzi do tej samej sceny, pomijamy: liczą się rozgałęzienia.
     """
     labels = []
-    for here, there in zip(visited, visited[1:]):
+    for here, there in itertools.pairwise(visited):
         leading = [c for c in scenario.scene(here).choices.values() if c.next == there]
         if len(leading) == 1 and len({c.next for c in scenario.scene(here).choices.values()}) > 1:
             labels.append(leading[0].display_label)

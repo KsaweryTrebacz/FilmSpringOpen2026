@@ -15,7 +15,13 @@
   button { font: inherit; color: inherit; cursor: pointer; }
 
   #stage { position: fixed; inset: 0; background: #000; }
-  video { width: 100%; height: 100%; object-fit: contain; background: #000; display: block; }
+  /* Dwa pokłady wideo: kolejne ujęcie wchodzi na wierzch przejściem, a warstwy leżą nad klipem sceny. */
+  #screen { position: absolute; inset: 0; isolation: isolate; overflow: hidden; }
+  .deck { position: absolute; inset: 0; }
+  .deck video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+  .deck > video { background: #000; }
+  .layers video { background: transparent; pointer-events: none; }
+  #veil { position: absolute; inset: 0; opacity: 0; pointer-events: none; z-index: 100000; }
 
   /* Napisy: duże, na ciemnym tle, jak w serwisach streamingowych. */
   #caption { position: absolute; left: 50%; bottom: 7vh; transform: translateX(-50%); max-width: 82vw;
@@ -76,7 +82,11 @@
 </head>
 <body>
 <div id="stage">
-  <video id="video" playsinline preload="auto"></video>
+  <div id="screen">
+    <div class="deck" id="deckA"><video playsinline preload="auto"></video><div class="layers"></div></div>
+    <div class="deck" id="deckB" hidden><video playsinline preload="auto"></video><div class="layers"></div></div>
+    <div id="veil"></div>
+  </div>
 
   <div id="choice" hidden>
     <p id="question"></p>
@@ -127,8 +137,9 @@
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
-const video = $("video");
 const TARGET_RATE = 16000;
+const LEAD_S = 1.0;          // koniec klipu zgłaszamy tyle sekund wcześniej: następne ujęcie może na niego zajść
+const LOOP_VOLUME = 0.6;     // pętla oczekiwania ciszej niż klip sceny
 const END_SILENCE_MS = 1000;
 const DEFAULTS = { mic: true, speak: true, captions: true };
 
@@ -144,6 +155,13 @@ let audio = null;         // { context, processor } po zgodzie na mikrofon
 let recorder = null;      // nagrywanie bieżącego okna wyboru
 let ask = null;           // otwarte okno wyboru: { seq, endsAt, timerEnded, sending, picked, timer }
 let polish = null;        // polski głos syntezy mowy, lokalny, jeśli jest
+let chain = Promise.resolve();  // polecenia komputera wykonujemy po kolei (przejścia trwają)
+let front = null;         // pokład na wierzchu: { el, video, layerBox, key, loop }
+let depth = 1;            // kolejność pokładów (z-index)
+const decks = ["deckA", "deckB"].map(id => {
+  const el = $(id);
+  return { el, video: el.querySelector("video"), layerBox: el.querySelector(".layers"), key: null, loop: false };
+});
 
 // --- ustawienia rodzica ---
 
@@ -249,16 +267,21 @@ function onState(next) {
   $("title").textContent = next.title;
   $("micOption").hidden = $("micNote").hidden = $("voiceHint").hidden = !next.voice;
   if (next.kind === "closed") { closed = true; stopAll(); show("closed"); return; }
-  if (!started) return;
-  syncBackground(next);
-  if (next.seq === handled) return;
+  if (!started || next.seq === handled) return;
   handled = next.seq;
-  if (next.kind !== "ask") closeChoice();
-  if (next.kind !== "end") $("end").hidden = true;
-  if (next.kind === "play") playClip(next);
-  else if (next.kind === "say") speak(next);
-  else if (next.kind === "ask") openChoice(next);
-  else if (next.kind === "end") { stopAll(); showEnd(next); }
+  chain = chain.then(() => perform(next)).catch(error => console.error("Polecenie odcinka:", error));
+}
+
+async function perform(command) {
+  if (closed) return;
+  if (command.kind !== "ask") closeChoice();
+  if (command.kind !== "end") $("end").hidden = true;
+  if (command.kind === "play") { await present(command, false, command.seq); return; }
+  // Tło okna wyboru: zapętlony klip oczekiwania z warstwami (postać czeka na odpowiedź).
+  if (command.background && shotKey(command.background) !== front?.key) await present(command.background, true);
+  if (command.kind === "say") { await settled(); speak(command); }
+  else if (command.kind === "ask") { await settled(); openChoice(command); }
+  else if (command.kind === "end") { await settled(); stopAll(); showEnd(command); }
 }
 
 function show(id) {
@@ -267,27 +290,134 @@ function show(id) {
 
 function done(seq) { if (handled === seq) post("api/event", { type: "done", seq }); }
 
-// --- wideo ---
+// --- wideo: dwa pokłady, warstwy i przejścia montażowe ---
 
-function syncBackground(next) {
-  // Tło okna wyboru: zapętlony klip oczekiwania (postać czeka na odpowiedź).
-  if (next.kind === "play" || !next.background || video.dataset.src === next.background) return;
-  setVideo(next.background, true);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const shotKey = shot => shot.clip + "|" + (shot.layers || []).join(",");
+
+function remainingMs(video) {
+  if (!video || video.ended || !isFinite(video.duration)) return 0;
+  return Math.max(0, (video.duration - video.currentTime) * 1000 / (video.playbackRate || 1));
 }
 
-function setVideo(src, loop) {
-  video.dataset.src = src;
-  video.loop = loop;
-  video.src = src;
-  video.volume = loop ? 0.6 : 1;
-  video.play().catch(() => { /* np. przeglądarka wstrzymała odtwarzanie w tle; spróbujemy przy kolejnym klipie */ });
+function settled() {
+  // Czeka, aż bieżący klip sceny (nie pętla) dojdzie do końca: okno wyboru i kwestie nie wchodzą na klip.
+  if (!front || front.loop || front.video.ended || front.video.paused) return Promise.resolve();
+  const video = front.video;
+  return new Promise(resolve => {
+    const finish = () => { video.removeEventListener("ended", finish); resolve(); };
+    video.addEventListener("ended", finish);
+    setTimeout(finish, remainingMs(video) + 400);  // zapas, gdyby przeglądarka zgubiła zdarzenie końca
+  });
 }
 
-function playClip(command) {
-  const seq = command.seq;
-  video.onended = () => done(seq);
-  video.onerror = () => done(seq);  // uszkodzony klip: odcinek idzie dalej, zamiast stanąć
-  setVideo(command.clip, false);
+function ready(video) {
+  if (video.readyState >= 3) return Promise.resolve();
+  return new Promise(resolve => {
+    const finish = () => { video.removeEventListener("canplay", finish); video.removeEventListener("error", finish); resolve(); };
+    video.addEventListener("canplay", finish);
+    video.addEventListener("error", finish);
+    setTimeout(finish, 3000);
+  });
+}
+
+function load(deck, shot, loop) {
+  deck.key = shotKey(shot);
+  deck.loop = loop;
+  deck.video.loop = loop;
+  deck.video.volume = 0;
+  deck.video.src = shot.clip;
+  deck.layerBox.replaceChildren(...(shot.layers || []).map(src => {
+    const layer = document.createElement("video");
+    Object.assign(layer, { src, loop: true, muted: true, playsInline: true, preload: "auto" });
+    return layer;
+  }));
+}
+
+function begin(deck, seq) {
+  const video = deck.video;
+  if (seq !== undefined) {  // klip sceny: koniec zgłaszamy chwilę wcześniej, żeby następne ujęcie mogło zajść
+    let sent = false;
+    const report = () => { if (!sent) { sent = true; done(seq); } };
+    video.ontimeupdate = () => { if (remainingMs(video) <= LEAD_S * 1000) report(); };
+    video.onended = video.onerror = report;  // uszkodzony klip: odcinek idzie dalej, zamiast stanąć
+    video.play().catch(() => setTimeout(report, 500));
+  } else {
+    video.ontimeupdate = video.onended = video.onerror = null;
+    video.play().catch(() => { /* np. przeglądarka wstrzymała odtwarzanie w tle; pętla ruszy przy kolejnym ujęciu */ });
+  }
+  for (const layer of deck.layerBox.children) layer.play().catch(() => {});
+}
+
+async function animate(el, frames, ms, easing = "ease-in-out") {
+  const animation = el.animate(frames, { duration: ms, easing, fill: "forwards" });
+  await animation.finished;
+  Object.assign(el.style, frames[frames.length - 1]);
+  animation.cancel();
+}
+
+function fadeVolume(video, to, ms) {
+  const from = video.volume, started = performance.now();
+  const step = now => {
+    const t = ms ? Math.min(1, (now - started) / ms) : 1;
+    video.volume = Math.max(0, Math.min(1, from + (to - from) * t));
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+async function present(shot, loop, seq) {
+  // Ujęcie wchodzi przejściem wybranym przez montażystę, nakładając się na koniec poprzedniego klipu.
+  const cut = shot.cut || { transition: "ciecie", seconds: 0 };
+  const ms = Math.min(2.5, cut.seconds || 0) * 1000;
+  const kind = front && ms > 0 ? cut.transition : "ciecie";
+  const through = kind === "zaciemnienie" || kind === "rozjasnienie";  // przez ciemność albo jasność
+  const back = decks.find(deck => deck !== front);
+  load(back, shot, loop);
+  await ready(back.video);
+  if (closed) return;
+  const outgoing = front;
+  if (kind === "ciecie") await settled();  // cięcie na ostatniej klatce: pętla zaczyna się od niej
+  else await sleep(Math.max(0, remainingMs(outgoing?.loop ? null : outgoing?.video) - (through ? ms / 2 : ms)));
+  back.el.hidden = false;
+  back.el.style.zIndex = ++depth;
+  back.el.style.clipPath = "none";
+  back.el.style.opacity = through ? 0 : 1;
+  const volume = loop ? LOOP_VOLUME : 1;
+  if (outgoing) fadeVolume(outgoing.video, 0, kind === "ciecie" ? 0 : ms);
+  if (kind === "ciecie") {
+    begin(back, seq);
+    back.video.volume = volume;
+  } else if (through) {
+    const veil = $("veil");
+    veil.style.background = kind === "zaciemnienie" ? "#000" : "#fff6e3";
+    await animate(veil, [{ opacity: 0 }, { opacity: 1 }], ms / 2);
+    begin(back, seq);
+    back.el.style.opacity = 1;
+    fadeVolume(back.video, volume, ms / 2);
+    await animate(veil, [{ opacity: 1 }, { opacity: 0 }], ms / 2);
+  } else {
+    begin(back, seq);
+    fadeVolume(back.video, volume, ms);
+    const frames = kind === "przetarcie"
+      ? [{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)" }]
+      : [{ opacity: 0 }, { opacity: 1 }];
+    await animate(back.el, frames, ms);
+  }
+  front = back;
+  if (outgoing) retire(outgoing);
+}
+
+function retire(deck) {
+  deck.video.pause();
+  deck.video.ontimeupdate = deck.video.onended = deck.video.onerror = null;
+  for (const layer of deck.layerBox.children) layer.pause();
+  deck.el.hidden = true;
+  deck.key = null;
+}
+
+function duck(on) {
+  if (front) fadeVolume(front.video, on ? 0.25 : front.loop ? LOOP_VOLUME : 1, 300);  // ściszenie, gdy mówi postać
 }
 
 // --- kwestie postaci: napisy i synteza mowy przeglądarki ---
@@ -301,7 +431,7 @@ function speak(command) {
   const finish = () => {
     if (finished) return;
     finished = true;
-    if (video.loop) video.volume = 0.6;
+    duck(false);
     if (handled === seq) caption(null);
     done(seq);
   };
@@ -312,7 +442,7 @@ function speak(command) {
   utterance.rate = 0.95;
   utterance.pitch = 1.15;
   utterance.onend = utterance.onerror = finish;
-  video.volume = 0.25;  // ściszenie tła, gdy mówi postać
+  duck(true);
   speechSynthesis.cancel();
   speechSynthesis.speak(utterance);
   setTimeout(finish, 4000 + text.length * 110);  // część przeglądarek gubi zdarzenie końca mowy
@@ -384,7 +514,10 @@ function stopAll() {
   closeChoice();
   caption(null);
   if ("speechSynthesis" in window) speechSynthesis.cancel();
-  video.pause();
+  for (const deck of decks) {
+    deck.video.pause();
+    for (const layer of deck.layerBox.children) layer.pause();
+  }
 }
 
 function showEnd(command) {

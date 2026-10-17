@@ -1,7 +1,8 @@
 """Tryb próbny --text: odcinek w konsoli, bez wideo, mikrofonu i głośnika.
 
-Klipy są tylko wypisywane, okno wyboru to ponumerowana lista: cyfra działa jak przycisk na pilocie,
-tekst jak odpowiedź głosem (przechodzi przez rozpoznawanie intencji), pusta linia to cisza.
+Klipy są tylko wypisywane (z warstwami i przejściem wybranym przez montaż), okno wyboru to ponumerowana lista:
+cyfra działa jak przycisk na pilocie, tekst jak odpowiedź głosem (przechodzi przez rozpoznawanie intencji),
+pusta linia to cisza.
 """
 
 from __future__ import annotations
@@ -9,8 +10,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from pathlib import Path
 
-from bajka.ports import Answer
-from bajka.scenario import Scene
+from bajka.ports import Answer, Shot
+from bajka.scenario import CUT, Scene
 
 
 class ConsolePlayer:
@@ -18,10 +19,25 @@ class ConsolePlayer:
         self._write = write
 
     def play(self, clip: Path) -> None:
-        self._write(f"[klip] {clip.name}")
+        self.play_shot(Shot(clip))
 
     def loop(self, clip: Path) -> None:
-        self._write(f"[w pętli] {clip.name}")
+        self.loop_shot(Shot(clip))
+
+    def play_shot(self, shot: Shot) -> None:
+        self._write(f"[klip] {self._describe(shot)}")
+
+    def loop_shot(self, shot: Shot) -> None:
+        self._write(f"[w pętli] {self._describe(shot)}")
+
+    @staticmethod
+    def _describe(shot: Shot) -> str:
+        details = []
+        if shot.cut.transition != CUT:
+            details.append(f"{shot.cut.transition} {shot.cut.seconds:.1f} s".replace(".", ","))
+        if shot.layers:
+            details.append("warstwy: " + ", ".join(layer.name for layer in shot.layers))
+        return shot.clip.name + (f" ({'; '.join(details)})" if details else "")
 
     def stop(self) -> None:
         pass

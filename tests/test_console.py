@@ -1,5 +1,5 @@
 from bajka.console import ConsolePlayer, ConsoleViewer, ConsoleVoice
-from bajka.ports import Answer, Player, Viewer, Voice
+from bajka.ports import Answer, Compositor, Cut, Player, Shot, Viewer, Voice
 
 
 def viewer(*typed):
@@ -46,3 +46,13 @@ def test_player_and_voice_print_what_would_be_on_screen(tmp_path):
 
     assert isinstance(player, Player) and isinstance(voice, Voice)
     assert printed == ["[klip] intro.mp4", "[w pętli] intro_idle.mp4", "Postać: Do lasu!"]
+
+
+def test_player_shows_the_montage_cut_and_layers(tmp_path):
+    printed = []
+    player = ConsolePlayer(write=printed.append)
+
+    player.play_shot(Shot(tmp_path / "las.mp4", (tmp_path / "latarka.webm",), Cut("przetarcie", 0.8)))
+
+    assert isinstance(player, Compositor)
+    assert printed == ["[klip] las.mp4 (przetarcie 0,8 s; warstwy: latarka.webm)"]

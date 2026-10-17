@@ -1,4 +1,4 @@
-"""Silnik i tętno sali: wersja sceny według stanu widowni i nastroju filmu."""
+"""Silnik i tętno widza: wersja sceny według stanu widza i nastroju odcinka."""
 
 from pathlib import Path
 
@@ -35,7 +35,7 @@ class ChooseForest:
 
 
 class ScriptedPulse:
-    """Kolejne odczyty tętna sali; wyjątek z listy zostaje rzucony."""
+    """Kolejne odczyty tętna widza; wyjątek z listy zostaje rzucony. Ostatni odczyt się powtarza, jak w czujniku."""
 
     def __init__(self, *readings):
         self._readings = list(readings)
@@ -43,7 +43,7 @@ class ScriptedPulse:
 
     def read(self):
         self.reads += 1
-        reading = self._readings.pop(0)
+        reading = self._readings.pop(0) if len(self._readings) > 1 else self._readings[0]
         if isinstance(reading, Exception):
             raise reading
         return Pulse(bpm=reading, viewers=30)
@@ -90,12 +90,12 @@ def test_scene_without_the_chosen_version_plays_the_regular_clip(scenario_dict):
     assert calls[-1] == ("play", "las.mp4")
 
 
-def test_baseline_is_read_after_the_first_scene_and_then_only_before_scenes_with_versions(scenario_dict):
+def test_pulse_is_read_for_the_baseline_the_montage_and_scenes_with_versions(scenario_dict):
     pulse = ScriptedPulse(90.0, 110.0)
 
     run(adaptive_scenario(scenario_dict), pulse)
 
-    assert pulse.reads == 2  # punkt odniesienia po „intro” i jeden odczyt przed „las”
+    assert pulse.reads == 3  # punkt odniesienia po „intro”, montaż po wyborze i wersja sceny „las”
 
 
 def test_pulse_error_plays_the_regular_clip(scenario_dict):
@@ -130,7 +130,7 @@ def test_failed_first_read_is_retried_after_the_next_scene(scenario_dict):
     calls = run(parse_scenario(scenario_dict, base_dir=Path("film")), pulse)
 
     assert calls[-1] == ("play", "jaskinia_spokojna.mp4")  # odniesienie 90 z drugiego odczytu, po scenie „las”
-    assert pulse.reads == 3
+    assert pulse.reads == 4  # bez odniesienia montaż nie czyta tętna; potem montaż po wyborze w „las” i wersja
 
 
 def test_without_pulse_the_film_does_not_adapt(scenario_dict):

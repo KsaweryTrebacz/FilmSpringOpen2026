@@ -61,10 +61,10 @@ def scenario_graph(scenario: Scenario) -> dict[str, Any]:
     todo = [scenario.start]
     while todo:  # przeszukiwanie wszerz: najkrótsza droga od sceny startowej
         scene = scenario.scene(todo.pop(0))
-        for choice in scene.choices.values():
-            if choice.next not in depth:
-                depth[choice.next] = depth[scene.id] + 1
-                todo.append(choice.next)
+        for following in scene.successors:
+            if following not in depth:
+                depth[following] = depth[scene.id] + 1
+                todo.append(following)
     unreachable = max(depth.values()) + 1
     return {
         "start": scenario.start,
@@ -83,6 +83,11 @@ def scenario_graph(scenario: Scenario) -> dict[str, Any]:
             {"from": scene.id, "to": choice.next, "choice": choice.id, "label": choice.display_label}
             for scene in scenario.scenes.values()
             for choice in scene.choices.values()
+        ]
+        + [  # sceny bez pytania przechodzą dalej same
+            {"from": scene.id, "to": scene.next, "choice": None, "label": ""}
+            for scene in scenario.scenes.values()
+            if scene.next is not None
         ],
     }
 
@@ -150,7 +155,9 @@ class PanelState:
         self._scene = data["scene"]
         self._path.append({"scene": data["scene"], "variant": data["variant"]})
         version = "" if data["variant"] == "zwykla" else f" w wersji {VERSION.get(data['variant'], data['variant'])}"
-        self._say(f"Scena {data['scene']}{version}")
+        layers = data.get("layers") or []
+        overlay = f", nałożone warstwy: {', '.join(Path(name).stem for name in layers)}" if layers else ""
+        self._say(f"Scena {data['scene']}{version}{overlay}")
 
     def _on_decyzja(self, data: Mapping[str, Any]) -> None:
         # Głosy poprzedzają decyzję i służą jej raz: przy kolejnej wizycie w scenie nie wrócą nieaktualne.
@@ -169,6 +176,12 @@ class PanelState:
             f"{choices[cid].display_label if cid in choices else cid} {count}" for cid, count in data["counts"].items()
         )
         self._say(f"Głosy ({data['source']}): {results}")
+
+    def _on_montaz(self, data: Mapping[str, Any]) -> None:
+        length = "" if data["transition"] == "ciecie" else f" {data['seconds']:.1f} s".replace(".", ",")
+        who = "model AI" if data["source"] == "model" else "reguły"
+        reason = f": {data['reason']}" if data.get("reason") else ""
+        self._say(f"Montaż {data['scene']} → {data['to']}: {data['transition']}{length} ({who}){reason}")
 
     def _on_odniesienie(self, data: Mapping[str, Any]) -> None:
         self._baseline = data["bpm"]

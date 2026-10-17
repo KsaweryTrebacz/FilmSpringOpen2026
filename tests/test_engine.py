@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from bajka.engine import DEFAULT_CHOICE_SECONDS, DEFAULT_FALLBACK, StoryEngine
-from bajka.ports import Answer, Interpretation
+from bajka.ports import Answer, Cut, Interpretation
 from bajka.scenario import parse_scenario
 
 REPROMPT = "Hmm, nie usłyszałem. Las czy jaskinia?"
@@ -307,3 +307,89 @@ def test_default_choice_says_the_fallback_before_the_reaction_clip(scenario_dict
     assert engine.run() == ["intro", "las"]
     assert voice.lines == [REPROMPT, REPROMPT, DEFAULT_FALLBACK]
     assert ("play", "reakcja_las.mp4") in player.calls
+
+
+# Gałęzie, sceny przejściowe, warstwy i montaż
+
+
+class FakeCompositor:
+    """Odtwarzacz, który nakłada warstwy i robi przejścia: zapisuje ujęcia."""
+
+    def __init__(self):
+        self.shots = []
+
+    def play(self, clip):
+        raise AssertionError("kompozytor dostaje ujęcia, nie gołe klipy")
+
+    loop = play
+
+    def play_shot(self, shot):
+        self.shots.append(("play", shot.clip.name, tuple(p.name for p in shot.layers), shot.cut.transition))
+
+    def loop_shot(self, shot):
+        self.shots.append(("loop", shot.clip.name, tuple(p.name for p in shot.layers), shot.cut.transition))
+
+
+def branching_scenario(scenario_dict):
+    """Las ma własną scenę dalszego ciągu („polana”), a wybór lasu nakłada latarkę na kolejne sceny."""
+    scenes = scenario_dict["scenes"]
+    scenes["intro"]["choices"]["las"].update(layer="latarka.webm", slot="pomocnik")
+    scenes["las"] = {"clip": "las.mp4", "next": "polana", "place": "Las", "layers": ["pomocnik"]}
+    scenes["polana"] = {"clip": "polana.mp4", "layers": ["pomocnik"], "transition": "rozjasnienie"}
+    return parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_scene_without_question_leads_on_and_layers_follow_the_choice(scenario_dict):
+    player = FakeCompositor()
+    engine = StoryEngine(branching_scenario(scenario_dict), player, ScriptedViewer(Answer(choice_id="las")),
+                         FakeVoice(), FakeResolver({}))  # fmt: skip
+
+    assert engine.run() == ["intro", "las", "polana"]
+    assert player.shots == [
+        ("play", "intro.mp4", (), "ciecie"),
+        ("loop", "intro_idle.mp4", (), "ciecie"),
+        ("play", "las.mp4", ("latarka.webm",), "przenikanie"),  # reguły: miejsce nieznane → przenikanie
+        ("play", "polana.mp4", ("latarka.webm",), "rozjasnienie"),  # podpowiedź autora sceny
+    ]
+
+
+def test_other_answer_takes_another_branch_without_the_layer(scenario_dict):
+    player = FakeCompositor()
+    engine = StoryEngine(branching_scenario(scenario_dict), player, ScriptedViewer(Answer(choice_id="jaskinia")),
+                         FakeVoice(), FakeResolver({}))  # fmt: skip
+
+    assert engine.run() == ["intro", "jaskinia"]
+    assert player.shots[-1] == ("play", "jaskinia.mp4", (), "zaciemnienie")  # zakończenie
+
+
+def test_montage_gets_what_the_viewer_said(scenario_dict):
+    seen = []
+
+    class Recording:
+        def cut(self, context):
+            seen.append(context)
+            return Cut("przenikanie", 1.0, "Do lasu.", "model")
+
+    from bajka.montage import Montage
+
+    resolver = FakeResolver({"do lasu": Interpretation("las", "")})
+    engine = StoryEngine(branching_scenario(scenario_dict), FakeCompositor(), ScriptedViewer(Answer(transcript="do lasu")),
+                         FakeVoice(), resolver, montage=Montage(Recording()))  # fmt: skip
+
+    engine.run()
+
+    choice = next(c for c in seen if c.edge == "wybor")
+    assert (choice.from_scene, choice.to_scene, choice.choice, choice.how, choice.transcript) == (
+        "intro", "las", "Las", "glos", "do lasu",
+    )
+    assert any(c.edge == "dalej" and c.to_scene == "polana" for c in seen)
+
+
+def test_vlc_without_layers_still_plays_every_clip(scenario_dict):
+    player = FakePlayer()
+    engine = StoryEngine(branching_scenario(scenario_dict), player, ScriptedViewer(Answer(choice_id="las")),
+                         FakeVoice(), FakeResolver({}))  # fmt: skip
+
+    engine.run()
+
+    assert player.calls == [("play", "intro.mp4"), ("loop", "intro_idle.mp4"), ("play", "las.mp4"), ("play", "polana.mp4")]

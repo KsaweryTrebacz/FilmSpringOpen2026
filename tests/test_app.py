@@ -40,6 +40,7 @@ ENV_VARS_THAT_CHANGE_MAIN = (
     "BAJKA_BACKEND",
     "BAJKA_PLAYER",
     "BAJKA_CHOICE_SECONDS",
+    "BAJKA_MONTAGE",
     "BAJKA_WEB_HOST",
     "BAJKA_WEB_PORT",
     "BAJKA_WEB_OPEN",
@@ -235,7 +236,7 @@ class FakeEpisode:
         self.finished = []
         self.on_stop = None
 
-    def finish(self, visited):
+    def finish(self, visited, decisions=None):
         self.finished.append(visited)
         return self._wants_again.pop(0)
 
@@ -384,3 +385,19 @@ def test_main_web_player_serves_the_episode_and_opens_the_browser(tmp_path, monk
     assert isinstance(player, WebEpisode) and viewer is player and voice is player
     assert player.state()["voice"] is False  # --no-mic: bez rozpoznawania mowy, tylko pilot i dotyk
     assert len(opened) == 1 and opened[0].startswith("http://127.0.0.1:")
+
+
+def test_montage_uses_rules_without_a_language_model():
+    from bajka.app import build_montage
+
+    assert build_montage({}, "local", use_llm=False)._editor is None
+    assert build_montage({"BAJKA_MONTAGE": "reguly"}, "local", use_llm=True)._editor is None
+
+
+def test_main_gives_the_engine_a_montage(tmp_path, monkeypatch, scenario_dict):
+    from bajka.montage import Montage
+
+    path, created, _ = install_spies(tmp_path, monkeypatch, scenario_dict)
+
+    assert main([str(path), "--text", "--no-llm"]) == 0
+    assert isinstance(created["montage"], Montage)

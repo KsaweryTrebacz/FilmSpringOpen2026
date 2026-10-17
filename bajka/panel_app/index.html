@@ -273,7 +273,9 @@ function renderTree(state) {
     const a = positions[edges[0].from], b = positions[edges[0].to];
     const chosen = edges.map((e) => taken.get(`${e.from}>${e.choice}`)).find(Boolean);
     const x1 = a.x + a.w / 2, y1 = a.y + a.h, x2 = b.x + b.w / 2, y2 = b.y, mid = (y1 + y2) / 2;
-    const group = el("g", { class: chosen ? "edge taken" : "edge" });
+    // Scena bez pytania przechodzi dalej sama: krawędź jest przebyta, gdy widz był w obu scenach.
+    const passed = edges[0].choice === null && visited.has(edges[0].from) && visited.has(edges[0].to);
+    const group = el("g", { class: chosen || passed ? "edge taken" : "edge" });
     const full = chosen ? `${chosen.label} · ${decisionNote(chosen)}` : edges.map((e) => e.label).join(" / ");
     // Nazwę wybranej opcji skracamy, a wynik głosowania zostaje w całości.
     const shown = chosen ? `${shorten(chosen.label, 18)} · ${decisionNote(chosen)}` : shorten(full, 28);

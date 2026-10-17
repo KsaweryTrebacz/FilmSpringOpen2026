@@ -3,6 +3,7 @@
 Użycie: python -m bajka.placeholders scenarios/klub_ciekawskich.yaml   (wymaga ffmpeg w PATH)
 Pliki .mp4 dostają H.264/AAC z indeksem na początku pliku (szybki start w przeglądarce, jak w serwisach
 streamingowych), a pliki .webm — VP9/Opus (dla przeglądarek bez kodeka H.264, np. Chromium do testów).
+Warstwy (`layer` wyboru) to przezroczyste WebM VP9 z kanałem alfa: kolorowy kafelek z nazwą w prawej części kadru.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 from bajka.scenario import Scenario, load_scenario
 
@@ -24,17 +26,42 @@ LABEL_FONTS = (
 )
 
 
-def planned_clips(scenario: Scenario) -> list[tuple[Path, str, bool]]:
-    """(ścieżka, kolor, czy z dźwiękiem) — klipy scen, ich wersje i reakcje mają ton, a pętle oczekiwania są ciche."""
-    clips: dict[Path, tuple[Path, str, bool]] = {}
+class Planned(NamedTuple):
+    path: Path
+    color: str
+    with_tone: bool
+    layer: bool = False  # przezroczysta warstwa zamiast pełnej planszy
+
+
+def planned_clips(scenario: Scenario) -> list[Planned]:
+    """Klipy scen, ich wersje i reakcje mają ton, pętle oczekiwania i warstwy są ciche."""
+    clips: dict[Path, Planned] = {}
     for index, scene in enumerate(scenario.scenes.values()):
         color = COLORS[index % len(COLORS)]
         tracks = [(scene.clip, True), (scene.idle, False)] + [(path, True) for path in scene.variants.values()]
         tracks += [(choice.reaction, True) for choice in scene.choices.values()]
         for path, with_tone in tracks:
             if path is not None and path not in clips:  # ten sam plik w kilku scenach tylko raz
-                clips[path] = (path, color, with_tone)
+                clips[path] = Planned(path, color, with_tone)
+        for choice in scene.choices.values():
+            if choice.layer is not None and choice.layer not in clips:
+                clips[choice.layer] = Planned(choice.layer, "gold", False, layer=True)
     return list(clips.values())
+
+
+def layer_command(target: Path, color: str, seconds: float, label: str = "", font: Path | None = None) -> list[str]:
+    """Przezroczysta warstwa: kafelek w prawej części kadru, reszta obrazu całkiem przezroczysta (WebM VP9 z alfą)."""
+    tile = f"drawbox=x=iw*0.66:y=ih*0.2:w=iw*0.24:h=ih*0.34:color={color}@0.9:t=fill:replace=1"
+    if label and font is not None:
+        fontfile = str(font).replace("\\", "/").replace(":", "\\:")
+        text = label.replace("'", "").replace(":", "\\:")
+        tile += f",drawtext=fontfile='{fontfile}':text='{text}':fontsize=34:fontcolor=black:x=w*0.68:y=h*0.36"
+    return [
+        "ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi",
+        "-i", f"color=c=black@0.0:s=1280x720:r=25:d={seconds},format=yuva420p",
+        "-vf", tile, "-an", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-auto-alt-ref", "0",
+        "-b:v", "200k", "-deadline", "realtime", str(target),
+    ]  # fmt: skip
 
 
 def ffmpeg_command(
@@ -66,12 +93,15 @@ def main(argv: list[str] | None = None) -> int:
         print("Nie znaleziono ffmpeg w PATH (Windows: winget install Gyan.FFmpeg)", file=sys.stderr)
         return 1
     font = next((path for path in LABEL_FONTS if path.is_file()), None)
-    for path, color, with_tone in planned_clips(load_scenario(args.scenario)):
+    for path, color, with_tone, layer in planned_clips(load_scenario(args.scenario)):
         if path.exists() and not args.force:
             print(f"pomijam, plik istnieje: {path}")
             continue
         path.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(ffmpeg_command(path, color, args.seconds, with_tone, path.stem, font), check=True)
+        if layer:
+            subprocess.run(layer_command(path, color, args.seconds, path.stem, font), check=True)
+        else:
+            subprocess.run(ffmpeg_command(path, color, args.seconds, with_tone, path.stem, font), check=True)
         print(f"utworzono: {path}")
     return 0
 

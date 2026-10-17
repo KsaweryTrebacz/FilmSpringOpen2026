@@ -19,10 +19,26 @@ def test_manifest_describes_scenes_windows_and_the_linear_path(scenario_dict):
     assert intro["clip"] == "intro.mp4" and intro["idle"] == "intro_idle.mp4" and intro["seconds"] == 12.0
     assert intro["choices"][0] == {
         "id": "las", "label": "Las", "icon": "🌲", "next": "las", "reply": "Do lasu! Trzymaj się blisko!",
-        "reaction": "reakcje/las.mp4", "voice": {"description": "pójść do mrocznego lasu", "keywords": ["drzewa"]},
+        "reaction": "reakcje/las.mp4", "layer": None, "cut": {"transition": "zaciemnienie", "seconds": 1.2},
+        "voice": {"description": "pójść do mrocznego lasu", "keywords": ["drzewa"]},
     }
     assert manifest["scenes"]["las"] == {"clip": "las.mp4", "ending": True}
+    assert "przetarcie" in manifest["transitions"]
     assert manifest["linear_path"] == ["intro", "las"]
+
+
+def test_manifest_has_scenes_that_go_on_by_themselves_and_layers(scenario_dict):
+    scenes = scenario_dict["scenes"]
+    scenes["intro"]["choices"]["las"].update(layer="warstwy/latarka.webm", slot="pomocnik")
+    scenes["las"] = {"clip": "las.mp4", "next": "jaskinia", "place": "Las", "layers": ["pomocnik"]}
+    manifest = build_manifest(parse_scenario(scenario_dict, base_dir=Path("/odcinek")), media_root=Path("/odcinek"))
+
+    assert manifest["scenes"]["intro"]["choices"][0]["layer"] == {"slot": "pomocnik", "clip": "warstwy/latarka.webm"}
+    assert manifest["scenes"]["las"] == {
+        "clip": "las.mp4", "ending": False, "place": "Las", "layers": ["pomocnik"], "next": "jaskinia",
+        "cut": {"transition": "zaciemnienie", "seconds": 1.2},
+    }
+    assert manifest["linear_path"] == ["intro", "las", "jaskinia"]
 
 
 def test_bundled_episode_exports_to_json(tmp_path, capsys):

@@ -1,15 +1,15 @@
 from pathlib import Path
 
-from bajka.placeholders import ffmpeg_command, planned_clips
+from bajka.placeholders import ffmpeg_command, layer_command, planned_clips
 from bajka.scenario import parse_scenario
 
 
 def test_scene_clip_has_tone_and_idle_loop_is_silent(scenario):
     clips = planned_clips(scenario)
 
-    assert clips[0] == (Path("film/intro.mp4"), "darkgreen", True)
-    assert clips[1] == (Path("film/intro_idle.mp4"), "darkgreen", False)
-    assert [path.name for path, _, _ in clips] == ["intro.mp4", "intro_idle.mp4", "las.mp4", "jaskinia.mp4"]
+    assert clips[0] == (Path("film/intro.mp4"), "darkgreen", True, False)
+    assert clips[1] == (Path("film/intro_idle.mp4"), "darkgreen", False, False)
+    assert [clip.path.name for clip in clips] == ["intro.mp4", "intro_idle.mp4", "las.mp4", "jaskinia.mp4"]
 
 
 def test_ffmpeg_command_for_silent_loop_has_no_audio():
@@ -33,8 +33,8 @@ def test_scene_versions_are_planned_with_tone_in_the_scene_color(scenario_dict):
 
     clips = planned_clips(parse_scenario(scenario_dict, base_dir=Path("film")))
 
-    las_color = next(color for path, color, _ in clips if path.name == "las.mp4")
-    assert (Path("film/las_spokojna.mp4"), las_color, True) in clips
+    las_color = next(clip.color for clip in clips if clip.path.name == "las.mp4")
+    assert (Path("film/las_spokojna.mp4"), las_color, True, False) in clips
 
 
 def test_ffmpeg_command_writes_the_label_with_the_given_font():
@@ -57,7 +57,7 @@ def test_reaction_clips_are_planned_with_tone(scenario_dict):
 
     clips = planned_clips(parse_scenario(scenario_dict, base_dir=Path("film")))
 
-    assert (Path("film/reakcja_las.mp4"), "darkgreen", True) in clips
+    assert (Path("film/reakcja_las.mp4"), "darkgreen", True, False) in clips
 
 
 def test_mp4_starts_fast_in_a_browser_and_webm_uses_open_codecs():
@@ -66,3 +66,15 @@ def test_mp4_starts_fast_in_a_browser_and_webm_uses_open_codecs():
 
     assert mp4[mp4.index("-movflags") + 1] == "+faststart"
     assert "libvpx-vp9" in webm and "libopus" in webm and "-movflags" not in webm
+
+
+def test_choice_layers_are_planned_as_transparent_webm(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["layer"] = "latarka.webm"
+
+    clips = planned_clips(parse_scenario(scenario_dict, base_dir=Path("film")))
+    cmd = layer_command(Path("out/latarka.webm"), "gold", 2.0, label="latarka", font=Path("C:/Windows/Fonts/arial.ttf"))
+
+    assert (Path("film/latarka.webm"), "gold", False, True) in clips
+    assert "yuva420p" in cmd and "libvpx-vp9" in cmd and "-an" in cmd
+    assert "color=c=black@0.0" in cmd[cmd.index("-i") + 1]
+    assert "text='latarka'" in cmd[cmd.index("-vf") + 1]

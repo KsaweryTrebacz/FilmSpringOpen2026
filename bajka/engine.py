@@ -2,7 +2,12 @@
 
 Okno wyboru: widz wskazuje opcję (pilot, dotyk, klawiatura) albo mówi ją do mikrofonu. Gdy czas minie bez wyboru,
 postać dopytuje, a po ostatniej próbie gra wybór domyślny — odcinek nigdy nie staje. Po wyborze gra nagrany klip
-reakcji (`reaction`), a gdy go nie ma, postać mówi swoją kwestię (`reply`).
+reakcji (`reaction`), a gdy go nie ma, postać mówi swoją kwestię (`reply`). Każda odpowiedź może prowadzić
+do innej sceny, a scena bez pytania z polem `next` przechodzi dalej sama.
+
+Montaż: wybór może nałożyć warstwę (`layer`) na kolejne sceny, a o przejściu do następnego klipu decyduje montażysta
+(`bajka/montage.py`): model pracuje w tle, gdy gra reakcja postaci, a gdy nie zdąży, decydują reguły. Odtwarzacz,
+który to umie (`Compositor`), nakłada klipy na siebie i płynnie przechodzi; VLC gra klipy po kolei.
 """
 
 from __future__ import annotations
@@ -13,14 +18,18 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from bajka.montage import Montage, PendingCut, context_for, describe_cut
 from bajka.ports import (
     Answer,
     Audience,
     AudiencePulse,
+    Compositor,
+    Cut,
     IntentResolver,
     Interpretation,
     Listener,
     Player,
+    Shot,
     ShowObserver,
     Viewer,
     Voice,
@@ -67,6 +76,7 @@ class StoryEngine:
         pulse_settings: PulseSettings | None = None,
         observer: ShowObserver | None = None,
         choice_seconds: float = DEFAULT_CHOICE_SECONDS,
+        montage: Montage | None = None,
     ) -> None:
         self._stopped = threading.Event()
         self._observer = observer  # panel podglądu; jego błędy nigdy nie zatrzymują odcinka
@@ -81,6 +91,10 @@ class StoryEngine:
         self._max_reprompts = max_reprompts
         self._audience = audience  # telefony domowników (drugi ekran); bez nich odpowiada okno wyboru
         self._choice_seconds = choice_seconds
+        self._montage = montage or Montage()  # bez modelu: same reguły montażu
+        self._layers: dict[str, Path] = {}  # miejsce na warstwę → klip wybrany przez widza
+        self._next_cut: PendingCut | None = None  # decyzja o wejściu następnej sceny, zlecona zaraz po wyborze
+        self.decisions: list[tuple[str, str]] = []  # (scena, wybór) w kolejności: ekran końcowy pokazuje wybory widza
 
     def stop(self) -> None:
         """Przerywa odcinek przy najbliższej okazji; wywoływane z innego wątku, np. po Esc."""
@@ -90,13 +104,52 @@ class StoryEngine:
         if self._stopped.is_set():
             raise _Stopped
 
-    def _play(self, clip: Path) -> None:
+    def _play(self, clip: Path, layers: tuple[Path, ...] = (), cut: Cut | None = None) -> None:
         self._check_stopped()
-        self._player.play(clip)
+        if isinstance(self._player, Compositor):
+            self._player.play_shot(Shot(clip, layers, cut or Cut()))
+        else:
+            self._player.play(clip)
 
-    def _loop(self, clip: Path) -> None:
+    def _loop(self, clip: Path, layers: tuple[Path, ...] = ()) -> None:
         self._check_stopped()
-        self._player.loop(clip)
+        if isinstance(self._player, Compositor):
+            self._player.loop_shot(Shot(clip, layers))  # pętla zaczyna się od ostatniej klatki klipu: cięcie
+        else:
+            self._player.loop(clip)
+
+    def _layers_for(self, scene: Scene) -> tuple[Path, ...]:
+        """Warstwy wybrane wcześniej przez widza, które ta scena pokazuje (pole `layers`)."""
+        return tuple(self._layers[slot] for slot in scene.layers if slot in self._layers)
+
+    def _viewer_state(self) -> str:
+        if self._pulse is None or self._baseline is None:
+            return ""
+        bpm = self._read_bpm()
+        return "" if bpm is None else hall_state(bpm, self._baseline, self._pulse_settings)
+
+    def _request_cut(self, scene: Scene, target: str, edge: str, **choice: str) -> PendingCut:
+        """Zleca montażyście decyzję o przejściu; model myśli w tle, a odcinek gra dalej."""
+        context = context_for(self._scenario, scene, target, edge, self._viewer_state(), **choice)
+        try:
+            return self._montage.request(context)
+        except Exception:
+            log.exception("Błąd montażu, przejście z reguł")
+            return PendingCut(context, Cut())
+
+    def _take_cut(self, pending: PendingCut | None) -> Cut:
+        if pending is None:
+            return Cut()
+        try:
+            cut = self._montage.result(pending)
+        except Exception:
+            log.exception("Błąd montażu, przejście z reguł")
+            cut = pending.fallback
+        log.info("Montaż %s -> %s: %s (%s) %s", pending.context.from_scene, pending.context.to_scene,
+                 describe_cut(cut), cut.source, cut.reason)  # fmt: skip
+        self._emit("montaz", scene=pending.context.from_scene, to=pending.context.to_scene, edge=pending.context.edge,
+                   transition=cut.transition, seconds=cut.seconds, reason=cut.reason, source=cut.source)  # fmt: skip
+        return cut
 
     def _emit(self, kind: str, **data: Any) -> None:
         if self._observer is None:
@@ -132,23 +185,33 @@ class StoryEngine:
         """Odtwarza odcinek i zwraca identyfikatory odwiedzonych scen."""
         visited: list[str] = []
         scene = self._scenario.scene(self._scenario.start)
+        entering = Cut()  # pierwsza scena wchodzi cięciem
         try:
             while True:
                 self._check_stopped()
                 visited.append(scene.id)
                 log.info("Scena: %s", scene.id)
                 clip, variant = self._clip_for(scene)
-                self._emit("scena", scene=scene.id, clip=clip.name, variant=variant)
-                self._play(clip)
+                layers = self._layers_for(scene)
+                self._emit("scena", scene=scene.id, clip=clip.name, variant=variant, layers=[p.name for p in layers])
+                passage = self._request_cut(scene, scene.next, "dalej") if scene.next and not scene.choices else None
+                self._play(clip, layers, entering)
                 if scene.is_ending:
                     return visited
                 if self._pulse is not None and self._baseline is None:
                     self._baseline = self._read_bpm()  # widz dopiero się usadowił
                     if self._baseline is not None:
                         self._emit("odniesienie", bpm=self._baseline)
+                if passage is not None:  # scena bez pytania: od razu dalej
+                    entering = self._take_cut(passage)
+                    scene = self._scenario.scene(scene.next)
+                    continue
                 if scene.idle is not None:
-                    self._loop(scene.idle)
-                scene = self._scenario.scene(self._decide(scene).next)
+                    self._loop(scene.idle, layers)
+                choice = self._decide(scene)
+                entering = self._take_cut(self._next_cut)
+                self._next_cut = None
+                scene = self._scenario.scene(choice.next)
         except _Stopped:
             log.info("Odcinek zatrzymany")
             return visited
@@ -158,13 +221,22 @@ class StoryEngine:
             return self._ask_audience(scene)
         return self._ask(scene)
 
-    def _chosen(self, scene: Scene, choice: Choice, how: str, personal: str = "", prefix: str = "") -> Choice:
-        """Zapisuje decyzję dla panelu i odtwarza reakcję postaci na wybór."""
+    def _chosen(
+        self, scene: Scene, choice: Choice, how: str, personal: str = "", prefix: str = "", transcript: str = ""
+    ) -> Choice:
+        """Zapisuje decyzję, zleca montaż następnej sceny i odtwarza reakcję postaci na wybór."""
         self._emit("decyzja", scene=scene.id, choice=choice.id, label=choice.display_label, how=how)
+        self.decisions.append((scene.id, choice.id))
+        if choice.layer is not None:
+            self._layers[choice.slot] = choice.layer  # kolejne sceny z tym miejscem pokażą wybór widza
+        # Montażysta myśli, gdy gra reakcja: zanim reakcja się skończy, decyzja zwykle jest gotowa.
+        self._next_cut = self._request_cut(scene, choice.next, "wybor", choice=choice.display_label,
+                                           meaning=choice.description, how=how, transcript=transcript)  # fmt: skip
         if choice.reaction is not None:
             if prefix:
                 self._say(prefix)
-            self._play(choice.reaction)  # nagrana reakcja: ten sam głos i animacja co w odcinku
+            reaction = self._take_cut(self._request_cut(scene, scene.id, "reakcja"))
+            self._play(choice.reaction, self._layers_for(scene), reaction)  # ten sam głos i animacja co w odcinku
         else:
             line = personal or choice.reply
             self._say(f"{prefix} {line}" if prefix else line)
@@ -186,7 +258,8 @@ class StoryEngine:
                 interpretation = self._interpret(scene, answer.transcript)
                 if interpretation.choice_id is not None:
                     choice = scene.choices[interpretation.choice_id]
-                    return self._chosen(scene, choice, "glos", personal=interpretation.reply)
+                    return self._chosen(scene, choice, "glos", personal=interpretation.reply,
+                                        transcript=answer.transcript)  # fmt: skip
                 retry_line = interpretation.reply or scene.reprompt
             else:
                 retry_line = scene.reprompt

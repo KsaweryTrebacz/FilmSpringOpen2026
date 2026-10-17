@@ -11,7 +11,8 @@
 | **Obraz** | 16:9, 1920×1080, 24 kl./s; dolna jedna trzecia kadru w pętlach oczekiwania wolna od ważnych elementów (tam jest okno wyboru) |
 | **Dźwięk** | Stereo; dialogi i muzyka w klipach, w pętlach oczekiwania cichy podkład (wtedy może słuchać mikrofon) |
 | **Język** | Polski; napisy dla niesłyszących w odtwarzaczu (kwestie mówione na żywo zawsze mają napisy) |
-| **Plik dla aplikacji** | [`klub_ciekawskich.yaml`](klub_ciekawskich.yaml) — graf scen, okna wyboru, reakcje i wersje scen |
+| **Montaż** | Klipy nakładają się na siebie według wyborów widza: przejścia (przenikanie, przetarcie, zaciemnienie, rozjaśnienie) wybiera montażysta AI, a warstwy z wyborami widza (kwiatek Bzyczki) leżą nad klipem sceny |
+| **Plik dla aplikacji** | [`klub_ciekawskich.yaml`](klub_ciekawskich.yaml) — graf scen, okna wyboru, gałęzie, warstwy, reakcje i wersje scen |
 
 **Logline.** Mała pszczółka zgubiła drogę do domu. Lila, Fiku i widz przed ekranem ruszają z pomocą:
 widz wybiera drogę, rozwiązuje zagadki, uspokaja rozbrykany wiatr i liczy pszczółki, aż Bzyczka wraca do ula.
@@ -21,8 +22,8 @@ klubu jest widz. Do dziupli wpada zapłakana pszczółka Bzyczka: zgubiła drog�
 Widz budzi gadający Kuferek Hopsasa, który daje trzy pomocniki i mapę, potem wybiera drogę — przez Tęczowy Mostek
 albo Szumiący Las — i pomaga pokonać przeszkodę: dopasować brakującą deskę albo rozpoznać, kto woła „hu-hu”.
 W połowie drogi rozbrykany Wiaterek Fiufiu rozdmuchuje wszystko, bo nie umie zapanować nad radością; widz
-oddycha z nim spokojnie. Lornetka pozwala dostrzec daleki ul, widz liczy pszczółki z rodziny Bzyczki, a na koniec
-decyduje, jak świętować: tańcem czy piosenką.
+oddycha z nim spokojnie. Lornetka pozwala dostrzec daleki ul, widz liczy pszczółki z rodziny Bzyczki, wybiera
+kwiatek, który Bzyczka da mamie na powitanie, a na koniec decyduje, jak świętować: tańcem czy piosenką.
 
 **O czym jest ten odcinek.** Razem dajemy radę. Każdy czasem się boi albo ma wielkie emocje — i to jest w porządku,
 a spokojny oddech pomaga. Pomyłka to część uczenia się.
@@ -33,27 +34,47 @@ a spokojny oddech pomaga. Pomyłka to część uczenia się.
 |---|---|---|---|
 | **Prolog** | 1 (początek) | Plansza tytułowa, Lila zaprasza widza do klubu i pokazuje, jak działa okno wyboru | 0:30 |
 | **Akt I — Wezwanie** | 1–2 | Bzyczka zgubiła drogę. Widz budzi Kuferek i wybiera drogę | 3:00 |
-| **Akt II — Droga** | 3a/3b, 4, 5 | Przeszkoda na drodze, kryzys z Wiaterkiem (środek odcinka), dostrzeżenie ula | 5:00 |
-| **Akt III — Powrót** | 6, 7, 8a/8b | Ul i rodzina Bzyczki, wybór świętowania, finał i pożegnanie | 3:00 |
+| **Akt II — Droga** | 3a/3b z gałęziami, 4, 5 | Przeszkoda na drodze (każda odpowiedź ma własną scenę), kryzys z Wiaterkiem (środek odcinka), dostrzeżenie ula | 5:00 |
+| **Akt III — Powrót** | 6, 6b, 7, 8a/8b | Ul i rodzina Bzyczki, kwiatek na powitanie, wybór świętowania, finał i pożegnanie | 3:30 |
 | **Napisy końcowe** | 8 (koniec) | Napisy z informacją o AI i zaproszenie do obejrzenia jeszcze raz | 0:40 |
 
-Rozgałęzienia są dwa: droga (mostek albo las) i finał (taniec albo piosenka), czyli cztery wersje odcinka —
-to powód, żeby obejrzeć go jeszcze raz (ekran końcowy: „Każdy wybór prowadzi gdzie indziej”). W zagadkach dobra
-i zła odpowiedź prowadzą do tej samej sceny — zmienia się tylko reakcja postaci. Dzięki temu animujemy 10 scen
-i kilka krótkich reakcji zamiast drzewa kilkudziesięciu klipów.
+**Gałęzie.** Każda odpowiedź w zagadce prowadzi do innej sceny: czerwona deska — przechodzimy od razu, niebieska —
+mostek się chwieje i naprawiamy go razem; sowa budzi się i pokazuje drogę, a przy żabie poznajemy żabkę Kumkę,
+zanim odezwie się sowa; „jeszcze raz” to drugi, wolniejszy oddech; zła liczba — pszczółki liczą się same w rządku.
+Gałęzie są krótkie (15–25 s) i wracają na wspólną drogę (pole `next`), więc dziecko widzi skutek swojej decyzji,
+a my animujemy kilka krótkich scen zamiast drzewa kilkudziesięciu. Dwie duże decyzje (droga i finał) dają cztery
+różne odcinki, a z gałęziami zagadek — kilkanaście ścieżek. To powód, żeby obejrzeć jeszcze raz.
+
+**Warstwy.** Kwiatek, który widz wybierze dla mamy Bzyczki (słonecznik, koniczyna albo stokrotka), to przezroczysty
+klip nakładany na sceny święta i finału. Jedna animacja finału + trzy małe warstwy zamiast trzech wersji finału.
+
+**Montaż AI.** O tym, jak połączyć klipy, decyduje montażysta: model językowy na urządzeniu (Phi) dostaje miejsce
+akcji (`place`), wybór widza, to, co powiedział, jego stan według tętna i podpowiedź autora (`transition`),
+i wybiera przejście oraz jego długość. Myśli w tle, gdy gra reakcja postaci; gdy nie zdąży, decydują reguły
+(nowe miejsce → przetarcie, ta sama scena → przenikanie, radosny finał → rozjaśnienie, pobudzone dziecko →
+dłużej i łagodniej, znużone → krócej i żywiej). Odtwarzacz nakłada klipy na siebie, więc nie ma czarnych przerw.
 
 ```mermaid
 flowchart TD
     powitanie["SC. 1 Dziupla<br/>okno: Hop-sa-sa czy puk, puk?"] --> kuferek["SC. 2 Kuferek<br/>okno: mostek czy las?"]
     kuferek -->|most| most["SC. 3a Tęczowy Mostek<br/>okno: jaka deska?"]
     kuferek -->|las| las["SC. 3b Szumiący Las<br/>okno: kto woła hu-hu?"]
-    most --> wiaterek["SC. 4 Wiaterek Fiufiu<br/>wspólny oddech, okno: udało się?"]
-    las --> wiaterek
-    wiaterek --> pomocnik["SC. 5 Pomocnik<br/>okno: mapa, latarka czy lornetka?"]
+    most -->|czerwona| most_przejscie["3a-1 Przejście po mostku"]
+    most -->|niebieska| most_chwiejny["3a-2 Chwiejna deska"]
+    las -->|sowa| las_sowa["3b-1 Pani Hu-Hu"]
+    las -->|żaba| las_zaba["3b-2 Żabka Kumka"]
+    most_przejscie --> wiaterek["SC. 4 Wiaterek Fiufiu<br/>okno: udało się?"]
+    most_chwiejny --> wiaterek
+    las_sowa --> wiaterek
+    las_zaba --> wiaterek
+    wiaterek -->|udało się| pomocnik["SC. 5 Pomocnik<br/>okno: mapa, latarka czy lornetka?"]
+    wiaterek -->|jeszcze raz| wiaterek_jeszcze["4-1 Drugi oddech"] --> pomocnik
     pomocnik --> laka["SC. 6 Ul na łące<br/>okno: ile pszczółek?"]
-    laka --> swieto["SC. 7 Święto<br/>okno: taniec czy piosenka?"]
-    swieto -->|taniec| koniec_taniec["SC. 8a Finał: taniec"]
-    swieto -->|piosenka| koniec_piosenka["SC. 8b Finał: piosenka"]
+    laka -->|trzy| kwiatek["SC. 6b Kwiatek dla mamy<br/>okno: słonecznik, koniczyna, stokrotka<br/>(warstwa do finału)"]
+    laka -->|inna liczba| laka_liczenie["6-1 Pszczółki liczą się same"] --> kwiatek
+    kwiatek --> swieto["SC. 7 Święto + kwiatek<br/>okno: taniec czy piosenka?"]
+    swieto -->|taniec| koniec_taniec["SC. 8a Finał: taniec + kwiatek"]
+    swieto -->|piosenka| koniec_piosenka["SC. 8b Finał: piosenka + kwiatek"]
 ```
 
 ## Bohaterowie
@@ -68,6 +89,9 @@ z innych filmów i seriali (zob. [zgodność z regulaminem](../docs/ZGODNOSC_Z_R
 | **Pszczółka Bzyczka** | Zagubiona pszczółka | Malutka, w miętowym sweterku w miodowe paski, różowe policzki, koszyczki na pyłek przy nóżkach | Nieśmiała, mówi cicho, z „bzz” przed zdaniami | Od pochlipywania do głośnego „Bzz-dziękuję!” i prowadzenia świętowania | Cienki, delikatny |
 | **Wiaterek Fiufiu** | Mały obłoczek-wietrzyk | Biały, puszysty, z różowymi policzkami; rośnie, gdy się emocjonuje | Gdy się cieszy albo złości, dmucha za mocno. Nie jest zły. Powiedzonko: „Fiu-fiu-fiuuu! Ojej, znowu za mocno!” | Od wichury emocji do spokojnego oddechu | Szybki, świszczący, zadyszany |
 | **Kuferek Hopsasa** | Gadający kufer podróżnik | Kolorowy, oklejony naklejkami z podróży, wieko jak usta | Budzi się na wołanie albo pukanie, rymuje, zawsze ma trzy pomocniki: „Hopsasa, co tu mam? Trzy pomocniki tobie dam!” | — (stały pomocnik) | Głęboki, ciepły, wesoły |
+
+**Postacie z gałęzi:** Pani Hu-Hu (zaspana sowa w okularach z liści), żabka Kumka (mieszka przy strumyku,
+mówi „kum-kum”), mama Bzyczki (królowa ula).
 
 **Pomocniki z Kuferka:** Mapa Rozkładanka (pokazuje drogę), Latarka Świetliczka (świeci w ciemności),
 Lornetka Patrzałka (przybliża to, co daleko).
@@ -108,15 +132,19 @@ Po dwóch dopytaniach postać wybiera sama (`fallback` i wybór domyślny) — o
 
 **Reakcja na wybór.** Po wyborze gra krótki nagrany klip reakcji (pole `reaction`) — ten sam głos i animacja co
 w odcinku. Gdzie reakcji nie nagraliśmy, postać mówi kwestię ze scenariusza (`reply`) głosem syntezatora,
-z napisami. Gdy widz odpowie głosem, model może dopisać krótką osobistą kwestię („Mostek? Ja też lubię kolory!”);
+z napisami, a skutek wyboru pokazuje scena gałęzi. Gdy widz odpowie głosem, model może dopisać krótką osobistą kwestię („Mostek? Ja też lubię kolory!”);
 przechodzi ona przez filtr bezpieczeństwa (`bajka/safety.py`).
+
+**Montaż i warstwy.** Kolejny klip wchodzi przejściem wybranym przez montażystę AI i nakłada się na koniec
+poprzedniego; warstwy z wyborami widza (kwiatek) leżą nad klipem i pętlą sceny. Pętla zawsze zaczyna się cięciem,
+bo jej pierwsza klatka to ostatnia klatka klipu.
 
 **Tempo według tętna (przyszłość).** Odcinek jest zrównoważony (`mood: zrownowazony`). Jeśli rodzic połączy zegarek
 z czujnikiem tętna, sceny z wersjami (`variants`) grają wersję spokojną, gdy dziecko jest bardzo pobudzone,
 i żywą, gdy tętno spada (znużenie). Dziś zamiast zegarka działa symulator w panelu podglądu (`--panel`).
 
 **Wersja liniowa.** Dla serwisów i telewizorów bez interakcji składamy z tych samych klipów zwykły film:
-ścieżka wyborów domyślnych z wypowiedzianymi reakcjami (`python -m bajka.linear`). Okna wyboru zostają tam
+ścieżka wyborów domyślnych, z gałęziami, warstwami i przejściami z reguł montażu (`python -m bajka.linear`). Okna wyboru zostają tam
 „pytaniami do widza”, a postać odpowiada sama — tak jak dziś po ciszy.
 
 **Prywatność.** Mikrofon działa tylko w trakcie okna wyboru i tylko po zgodzie rodzica. Nagranie trafia
@@ -231,10 +259,39 @@ dwa błyski na sekundę).
 
 **OKNO WYBORU** · 12 s · 🟥 **Czerwona deska** · 🟦 **Niebieska deska**
 
-**REAKCJE** (obie → SC. 4)
-- Czerwona: *„Czerwona! Brawo, wzór się zgadza. Czerwona, niebieska, czerwona!”*
-- Niebieska: *„Niebieska była przed chwilą, więc teraz kolej na czerwoną. Wkładamy czerwoną i pasuje!”*
-- Cisza: *„Popatrz na deski. Czerwona, niebieska, czerwona, niebieska… a teraz?”*
+**REAKCJE**
+- Czerwona: *„Czerwona! Brawo, wzór się zgadza!”* → SC. 3a-1
+- Niebieska: *„Niebieska? Sprawdźmy, czy pasuje!”* → SC. 3a-2
+- Cisza: *„Popatrz na deski. Czerwona, niebieska, czerwona, niebieska… a teraz?”*; potem Lila wybiera czerwoną.
+
+### SC. 3a-1 — PLENER. TĘCZOWY MOSTEK — CHWILĘ PÓŹNIEJ (`most_przejscie`) · gałąź „czerwona”
+
+**KLIP** `03a1_most_przejscie.mp4` · ok. 20 s · dalej sama do SC. 4
+
+*Czerwona deska wskakuje na miejsce z miękkim „klik”. Deski po kolei łagodnie rozbłyskują kolorami tęczy,
+każda z innym dźwiękiem ksylofonu (wolno, bez migania).*
+
+> **FIKU** *(przebiega na drugą stronę i robi fikołek)*: Fiku-miku, fikołek! Pasuje jak ulał!
+>
+> **LILA** *(do kamery)*: Czerwona, niebieska, czerwona! Wzór pomógł nam przejść. Lecimy dalej!
+
+### SC. 3a-2 — PLENER. TĘCZOWY MOSTEK — CHWILĘ PÓŹNIEJ (`most_chwiejny`) · gałąź „niebieska”
+
+**KLIP** `03a2_most_chwiejny.mp4` · ok. 25 s · dalej sama do SC. 4
+
+*Niebieska deska wsuwa się w dziurę, ale mostek kołysze się i skrzypi: skrzyp, skrzyp. Nikt nie spada,
+deska tylko się chybocze.*
+
+> **FIKU** *(trzyma się poręczy)*: Ojej, chwieje się!
+>
+> **LILA** *(spokojnie, przez lupkę)*: Zajrzyjmy przez lupkę… Przed dziurą jest niebieska. Po niebieskiej
+> przychodzi czerwona!
+>
+> **KUFEREK** *(podaje czerwoną deskę)*: Hopsasa, zamiana!
+>
+> **LILA I FIKU** *(pokazują deski po kolei)*: Czerwona, niebieska, czerwona! *(klik — mostek przestaje się chwiać)*
+>
+> **LILA** *(do kamery)*: Pomyłka pomogła nam zobaczyć wzór. Dziękuję za pomoc! Lecimy dalej!
 
 ### SC. 3b — PLENER. SZUMIĄCY LAS — DZIEŃ (`las`)
 
@@ -259,12 +316,40 @@ dwa błyski na sekundę).
 
 **OKNO WYBORU** · 12 s · 🦉 **Sowa** · 🐸 **Żaba**
 
-**REAKCJE** (obie → SC. 4)
-- Sowa (albo „hu-hu”): *„Sowa! Masz rację. Sowy w dzień zwykle śpią, a my ją chyba budzimy!”*
-- Żaba: *„Żaba robi kum-kum! A hu-hu woła sowa. Zobacz, siedzi tam na gałęzi!”*
-- Cisza: *„Posłuchaj jeszcze raz. Hu-hu, hu-hu. To sowa czy żaba?”*
+**REAKCJE**
+- Sowa (albo „hu-hu”): *„Sowa! Masz rację. Zobaczmy, czy się obudzi!”* → SC. 3b-1
+- Żaba: *„Żaba? Poszukajmy jej przy strumyku!”* → SC. 3b-2
+- Cisza: *„Posłuchaj jeszcze raz. Hu-hu, hu-hu. To sowa czy żaba?”*; potem Lila wybiera sowę.
 
-> W SC. 4 zaspana sowa może mignąć w tle w obu wersjach — nie trzeba robić osobnych klipów.
+### SC. 3b-1 — PLENER. SZUMIĄCY LAS — DZIUPLA SOWY (`las_sowa`) · gałąź „sowa”
+
+**KLIP** `03b1_las_sowa.mp4` · ok. 20 s · dalej sama do SC. 4
+
+*Z dziupli wysokiego drzewa wychyla się zaspana sowa w okularach z liści — Pani Hu-Hu.*
+
+> **PANI HU-HU** *(ziewa)*: Hu-hu… Kto mnie budzi w samo południe? Sowy w dzień zwykle śpią…
+>
+> **LILA**: Przepraszamy, Pani Hu-Hu! Szukamy drogi na Kwiatową Łąkę.
+>
+> **PANI HU-HU** *(wskazuje skrzydłem)*: Hu-hu! Za wierzbą, prosto ścieżką. A teraz… dobranoc. *(zasypia)*
+>
+> **FIKU** *(do kamery, szeptem)*: Ale masz dobre ucho! Idziemy po cichutku.
+
+### SC. 3b-2 — PLENER. SZUMIĄCY LAS — STRUMYK (`las_zaba`) · gałąź „żaba”
+
+**KLIP** `03b2_las_zaba.mp4` · ok. 25 s · dalej sama do SC. 4
+
+*Przy strumyku, na liściu łopianu siedzi żabka Kumka.*
+
+> **KUMKA**: Kum-kum! Kum-kum! Ja nie wołam „hu-hu”, ja robię „kum-kum”!
+>
+> **FIKU** *(śmieje się)*: To nie żaba! Ja też myślałem, że to żaba.
+>
+> *(Z wysoka: „Hu-hu… hu-hu…”. Kamera unosi się: na gałęzi drzemie sowa.)*
+>
+> **LILA** *(do kamery)*: Hu-hu woła sowa, a żaba robi kum-kum. Teraz już wiemy! Sowa śpi, więc idziemy po cichutku.
+>
+> **KUMKA**: Kum-kum! Łąka jest za wierzbą!
 
 ### SC. 4 — PLENER. ŚCIEŻKA NA SKRAJU ŁĄKI — DZIEŃ (`wiaterek`)
 
@@ -295,11 +380,24 @@ dwa błyski na sekundę).
 
 **OKNO WYBORU** · 20 s (czas na spokojny oddech) · 😌 **Udało się!** · 🌬️ **Jeszcze raz**
 
-**REAKCJE** (obie → SC. 5)
-- Udało się: *„Hurra! Fiufiu oddycha spokojnie i już nic nie fruwa. Dziękujemy za pomoc!”*
-- Jeszcze raz: *„Dobrze, jeszcze raz razem. Wdech… i wydech, fffuuu. Fiufiu oddycha spokojnie. Dziękujemy za pomoc!”*
+**REAKCJE**
+- Udało się: *„Hurra! Fiufiu oddycha spokojnie i już nic nie fruwa. Dziękujemy za pomoc!”* → SC. 5
+- Jeszcze raz: *„Dobrze, oddychamy jeszcze raz!”* → SC. 4-1
 - Cisza: *„Oddychaj razem z nami. Wdech nosem… i wydech buzią, fffuuu. Udało się?”*; potem
-  *„Fiufiu chyba sam to poczuł. Hurra!…”*
+  *„Fiufiu chyba sam to poczuł. Hurra!…”* → SC. 5
+
+### SC. 4-1 — PLENER. SKRAJ ŁĄKI — CHWILĘ PÓŹNIEJ (`wiaterek_jeszcze`) · gałąź „jeszcze raz”
+
+**KLIP** `04a_wiaterek_jeszcze.mp4` · ok. 20 s · dalej sama do SC. 5
+
+*Lila, Fiku i Fiufiu siadają na trawie. Wszystko zwalnia: muzyka cichnie, ruch kamery prawie staje.*
+
+> **LILA** *(do kamery, pokazując)*: Jeszcze raz, razem. Wdech nosem… `[pauza 3 s]` …i długi wydech buzią,
+> fffuuu… `[pauza 4 s]`
+>
+> *(Fiufiu maleje do malutkiej, puszystej chmurki i delikatnie kołysze źdźbła trawy.)*
+>
+> **FIUFIU** *(cichutko)*: Fiu… Teraz jestem spokojny jak chmurka. Dziękuję!
 
 ### SC. 5 — PLENER. BRZEG KWIATOWEJ ŁĄKI — POPOŁUDNIE (`pomocnik`)
 
@@ -352,14 +450,53 @@ malutkiego.*
 **OKNO WYBORU** · 15 s · 🐝🐝🐝 **Trzy** · 🐝🐝🐝🐝 **Cztery** (obrazki do porównania z ekranem; głosem można
 podać każdą liczbę)
 
-**REAKCJE** (obie → SC. 7)
-- Trzy: *„Trzy! Jedna, dwie, trzy pszczółki. Brawo, świetnie liczysz!”*
-- Inna liczba: *„Policzmy razem jeszcze raz. Jedna, dwie, trzy! Trzy pszczółki. Super, że liczysz ze mną!”*
+**REAKCJE**
+- Trzy: *„Trzy! Brawo, świetnie liczysz!”* → SC. 6b
+- Inna liczba: *„Policzmy razem jeszcze raz!”* → SC. 6-1
 - Cisza albo liczenie w trakcie („jedna, dwie…”): *„Policzmy razem paluszkami. Jedna, dwie… ile ich jest?”*
+
+### SC. 6-1 — PLENER. UL POD LIPĄ — CHWILĘ PÓŹNIEJ (`laka_liczenie`) · gałąź „inna liczba”
+
+**KLIP** `06a_laka_liczenie.mp4` · ok. 15 s · dalej sama do SC. 6b
+
+*Trzy pszczółki ustawiają się w rządku na gałązce lipy; każda podnosi rączkę, gdy ją liczymy.*
+
+> **PSZCZÓŁKI** *(po kolei)*: Jedna! Dwie! Trzy!
+>
+> **LILA** *(do kamery)*: Trzy pszczółki! Liczenie razem jest łatwiejsze. Super, że liczysz ze mną!
+
+### SC. 6b — PLENER. UL POD LIPĄ — POPOŁUDNIE (`kwiatek`)
+
+**KLIP** `06b_kwiatek.mp4` · ok. 25 s
+
+*Z ula wylatuje mama Bzyczki. Bzyczka szepcze coś Lili do ucha. Na łące przy ulu rosną trzy kwiaty:
+duży słonecznik, kępka koniczyny i stokrotka.*
+
+> **BZYCZKA**: Bzz… Chcę dać mamie kwiatek na powitanie. Ale który?
+>
+> **FIKU**: Tu rośnie słonecznik, tam koniczyna, a tu stokrotka!
+>
+> **LILA** *(do kamery)*: Bzyczka chce dać mamie kwiatek na powitanie. Który wybierasz? Słonecznik, koniczynę
+> czy stokrotkę?
+
+**PĘTLA** `06b_kwiatek_idle.mp4`: trzy kwiaty kołyszą się na wietrze, Bzyczka fruwa od jednego do drugiego.
+
+**OKNO WYBORU** · 12 s · 🌻 **Słonecznik** · ☘️ **Koniczyna** · 🌼 **Stokrotka**
+
+**REAKCJE** (wszystkie → SC. 7)
+- Słonecznik: *„Słonecznik! Duży i żółty jak słońce!”*
+- Koniczyna: *„Koniczyna! Pszczoły bardzo lubią jej kwiatki!”*
+- Stokrotka: *„Stokrotka! Mała i biała, z żółtym środkiem!”*
+- Cisza: *„Słonecznik, koniczyna czy stokrotka? Który kwiatek dajemy mamie Bzyczki?”*; potem Lila:
+  *„Wybiorę taki jak słońce!”* i słonecznik.
+
+**WARSTWA** `warstwa_slonecznik.webm` · `warstwa_koniczyna.webm` · `warstwa_stokrotka.webm` (miejsce `kwiatek`):
+przezroczysty klip z wybranym kwiatkiem w łapkach Bzyczki, nakładany na SC. 7 i finał. Bzyczka w tych scenach lata
+po stałym torze z karty warstw, a warstwy animujemy na tym samym torze, więc kwiatek zawsze jest przy niej.
 
 ### SC. 7 — PLENER. KWIATOWA ŁĄKA — ZŁOTA GODZINA (`swieto`)
 
-**KLIP** `07_swieto.mp4` · ok. 30 s · wersje: `07_swieto_spokojna.mp4` (łagodna muzyka, wolniejsze kołysanie),
+**KLIP** `07_swieto.mp4` · ok. 30 s · warstwa: kwiatek wybrany w SC. 6b · wersje: `07_swieto_spokojna.mp4` (łagodna muzyka, wolniejsze kołysanie),
 `07_swieto_zywa.mp4` (Fiku robi trzy fikołki, konfetti z płatków, szybszy rytm)
 
 *Wszyscy przed ulem: pszczoły, Fiufiu, Kuferek, Lila i Fiku. Ciepłe światło przed zachodem słońca.*
@@ -370,9 +507,11 @@ podać każdą liczbę)
 >
 > **FIUFIU** *(delikatnie)*: Fiu… Mogę zrobić leciutki wietrzyk do zabawy!
 >
+> **MAMA BZYCZKI** *(przytula Bzyczkę, patrzy na kwiatek z warstwy)*: Bzz! Jaki piękny kwiatek! Dziękuję!
+>
 > **LILA** *(do kamery)*: Jak świętujemy powrót Bzyczki? Pszczółkowym tańcem czy piosenką o kwiatkach?
 
-**PĘTLA** `07_swieto_idle.mp4`: wszyscy kołyszą się w oczekiwaniu, Kuferek przytupuje.
+**PĘTLA** `07_swieto_idle.mp4`: wszyscy kołyszą się w oczekiwaniu, Kuferek przytupuje. Warstwa: kwiatek Bzyczki.
 
 **OKNO WYBORU** · 12 s · 💃 **Pszczółkowy taniec** · 🎵 **Piosenka o kwiatkach**
 
@@ -383,7 +522,7 @@ podać każdą liczbę)
 
 ### SC. 8a — PLENER. ŁĄKA — ZACHÓD SŁOŃCA (`koniec_taniec`)
 
-**KLIP** `08a_koniec_taniec.mp4` · ok. 75 s (z pożegnaniem i napisami)
+**KLIP** `08a_koniec_taniec.mp4` · ok. 75 s (z pożegnaniem i napisami) · wchodzi rozjaśnieniem · warstwa: kwiatek
 
 *Bzyczka prowadzi taniec, wszyscy powtarzają ruchy. Muzyka oryginalna, rytm marszowy.*
 
@@ -396,7 +535,7 @@ Dalej **pożegnanie** i **napisy końcowe**.
 
 ### SC. 8b — PLENER. ŁĄKA — ZACHÓD SŁOŃCA (`koniec_piosenka`)
 
-**KLIP** `08b_koniec_piosenka.mp4` · ok. 75 s (z pożegnaniem i napisami)
+**KLIP** `08b_koniec_piosenka.mp4` · ok. 75 s (z pożegnaniem i napisami) · wchodzi rozjaśnieniem · warstwa: kwiatek
 
 *Tekst piosenki pojawia się przy kwiatkach, słowo po słowie. Melodia oryginalna, prosta, w rytmie marszu.*
 
@@ -493,6 +632,9 @@ Odcinek kończy się spokojnie i ma wyraźny koniec. Ekran końcowy odtwarzacza 
 | Spokojny oddech pomaga przy wielkich emocjach | Powolny wydech to popularna technika uspokajania także u dzieci |
 | Wzór czerwona–niebieska | Prosty wzór naprzemienny (ABAB) |
 | „Patrz na pszczółki z daleka” | Pszczoły żądlą, gdy czują się zagrożone; obserwujemy je spokojnie, bez dotykania |
+| Mama Bzyczki to królowa ula | W rodzinie pszczelej jaja składa królowa, więc pszczoły z ula to jej dzieci |
+| Pszczoły lubią koniczynę, słonecznik i stokrotki | Koniczyna i słonecznik to ważne rośliny miododajne; stokrotki też odwiedzają owady zapylające |
+| Stokrotka: biała z żółtym środkiem; słonecznik: duży i żółty | Prawdziwy wygląd tych kwiatów |
 
 ## Lista klipów do produkcji
 
@@ -510,30 +652,43 @@ idą w formacie MP4 (H.264/AAC) z indeksem na początku pliku (szybki start bez 
 | `02_kuferek_idle.mp4` | Mapa z mostkiem i lasem | cichy podkład | 4–6 s |
 | `03a_most.mp4` | Mostek, wzór kolorów | tak | ~40 s |
 | `03a_most_idle.mp4` | Dwie deski przy dziurze | cichy podkład | 4–6 s |
+| `03a1_most_przejscie.mp4` | Gałąź „czerwona”: deska pasuje, przejście po grającym mostku | tak | ~20 s |
+| `03a2_most_chwiejny.mp4` | Gałąź „niebieska”: deska się chwieje, zamiana na czerwoną | tak | ~25 s |
 | `03b_las.mp4` · `_spokojna` · `_zywa` | Las, „hu-hu”, pomyłka Fiku (trzy wersje montażu) | tak | ~40 s |
 | `03b_las_idle.mp4` | Zaspane oczy w dziupli | cichy podkład | 4–6 s |
+| `03b1_las_sowa.mp4` | Gałąź „sowa”: Pani Hu-Hu pokazuje drogę | tak | ~20 s |
+| `03b2_las_zaba.mp4` | Gałąź „żaba”: żabka Kumka, potem „hu-hu” z drzewa | tak | ~25 s |
 | `04_wiaterek.mp4` · `_spokojna` | Fiufiu, wspólny oddech (dwie wersje) | tak | ~55 s |
 | `04_wiaterek_idle.mp4` | Fiufiu „oddycha” | cichy podkład | 4–8 s |
+| `04a_wiaterek_jeszcze.mp4` | Gałąź „jeszcze raz”: drugi, wolniejszy oddech | tak (cicho) | ~20 s |
 | `05_pomocnik.mp4` | Daleki ul pod lipą, trzy pomocniki | tak | ~40 s |
 | `05_pomocnik_idle.mp4` | Pomocniki świecą po kolei | cichy podkład | 4–6 s |
 | `06_laka.mp4` | Ul, trzy pszczółki, liczenie | tak | ~40 s |
 | `06_laka_idle.mp4` | Trzy pszczółki krążą | cichy podkład | 4–6 s |
+| `06a_laka_liczenie.mp4` | Gałąź „inna liczba”: pszczółki liczą się w rządku | tak | ~15 s |
+| `06b_kwiatek.mp4` | Mama Bzyczki, wybór kwiatka na powitanie | tak | ~25 s |
+| `06b_kwiatek_idle.mp4` | Trzy kwiaty na wietrze, Bzyczka fruwa między nimi | cichy podkład | 4–6 s |
+| `warstwa_slonecznik.webm` · `warstwa_koniczyna.webm` · `warstwa_stokrotka.webm` | Warstwy: kwiatek w łapkach Bzyczki na torze ruchu z SC. 7–8 (WebM VP9 z kanałem alfa, bez dźwięku) | — | długość pętli SC. 7 (warstwa się zapętla) |
 | `07_swieto.mp4` · `_spokojna` · `_zywa` | Podziękowania, wybór świętowania (trzy wersje) | tak | ~30 s |
 | `07_swieto_idle.mp4` | Wszyscy się kołyszą | cichy podkład | 4–6 s |
 | `08a_koniec_taniec.mp4` | Taniec, pożegnanie, napisy końcowe | tak | ~75 s |
 | `08b_koniec_piosenka.mp4` | Piosenka, pożegnanie, napisy końcowe | tak | ~75 s |
 
-W kolejnej wersji: reakcje na wszystkie wybory jako krótkie klipy (pole `reaction`), żeby na żywo syntezator czytał
-już tylko osobiste kwestie pisane przez model.
+Gałęzie (sceny bez pytania) kończą się klatką, z której montażysta może łagodnie przejść do sceny wspólnej drogi;
+przejście robi odtwarzacz, więc gałęzi nie trzeba domontowywać do kolejnych scen. W kolejnej wersji: reakcje na
+wszystkie wybory jako krótkie klipy (pole `reaction`), żeby na żywo syntezator czytał już tylko osobiste kwestie
+pisane przez model.
 
 ## Plan na hackathon (prezentacja 18.10.2026, 19:00)
 
-Pełna animacja 10 scen to za dużo na trzy dni. Regulamin (§2 ust. 2) mówi o „zarysie”, więc na pokaz
-wystarczy działający prototyp całego odcinka:
+Pełna animacja 17 scen (10 głównych i 7 krótkich gałęzi) to za dużo na trzy dni. Regulamin (§2 ust. 2) mówi
+o „zarysie”, więc na pokaz wystarczy działający prototyp całego odcinka:
 
 1. **Wszystkie sceny jako ilustrowane kotwice**: 1–3 ilustracje na scenę z ruchem kamery (ffmpeg, jak w projekcie
-   flow filmu) i nagranymi dialogami. Pętle oczekiwania to ta sama ilustracja z delikatnym ruchem.
+   flow filmu) i nagranymi dialogami; gałęzie po jednej ilustracji. Pętle oczekiwania to ta sama ilustracja
+   z delikatnym ruchem. Warstwy kwiatków to trzy wycięte z tła rysunki (PNG z przezroczystością → WebM z alfą).
 2. **Pełna animacja jednej sceny** jako próbka jakości — najlepiej SC. 4 (Wiaterek), bo pokazuje emocje i wspólny oddech.
 3. **Na pokazie dla jury** odcinek leci w odtwarzaczu w przeglądarce, jak w serwisie streamingowym: juror wybiera
-   pilotem albo głosem, a panel podglądu pokazuje drzewo wyborów i symulowane tętno ([demo](../docs/DEMO_DLA_JURY.md)).
+   pilotem albo głosem, a panel podglądu pokazuje drzewo wyborów, symulowane tętno i decyzje montażysty AI
+   ([demo](../docs/DEMO_DLA_JURY.md)).
 4. Brakujące klipy zastępują zaślepki — aplikacja i tak przechodzi cały odcinek.

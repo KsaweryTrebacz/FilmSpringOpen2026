@@ -52,7 +52,8 @@ class ScriptedPulse:
         self._readings = list(readings)
 
     def read(self):
-        return Pulse(bpm=self._readings.pop(0), viewers=30)
+        bpm = self._readings.pop(0) if len(self._readings) > 1 else self._readings[0]  # czujnik podaje ostatni odczyt
+        return Pulse(bpm=bpm, viewers=1)
 
 
 class PhoneAudience:
@@ -86,6 +87,10 @@ def run(scenario, listener=None, **options):
     return visited, observer.events
 
 
+def without_montage(events):
+    return [event for event in events if event[0] != "montaz"]
+
+
 def test_recording_observer_fulfils_contract():
     assert isinstance(RecordingObserver(), ShowObserver)
 
@@ -93,11 +98,22 @@ def test_recording_observer_fulfils_contract():
 def test_engine_reports_scenes_and_the_answer_from_the_microphone(scenario):
     _, events = run(scenario)
 
-    assert events == [
-        ("scena", {"scene": "intro", "clip": "intro.mp4", "variant": "zwykla"}),
+    assert without_montage(events) == [
+        ("scena", {"scene": "intro", "clip": "intro.mp4", "variant": "zwykla", "layers": []}),
         ("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "glos"}),
-        ("scena", {"scene": "las", "clip": "las.mp4", "variant": "zwykla"}),
+        ("scena", {"scene": "las", "clip": "las.mp4", "variant": "zwykla", "layers": []}),
     ]
+
+
+def test_montage_decision_for_the_next_scene_is_reported_with_its_reason(scenario):
+    _, events = run(scenario)
+
+    montage = [data for kind, data in events if kind == "montaz"]
+    assert montage == [{
+        "scene": "intro", "to": "las", "edge": "wybor", "transition": "zaciemnienie", "seconds": 1.2,
+        "reason": "Zakończenie historii: spokojne zaciemnienie.", "source": "reguly",
+    }]  # fmt: skip
+    assert [kind for kind, _ in events].index("montaz") < [kind for kind, _ in events].index("scena", 1)
 
 
 def test_default_choice_after_silence_is_reported(scenario):
@@ -113,12 +129,13 @@ def test_baseline_and_version_by_pulse_are_reported(scenario_dict):
 
     _, events = run(scenario, pulse=ScriptedPulse(90.0, 110.0))
 
+    events = without_montage(events)
     assert [kind for kind, _ in events] == ["scena", "odniesienie", "decyzja", "wersja", "scena"]
     assert events[1] == ("odniesienie", {"bpm": 90.0})
     assert events[3] == (
         "wersja", {"scene": "las", "bpm": 110.0, "baseline": 90.0, "state": "pobudzenie", "variant": "spokojna"}
     )
-    assert events[4] == ("scena", {"scene": "las", "clip": "las_spokojna.mp4", "variant": "spokojna"})
+    assert events[4] == ("scena", {"scene": "las", "clip": "las_spokojna.mp4", "variant": "spokojna", "layers": []})
 
 
 def test_phone_votes_and_majority_are_reported(scenario):

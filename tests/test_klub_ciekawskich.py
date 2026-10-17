@@ -17,7 +17,7 @@ def reachable(scenario):
         scene = scenario.scene(todo.pop())
         if scene.id not in seen:
             seen.add(scene.id)
-            todo.extend(choice.next for choice in scene.choices.values())
+            todo.extend(scene.successors)
     return seen
 
 
@@ -83,6 +83,10 @@ def test_first_window_shows_recorded_reactions():
         ("las", "żabka!", "zaba"),
         ("wiaterek", "już!", "spokojnie"),
         ("wiaterek", "jeszcze raz", "jeszcze"),
+        ("kwiatek", "słonecznik", "slonecznik"),
+        ("kwiatek", "ten żółty", "slonecznik"),
+        ("kwiatek", "koniczynkę", "koniczyna"),
+        ("kwiatek", "stokrotkę", "stokrotka"),
         ("pomocnik", "lornetkę", "lornetka"),
         ("pomocnik", "latarkę", "latarka"),
         ("laka", "trzy", "trzy"),
@@ -128,3 +132,33 @@ def test_screenplay_talks_to_one_viewer_when_characters_face_the_camera():
 
     assert len(to_camera) >= 8
     assert [line for line in to_camera if PLURAL_ADDRESS.search(line)] == []
+
+
+def test_puzzle_answers_lead_to_their_own_scenes_and_rejoin_the_common_path():
+    branches = {
+        "most": {"czerwona": "most_przejscie", "niebieska": "most_chwiejny"},
+        "las": {"sowa": "las_sowa", "zaba": "las_zaba"},
+        "wiaterek": {"spokojnie": "pomocnik", "jeszcze": "wiaterek_jeszcze"},
+        "laka": {"trzy": "kwiatek", "inna_liczba": "laka_liczenie"},
+    }
+    for scene, targets in branches.items():
+        assert {cid: c.next for cid, c in SCENARIO.scene(scene).choices.items()} == targets
+    rejoin = {s.id: s.next for s in SCENARIO.scenes.values() if s.next}
+    assert rejoin == {
+        "most_przejscie": "wiaterek", "most_chwiejny": "wiaterek", "las_sowa": "wiaterek", "las_zaba": "wiaterek",
+        "wiaterek_jeszcze": "pomocnik", "laka_liczenie": "kwiatek",
+    }
+
+
+def test_flower_chosen_by_the_viewer_is_layered_over_the_finale():
+    flowers = SCENARIO.scene("kwiatek").choices.values()
+
+    assert {c.slot for c in flowers} == {"kwiatek"} and all(c.layer.suffix == ".webm" for c in flowers)
+    assert {s.id for s in SCENARIO.scenes.values() if "kwiatek" in s.layers} == {"swieto", "koniec_taniec", "koniec_piosenka"}
+
+
+def test_every_scene_tells_the_montage_where_it_happens():
+    assert all(s.place for s in SCENARIO.scenes.values())
+    assert {s.id: s.transition for s in SCENARIO.scenes.values() if s.transition} == {
+        "koniec_taniec": "rozjasnienie", "koniec_piosenka": "rozjasnienie",
+    }

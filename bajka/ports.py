@@ -29,6 +29,66 @@ class Player(Protocol):
         """Zapętla klip w tle i wraca od razu."""
 
 
+@dataclass(frozen=True)
+class Cut:
+    """Decyzja montażowa: jak kolejny klip wchodzi na ekran (rodzaje w `bajka.scenario.TRANSITIONS`)."""
+
+    transition: str = "ciecie"
+    seconds: float = 0.0
+    reason: str = ""  # jednym zdaniem dla panelu podglądu: dlaczego takie przejście
+    source: str = "reguly"  # kto zdecydował: "model" (AI) albo "reguly"
+
+
+@dataclass(frozen=True)
+class Shot:
+    """Ujęcie do odtworzenia: klip z nałożonymi warstwami i przejściem, którym wchodzi na ekran."""
+
+    clip: Path
+    layers: tuple[Path, ...] = ()  # przezroczyste klipy nakładane na klip, w kolejności od spodu
+    cut: Cut = Cut()
+
+
+@runtime_checkable
+class Compositor(Protocol):
+    """Odtwarzacz, który nakłada klipy na siebie i płynnie przechodzi między nimi (bajka/web_player.py).
+
+    Silnik używa go zamiast `Player`, gdy odtwarzacz to umie; VLC gra klipy po kolei, bez warstw.
+    """
+
+    def play_shot(self, shot: Shot) -> None:
+        """Odtwarza ujęcie i blokuje, aż klip będzie się kończył (następne ujęcie może na niego zachodzić)."""
+
+    def loop_shot(self, shot: Shot) -> None:
+        """Zapętla ujęcie w tle (pętla oczekiwania z warstwami) i wraca od razu."""
+
+
+@dataclass(frozen=True)
+class CutContext:
+    """Co montażysta wie o przejściu: skąd, dokąd, co wybrał widz i jak się czuje."""
+
+    from_scene: str
+    to_scene: str
+    edge: str  # "wybor" (po oknie wyboru), "dalej" (scena bez pytania), "reakcja" (pętla → klip reakcji)
+    from_place: str = ""
+    to_place: str = ""
+    to_ending: bool = False
+    hint: str = ""  # podpowiedź autora scenariusza (`transition` sceny docelowej)
+    choice: str = ""  # nazwa wybranej opcji
+    meaning: str = ""  # znaczenie wyboru (opis ze scenariusza)
+    how: str = ""  # przycisk, glos, wiekszosc, domyslna
+    transcript: str = ""  # co widz powiedział (przy odpowiedzi głosem)
+    viewer: str = ""  # stan widza według tętna: pobudzenie, norma, znużenie; puste = brak tętna
+    mood: str = ""  # nastrój odcinka ze scenariusza
+
+
+@runtime_checkable
+class Editor(Protocol):
+    """Montażysta: przetwarza informacje o przejściu i decyduje, jak połączyć klipy (bajka/montage.py)."""
+
+    def cut(self, context: CutContext) -> Cut:
+        """Rodzaj i długość przejścia do kolejnego klipu."""
+
+
 @runtime_checkable
 class Listener(Protocol):
     def listen(self) -> str | None:
@@ -99,4 +159,4 @@ class ShowObserver(Protocol):
     """Obserwator odcinka: panel podglądu (bajka/panel.py) dostaje zdarzenia z silnika."""
 
     def event(self, kind: str, data: Mapping[str, Any]) -> None:
-        """Zdarzenie odcinka: `scena`, `odniesienie`, `wersja`, `glosy` albo `decyzja` z danymi do pokazania."""
+        """Zdarzenie odcinka: `scena`, `odniesienie`, `wersja`, `glosy`, `decyzja` albo `montaz` z danymi do pokazania."""

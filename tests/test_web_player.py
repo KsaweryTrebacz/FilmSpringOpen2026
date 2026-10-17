@@ -10,9 +10,16 @@ import pytest
 
 from bajka.engine import StoryEngine
 from bajka.keywords import KeywordIntentResolver
-from bajka.ports import Answer, Player, Viewer, Voice
+from bajka.ports import Answer, Compositor, Cut, Player, Shot, Viewer, Voice
 from bajka.scenario import load_scenario, parse_scenario
-from bajka.web_player import APP_DIR, WebEpisode, WebPlayerServer, WebPlayerSettings, branch_labels
+from bajka.web_player import (
+    APP_DIR,
+    WebEpisode,
+    WebPlayerServer,
+    WebPlayerSettings,
+    branch_labels,
+    story_labels,
+)
 
 FAST = WebPlayerSettings(port=0, grace_seconds=0.1)
 
@@ -75,10 +82,26 @@ def test_idle_loop_is_the_background_of_lines_and_choice_windows(scenario):
     thread, _ = in_thread(episode.say, "Las czy jaskinia?")
 
     state = wait_for(episode, "say")
-    assert state["text"] == "Las czy jaskinia?" and state["background"] == "media/1/intro_idle.mp4"
+    assert state["text"] == "Las czy jaskinia?"
+    assert state["background"] == {"clip": "media/1/intro_idle.mp4", "layers": [], "cut": {"transition": "ciecie", "seconds": 0.0}}
     episode.event({"type": "done", "seq": state["seq"]})
     thread.join(1)
     assert not thread.is_alive()
+
+
+def test_shot_brings_layers_and_the_montage_cut_to_the_page(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"].update(layer="latarka.webm", slot="pomocnik")
+    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
+    episode = episode_for(scenario)
+    shot = Shot(Path("film/las.mp4"), (Path("film/latarka.webm"),), Cut("przetarcie", 0.8, "Do lasu.", "model"))
+    thread, _ = in_thread(episode.play_shot, shot)
+
+    state = wait_for(episode, "play")
+    assert isinstance(episode, Compositor)
+    assert (state["clip"], state["layers"]) == ("media/3/las.mp4", ["media/2/latarka.webm"])
+    assert state["cut"] == {"transition": "przetarcie", "seconds": 0.8}
+    episode.event({"type": "done", "seq": state["seq"]})
+    thread.join(1)
 
 
 def test_button_choice_closes_the_window(scenario):
@@ -194,9 +217,16 @@ def test_end_screen_can_restart_the_episode(scenario):
 
 def test_end_screen_lists_only_choices_that_changed_the_story():
     scenario = load_scenario(Path(__file__).resolve().parents[1] / "scenarios" / "klub_ciekawskich.yaml")
-    visited = ["powitanie", "kuferek", "most", "wiaterek", "pomocnik", "laka", "swieto", "koniec_piosenka"]
+    visited = ["powitanie", "kuferek", "most", "most_chwiejny", "wiaterek", "pomocnik", "laka", "kwiatek", "swieto",
+               "koniec_piosenka"]  # fmt: skip
+    decisions = [("powitanie", "pukanie"), ("kuferek", "most"), ("most", "niebieska"), ("wiaterek", "spokojnie"),
+                 ("pomocnik", "mapa"), ("laka", "trzy"), ("kwiatek", "stokrotka"), ("swieto", "piosenka")]  # fmt: skip
 
-    assert branch_labels(scenario, visited) == ["Tęczowy Mostek", "Piosenka o kwiatkach"]
+    assert story_labels(scenario, decisions) == [
+        "Tęczowy Mostek", "Niebieska deska", "Udało się!", "Trzy", "Stokrotka", "Piosenka o kwiatkach",
+    ]  # bez „Puk, puk!” i mapy: wszystkie opcje prowadzą tam samo i nic nie nakładają
+    assert branch_labels(scenario, visited) == ["Tęczowy Mostek", "Niebieska deska", "Udało się!", "Trzy",
+                                                "Piosenka o kwiatkach"]  # fmt: skip
 
 
 class FakePage:
@@ -329,7 +359,8 @@ def test_settings_read_from_env():
 def test_player_page_works_offline_and_has_the_choice_window():
     page = (APP_DIR / "index.html").read_text(encoding="utf-8")
 
-    for section in ('id="start"', 'id="choice"', 'id="caption"', 'id="end"', 'id="timer"', "speechSynthesis"):
+    for section in ('id="start"', 'id="choice"', 'id="caption"', 'id="end"', 'id="timer"', "speechSynthesis",
+                    'id="deckA"', 'id="deckB"', 'id="veil"', "przetarcie", "zaciemnienie"):
         assert section in page
     for external in ("http://", "https://", "//cdn"):
         assert external not in page  # bez internetu: żadnych zewnętrznych plików
