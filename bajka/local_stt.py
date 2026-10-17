@@ -11,6 +11,7 @@ import argparse
 import logging
 import os
 import queue
+import re
 import sys
 import tempfile
 import time
@@ -93,7 +94,12 @@ def cut_utterance(frames: Iterable[np.ndarray], settings: LocalSttSettings, fram
     return np.concatenate(speech)
 
 
+NON_SPEECH_TAGS = re.compile(r"\[[^\]]*\]|\([^)]*\)")
+DEFAULT_PROMPT = "Klub Ciekawskich. Dziecko odpowiada na głos: Hop-sa-sa, puk puk, zapukaj, mostek, las, czerwona, niebieska, kwiatek."
+
+
 def clean_transcript(text: str) -> str | None:
+    text = NON_SPEECH_TAGS.sub("", text)
     text = " ".join(text.split())
     if not text or any(phrase in text.lower() for phrase in HALLUCINATIONS):
         return None
@@ -127,10 +133,11 @@ def write_wav(path: str, samples: np.ndarray, sample_rate: int = SAMPLE_RATE) ->
 class FoundryTranscriber:
     """Whisper z Foundry Local; nagranie przekazujemy jako plik WAV, tak jak w przykładach Microsoftu."""
 
-    def __init__(self, model: Any, language: str, alias: str = "whisper-tiny") -> None:
+    def __init__(self, model: Any, language: str, alias: str = "whisper-tiny", prompt: str = DEFAULT_PROMPT) -> None:
         self._model = model
         self._language = language
         self._alias = alias
+        self._prompt = prompt
 
     @classmethod
     def from_settings(cls, settings: LocalSttSettings) -> FoundryTranscriber:
@@ -155,7 +162,10 @@ class FoundryTranscriber:
         os.close(handle)
         try:
             write_wav(path, samples)
-            options = RequestOptions(search=SearchOptions(temperature=0.0), additional_options={"language": self._language})
+            extra = {"language": self._language}
+            if self._prompt:
+                extra["initial_prompt"] = self._prompt
+            options = RequestOptions(search=SearchOptions(temperature=0.0), additional_options=extra)
             try:
                 return self._transcribe_file(path, options)
             except Exception as exc:

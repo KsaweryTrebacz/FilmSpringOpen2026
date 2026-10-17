@@ -298,7 +298,12 @@ async function openMicrophone() {
     await context.resume();
     const source = context.createMediaStreamSource(stream);
     const processor = context.createScriptProcessor(4096, 1, 1);
-    processor.onaudioprocess = event => onAudio(event.inputBuffer.getChannelData(0), context.sampleRate);
+    processor.onaudioprocess = event => {
+      onAudio(event.inputBuffer.getChannelData(0), context.sampleRate);
+      for (let i = 0; i < event.outputBuffer.numberOfChannels; i++) {
+        event.outputBuffer.getChannelData(i).fill(0);
+      }
+    };
     source.connect(processor);
     processor.connect(context.destination);  // bez tego część przeglądarek nie wywołuje onaudioprocess
     audio = { context, processor };
@@ -582,6 +587,7 @@ function openChoice(command) {
   const voiceOn = settings.mic && (audio || recognition || "webkitSpeechRecognition" in window || "SpeechRecognition" in window) && command.voice;
   $("listening").hidden = !voiceOn;
   if (voiceOn) {
+    if (front) fadeVolume(front.video, 0.04, 150);
     speechActive = true;
     if (recognition) {
       try { recognition.start(); } catch (_) {}
@@ -597,6 +603,7 @@ function openChoice(command) {
 function pick(seq, choiceId, button) {
   if (!ask || ask.seq !== seq || ask.picked) return;
   ask.picked = true;
+  if (front) fadeVolume(front.video, front.loop ? LOOP_VOLUME : 1, 300);
   const btn = button || $("options")?.querySelector(`[data-choice="${choiceId}"]`);
   if (btn) btn.classList.add("picked");
   recorder = null;
@@ -609,6 +616,7 @@ function pick(seq, choiceId, button) {
 function timeUp(seq) {
   if (!ask || ask.seq !== seq || ask.picked) return;
   ask.timerEnded = true;
+  if (front) fadeVolume(front.video, front.loop ? LOOP_VOLUME : 1, 300);
   speechActive = false;
   if (recognition) { try { recognition.stop(); } catch (_) {} }
   if (recorder && recorder.speaking) { stopRecording(true); return; }  // dziecko właśnie mówi: wysyłamy, co jest
@@ -621,6 +629,7 @@ function closeChoice() {
   ask = null;
   recorder = null;
   speechActive = false;
+  if (front) fadeVolume(front.video, front.loop ? LOOP_VOLUME : 1, 300);
   if (recognition) { try { recognition.stop(); } catch (_) {} }
   $("choice").hidden = true;
 }
@@ -763,10 +772,10 @@ function onAudio(input, rate) {
   const ms = samples.length / rate * 1000;
   r.rate = rate;
   if (!r.speaking) {
-    r.floor = 0.95 * r.floor + 0.05 * rms;  // szum w pokoju i ścieżka dźwiękowa tła
+    r.floor = 0.95 * r.floor + 0.05 * rms;  // szum w pokoju
     r.preRoll.push(samples);
-    if (r.preRoll.length > 3) r.preRoll.shift();
-    if (rms > Math.max(0.03, r.floor * 3)) {
+    if (r.preRoll.length > 5) r.preRoll.shift();
+    if (rms > Math.max(0.015, r.floor * 2)) {
       r.speaking = true;
       r.chunks.push(...r.preRoll);
     } else if (performance.now() > r.deadline) {
@@ -776,8 +785,8 @@ function onAudio(input, rate) {
   }
   r.chunks.push(samples);
   r.spokenMs += ms;
-  r.silentMs = rms > Math.max(0.02, r.floor * 2) ? 0 : r.silentMs + ms;
-  if (r.silentMs >= END_SILENCE_MS || r.spokenMs >= r.maxMs || performance.now() > r.deadline) stopRecording(true);
+  r.silentMs = rms > Math.max(0.012, r.floor * 1.5) ? 0 : r.silentMs + ms;
+  if (r.silentMs >= 700 || r.spokenMs >= r.maxMs || performance.now() > r.deadline) stopRecording(true);
 }
 
 async function stopRecording(sendIt) {
@@ -795,7 +804,7 @@ async function stopRecording(sendIt) {
   } catch (_) { /* brak połączenia: zostaje wybór pilotem */ }
   current.sending = false;
   if (ask !== current) return;
-  if (result.status === "ok") {
+  if (result.status === "ok" && result.transcript) {
     listening(`🎤 Słyszę: „${result.transcript}”`, "heard");
     if (ask && !ask.picked) {
       const match = matchChoice(result.transcript);
@@ -806,6 +815,10 @@ async function stopRecording(sendIt) {
     }
   } else if (current.timerEnded) {
     post("api/event", { type: "timeout", seq: current.seq });
+  } else if (speechActive && !ask.picked) {
+    // szum lub cisza — wznów nagrywanie na resztę czasu
+    const remaining = Math.max(1, (current.endsAt - performance.now()) / 1000);
+    if (remaining > 1) startRecording(current.seq, remaining, current.answerSeconds);
   }
 }
 

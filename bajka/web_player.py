@@ -254,9 +254,11 @@ class WebEpisode:
             self._pending_voice -= 1
             self._cond.notify_all()
             if not transcript:
+                log.info("Nagranie z odtwarzacza puste lub odfiltrowane (brak mowy)")
                 return "empty", ""
             if self._scene is None or seq != self._seq:
                 return "closed", transcript
+            log.info("Nagranie z odtwarzacza przetłumaczone na: %r", transcript)
             self._answer = Answer(transcript=transcript)
             return "ok", transcript
 
