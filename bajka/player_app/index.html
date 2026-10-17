@@ -157,7 +157,7 @@
 const $ = id => document.getElementById(id);
 const TARGET_RATE = 16000;
 const LEAD_S = 1.0;          // koniec klipu zgłaszamy tyle sekund wcześniej: następne ujęcie może na niego zajść
-const LOOP_VOLUME = 0.6;     // pętla oczekiwania ciszej niż klip sceny
+const LOOP_VOLUME = 0.02;     // pętla oczekiwania bardzo cicho (0.02), żeby nie zagłuszać mikrofonu laptopa
 const END_SILENCE_MS = 1000;
 const DEFAULTS = { mic: true, speak: true, captions: true };
 
@@ -697,15 +697,15 @@ function textMatchesChoice(heardText, choiceId, label) {
   const synonyms = {
     hopsasa: ["hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz", "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek"],
     pukanie: ["puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie"],
-    most: ["most", "mostek", "tecza", "teczowy", "woda", "strumyk", "kolory", "rzeka"],
-    las: ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy"],
-    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien"],
-    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit"],
+    most: ["most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek", "woda", "mostkiem", "mostka"],
+    las: ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu", "dolasu", "borem", "bor"],
+    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka"],
+    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo"],
     sowa: ["sow", "sowa", "sowe", "ptak", "dziupla"],
     krecik: ["kret", "krecik", "kreta"],
     zaba: ["zab", "zaba", "zabka", "kum"],
     rumianek: ["rumianek", "rumian", "bialy", "biala"],
-    chaber: ["chaber", "chabr", "niebieski"],
+    chaber: ["chaber", "chabry", "niebieski"],
     mak: ["mak", "maki", "czerwony", "czerwona"]
   };
 

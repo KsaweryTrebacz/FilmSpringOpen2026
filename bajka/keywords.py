@@ -44,16 +44,16 @@ def same_word(spoken: str, keyword: str) -> bool:
         return True
     if spoken.isdigit() or keyword.isdigit():
         return False
-    if min(len(spoken), len(keyword)) < 2:
+    if min(len(spoken), len(keyword)) < 3:
         return False
-    if spoken in keyword or keyword in spoken:
+    if spoken.startswith(keyword) or keyword.startswith(spoken):
         return True
     common = 0
     for a, b in zip(spoken, keyword):
         if a != b:
             break
         common += 1
-    return common >= max(2, min(len(spoken), len(keyword)) - 2)
+    return common >= max(3, min(len(spoken), len(keyword)) - 2)
 
 
 SYNONYMS: dict[str, list[str]] = {
@@ -62,10 +62,10 @@ SYNONYMS: dict[str, list[str]] = {
         "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek"
     ],
     "pukanie": ["puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie"],
-    "most": ["most", "mostek", "tecza", "teczowy", "woda", "strumyk", "kolory", "rzeka"],
-    "las": ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy"],
-    "czerwona": ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien"],
-    "niebieska": ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit"],
+    "most": ["most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek", "woda", "mostkiem", "mostka"],
+    "las": ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu", "dolasu", "borem", "bor"],
+    "czerwona": ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka"],
+    "niebieska": ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo"],
     "sowa": ["sow", "sowa", "sowe", "ptak", "dziupla"],
     "krecik": ["kret", "krecik", "kreta"],
     "zaba": ["zab", "zaba", "zabka", "kum"],
@@ -102,7 +102,7 @@ def matches(transcript: str, choice: Choice, index: int | None = None) -> bool:
     clean_label = compact(choice.display_label)
     if clean_id and (clean_id in clean_spoken or (len(clean_spoken) >= 3 and clean_spoken in clean_id)):
         return True
-    if clean_label and (clean_label in clean_spoken or (len(clean_spoken) >= 3 and clean_label in clean_spoken)):
+    if clean_label and (clean_label in clean_spoken or (len(clean_spoken) >= 3 and clean_spoken in clean_label)):
         return True
 
     # 3. Synonimy i słowa kluczowe
