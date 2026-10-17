@@ -86,12 +86,14 @@ class WebEpisode:
         transcribe: Callable[[np.ndarray], str] | None = None,
         settings: WebPlayerSettings = WebPlayerSettings(),
         clock: Callable[[], float] = time.monotonic,
+        browser_voice: bool = False,
     ) -> None:
         self._urls = {path: f"media/{index}/{quote(path.name)}" for index, path in enumerate(media_files(scenario))}
         self._files = {"/" + url: path for path, url in self._urls.items()}
         self._scenario = scenario
         self._title = scenario.title or "Bajka interaktywna"
         self._transcribe = transcribe
+        self._browser_voice = browser_voice
         self._settings = settings
         self._clock = clock
         self._cond = threading.Condition()
@@ -179,7 +181,8 @@ class WebEpisode:
         with self._cond:
             self._seen = self._clock()
             state = {**self._command, "seq": self._seq, "background": self._background, "title": self._title,
-                     "voice": self._transcribe is not None, "answer_seconds": self._settings.answer_seconds}  # fmt: skip
+                     "voice": self._transcribe is not None or self._browser_voice,
+                     "answer_seconds": self._settings.answer_seconds}  # fmt: skip
             if state["kind"] == "ask":
                 state["seconds_left"] = max(0.0, min(state["seconds"], self._remaining - self._settings.grace_seconds))
             return state
@@ -207,6 +210,13 @@ class WebEpisode:
                 if self._scene is None or data.get("choice") not in self._scene.choices:
                     return "closed"
                 self._answer = Answer(choice_id=str(data["choice"]))
+            elif kind == "speech":
+                if self._scene is None:
+                    return "closed"
+                transcript = clean_transcript(str(data.get("transcript", "")))
+                if not transcript:
+                    return "empty"
+                self._answer = Answer(transcript=transcript)
             elif kind == "timeout":
                 if self._scene is None:
                     return "closed"

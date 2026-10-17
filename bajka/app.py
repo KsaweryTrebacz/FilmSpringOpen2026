@@ -221,8 +221,13 @@ def build_web(env: Mapping[str, str], scenario: Scenario, backend: str, use_mic:
     from bajka.web_player import WebEpisode, WebPlayerServer, WebPlayerSettings
 
     settings = WebPlayerSettings.from_env(env)
-    transcribe = build_transcriber(env, backend) if use_mic else None
-    episode = WebEpisode(scenario, transcribe, settings)
+    transcribe = None
+    if use_mic and env.get("BAJKA_SERVER_STT") in ("1", "true", "tak"):
+        try:
+            transcribe = build_transcriber(env, backend)
+        except Exception as exc:
+            log.warning("Lokalny Whisper niedostępny (%s), mikrofon działa przez rozpoznawanie mowy w przeglądarce", exc)
+    episode = WebEpisode(scenario, transcribe, settings, browser_voice=use_mic)
     return Web(episode=episode, server=WebPlayerServer(episode, settings))
 
 

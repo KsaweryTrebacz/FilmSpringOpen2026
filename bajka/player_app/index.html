@@ -183,7 +183,7 @@ if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.addEventListener
 
 $("startButton").addEventListener("click", async () => {
   if (started) { $("start").hidden = true; return; }  // powrót z ustawień
-  if (settings.mic && state && state.voice) await openMicrophone();
+  if (settings.mic) await openMicrophone();
   if ("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(""));  // odblokowanie mowy
   started = true;
   $("start").hidden = true;
@@ -192,7 +192,55 @@ $("startButton").addEventListener("click", async () => {
   if (state) onState(state);
 });
 
+let recognition = null;
+let speechActive = false;
+
+function initSpeechRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec || recognition) return;
+  try {
+    recognition = new SpeechRec();
+    recognition.lang = "pl-PL";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = event => {
+      if (!ask || ask.picked) return;
+      let interim = "";
+      let finalTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const text = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscript += text + " ";
+        else interim += text;
+      }
+      const heard = (finalTranscript || interim).trim();
+      if (!heard) return;
+
+      listening(`Słyszę: „${heard}”…`, "on");
+
+      const match = matchChoice(heard);
+      if (match) {
+        listening(`Słyszę: „${heard}” → ${match.label}!`, "heard");
+        pick(ask.seq, match.choiceId, match.button);
+      } else if (finalTranscript.trim()) {
+        sendSpokenTranscript(ask.seq, finalTranscript.trim());
+      }
+    };
+
+    recognition.onerror = () => {};
+    recognition.onend = () => {
+      if (speechActive && ask && !ask.picked) {
+        try { recognition.start(); } catch (_) {}
+      }
+    };
+  } catch (err) {
+    console.warn("Speech recognition init error:", err);
+  }
+}
+
 async function openMicrophone() {
+  initSpeechRecognition();
   try {
     if (!window.isSecureContext || !navigator.mediaDevices) throw new Error("insecure");
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -207,10 +255,12 @@ async function openMicrophone() {
     processor.connect(context.destination);  // bez tego część przeglądarek nie wywołuje onaudioprocess
     audio = { context, processor };
   } catch (error) {
-    $("micError").hidden = false;
-    $("micError").textContent = error.message === "insecure"
-      ? "Ta strona nie ma bezpiecznego połączenia, więc przeglądarka nie da mikrofonu. Wybieraj pilotem albo dotykiem."
-      : "Bez dostępu do mikrofonu wybieraj pilotem albo dotykiem. (" + error.name + ")";
+    if (!recognition) {
+      $("micError").hidden = false;
+      $("micError").textContent = error.message === "insecure"
+        ? "Ta strona nie ma bezpiecznego połączenia, więc przeglądarka nie da mikrofonu. Wybieraj pilotem albo dotykiem."
+        : "Bez dostępu do mikrofonu wybieraj pilotem albo dotykiem. (" + error.name + ")";
+    }
   }
 }
 
@@ -481,9 +531,19 @@ function openChoice(command) {
     bar.style.width = "0%";
   }));
   ask.timer = setTimeout(() => timeUp(seq), left * 1000);
-  const voiceOn = settings.mic && audio && command.voice;
+  const voiceOn = settings.mic && (audio || recognition || "webkitSpeechRecognition" in window || "SpeechRecognition" in window) && command.voice;
   $("listening").hidden = !voiceOn;
-  if (voiceOn) startRecording(seq, Math.max(1, left - 0.3), ask.answerSeconds);
+  if (voiceOn) {
+    speechActive = true;
+    if (recognition) {
+      try { recognition.start(); } catch (_) {}
+    } else {
+      initSpeechRecognition();
+      if (recognition) { try { recognition.start(); } catch (_) {} }
+    }
+    if (audio) startRecording(seq, Math.max(1, left - 0.3), ask.answerSeconds);
+    else listening("🎤 Słucham… powiedz odpowiedź na głos", "on");
+  }
 }
 
 function pick(seq, choiceId, button) {
@@ -491,6 +551,8 @@ function pick(seq, choiceId, button) {
   ask.picked = true;
   button.classList.add("picked");
   recorder = null;
+  speechActive = false;
+  if (recognition) { try { recognition.stop(); } catch (_) {} }
   clearTimeout(ask.timer);
   post("api/event", { type: "choice", seq, choice: choiceId });
 }
@@ -498,6 +560,8 @@ function pick(seq, choiceId, button) {
 function timeUp(seq) {
   if (!ask || ask.seq !== seq || ask.picked) return;
   ask.timerEnded = true;
+  speechActive = false;
+  if (recognition) { try { recognition.stop(); } catch (_) {} }
   if (recorder && recorder.speaking) { stopRecording(true); return; }  // dziecko właśnie mówi: wysyłamy, co jest
   recorder = null;
   if (!ask.sending) post("api/event", { type: "timeout", seq });
@@ -507,6 +571,8 @@ function closeChoice() {
   if (ask) clearTimeout(ask.timer);
   ask = null;
   recorder = null;
+  speechActive = false;
+  if (recognition) { try { recognition.stop(); } catch (_) {} }
   $("choice").hidden = true;
 }
 
@@ -543,7 +609,59 @@ document.addEventListener("keydown", event => {
   // Enter i spacja „klikają” opcję, na której jest fokus (OK na pilocie telewizora).
 });
 
-// --- odpowiedź głosem: nagrywanie z wykrywaniem mowy w trakcie okna wyboru ---
+// --- odpowiedź głosem: rozpoznawanie mowy w przeglądarce i nagrywanie ---
+
+function normalizeText(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/ł/g, "l")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function matchChoice(heardText) {
+  if (!ask) return null;
+  const normHeard = normalizeText(heardText);
+  const words = normHeard.split(" ").filter(Boolean);
+  const buttons = [...$("options").children];
+
+  for (let i = 0; i < buttons.length; i++) {
+    const btn = buttons[i];
+    const choiceId = btn.dataset.choice;
+    const spans = btn.querySelectorAll("span");
+    const label = (spans.length > 1 ? spans[1].textContent : (spans[0]?.textContent || "")).trim();
+    const normId = normalizeText(choiceId);
+    const normLabel = normalizeText(label);
+
+    const numWords = [
+      ["1", "jeden", "jedynka", "pierwsza", "pierwszy", "jedno"],
+      ["2", "dwa", "dwojka", "druga", "drugi", "drugie"],
+      ["3", "trzy", "trojka", "trzecia", "trzeci", "trzecie"],
+    ];
+    if (numWords[i] && numWords[i].some(w => words.includes(normalizeText(w)))) {
+      return { choiceId, button: btn, label };
+    }
+
+    const targetWords = [...normId.split(" "), ...normLabel.split(" ")].filter(w => w.length >= 3);
+    for (const target of targetWords) {
+      if (words.some(w => w === target || (w.length >= 4 && (w.startsWith(target.slice(0, 4)) || target.startsWith(w.slice(0, 4)))))) {
+        return { choiceId, button: btn, label };
+      }
+    }
+  }
+  return null;
+}
+
+async function sendSpokenTranscript(seq, transcript) {
+  if (!ask || ask.seq !== seq || ask.picked) return;
+  const res = await post("api/event", { type: "speech", seq, transcript });
+  if (res && res.status === "ok") {
+    listening(`Odpowiedź przyjęta: „${transcript}”`, "heard");
+  }
+}
 
 function listening(text, cls) {
   $("listeningText").textContent = text;

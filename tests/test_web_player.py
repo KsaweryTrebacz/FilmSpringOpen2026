@@ -176,6 +176,16 @@ def test_noise_keeps_the_window_open_and_bad_audio_is_ignored(scenario):
     assert result["value"] == Answer(choice_id="las")
 
 
+def test_speech_event_submits_transcript_answer(scenario):
+    episode = episode_for(scenario)
+    thread, result = in_thread(episode.ask, scenario.scene("intro"), 30)
+    state = wait_for(episode, "ask")
+
+    assert episode.event({"type": "speech", "seq": state["seq"], "transcript": "do lasu"}) == "ok"
+    thread.join(1)
+    assert result["value"] == Answer(transcript="do lasu")
+
+
 def test_without_transcriber_voice_is_off(scenario):
     episode = episode_for(scenario)
     thread, _ = in_thread(episode.ask, scenario.scene("intro"), 30)
