@@ -202,14 +202,18 @@ class WebEpisode:
             return "ok"
         with self._cond:
             seq = data.get("seq")
+            log.info("Zdarzenie z przeglądarki: typ=%s, seq=%s, payload=%s", kind, seq, {k: v for k, v in data.items() if k not in ("type", "seq")})
             if kind == "restart":
                 if self._command["kind"] != "end":
                     return "stale"
                 self._restart = True
+            elif kind == "done":
+                if seq is not None and int(seq) >= self._done:
+                    self._done = int(seq)
+                    self._cond.notify_all()
+                return "ok"
             elif seq != self._seq:
                 return "stale"  # spóźnione zgłoszenie po poprzednim poleceniu
-            elif kind == "done":
-                self._done = seq
             elif kind == "choice":
                 if self._scene is None or data.get("choice") not in self._scene.choices:
                     return "closed"

@@ -232,14 +232,14 @@ class StoryEngine:
         # Montażysta myśli, gdy gra reakcja: zanim reakcja się skończy, decyzja zwykle jest gotowa.
         self._next_cut = self._request_cut(scene, choice.next, "wybor", choice=choice.display_label,
                                            meaning=choice.description, how=how, transcript=transcript)  # fmt: skip
+        line = personal or choice.reply
+        if prefix:
+            line = f"{prefix} {line}" if line else prefix
+        if line:
+            self._say(line)
         if choice.reaction is not None:
-            if prefix:
-                self._say(prefix)
             reaction = self._take_cut(self._request_cut(scene, scene.id, "reakcja"))
-            self._play(choice.reaction, self._layers_for(scene), reaction)  # ten sam głos i animacja co w odcinku
-        else:
-            line = personal or choice.reply
-            self._say(f"{prefix} {line}" if prefix else line)
+            self._play(choice.reaction, self._layers_for(scene), reaction)
         return choice
 
     def _default(self, scene: Scene) -> Choice:

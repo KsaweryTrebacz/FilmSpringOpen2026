@@ -386,7 +386,7 @@ function show(id) {
   for (const screen of ["start", "end", "closed"]) $(screen).hidden = screen !== id;
 }
 
-function done(seq) { if (handled === seq) post("api/event", { type: "done", seq }); }
+function done(seq) { post("api/event", { type: "done", seq }); }
 
 // --- wideo: dwa pokłady, warstwy i przejścia montażowe ---
 
@@ -597,7 +597,8 @@ function openChoice(command) {
 function pick(seq, choiceId, button) {
   if (!ask || ask.seq !== seq || ask.picked) return;
   ask.picked = true;
-  button.classList.add("picked");
+  const btn = button || $("options")?.querySelector(`[data-choice="${choiceId}"]`);
+  if (btn) btn.classList.add("picked");
   recorder = null;
   speechActive = false;
   if (recognition) { try { recognition.stop(); } catch (_) {} }
@@ -681,17 +682,18 @@ function textMatchesChoice(heardText, choiceId, label) {
   if (h.includes(l) || (l.length >= 3 && l.includes(h))) return true;
 
   const synonyms = {
-    hopsasa: ["hop", "sasa", "hopsasa", "hopsa", "zawolam", "wolam", "krzycz", "obudz", "glosno", "tak"],
-    pukanie: ["puk", "pukpuk", "zapukaj", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij"],
+    hopsasa: ["hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz", "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek"],
+    pukanie: ["puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie"],
     most: ["most", "mostek", "tecza", "teczowy", "woda", "strumyk", "kolory", "rzeka"],
     las: ["las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy"],
-    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony"],
-    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski"],
-    sowa: ["sow", "sowa", "sowe", "ptak"],
+    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien"],
+    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit"],
+    sowa: ["sow", "sowa", "sowe", "ptak", "dziupla"],
     krecik: ["kret", "krecik", "kreta"],
-    rumianek: ["rumianek", "rumian", "bialy"],
+    zaba: ["zab", "zaba", "zabka", "kum"],
+    rumianek: ["rumianek", "rumian", "bialy", "biala"],
     chaber: ["chaber", "chabr", "niebieski"],
-    mak: ["mak", "maki", "czerwony"]
+    mak: ["mak", "maki", "czerwony", "czerwona"]
   };
 
   const list = synonyms[choiceId] || [];
@@ -794,7 +796,14 @@ async function stopRecording(sendIt) {
   current.sending = false;
   if (ask !== current) return;
   if (result.status === "ok") {
-    listening(`Słyszę: „${result.transcript}”`, "heard");
+    listening(`🎤 Słyszę: „${result.transcript}”`, "heard");
+    if (ask && !ask.picked) {
+      const match = matchChoice(result.transcript);
+      if (match) {
+        listening(`✅ Wybrano głosem: „${match.label}”!`, "heard");
+        pick(current.seq, match.choiceId, match.button);
+      }
+    }
   } else if (current.timerEnded) {
     post("api/event", { type: "timeout", seq: current.seq });
   }
