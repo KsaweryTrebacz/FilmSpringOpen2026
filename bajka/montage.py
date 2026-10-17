@@ -77,39 +77,71 @@ class RuleEditor:
 
     def cut(self, context: CutContext) -> Cut:
         if context.edge == "reakcja":
+            if context.viewer == BORED:
+                return checked_cut(CUT, 0.0, "Tętno widza spada (znużenie) -> dynamiczny montaż: natychmiastowa reakcja cięciem (0 s).")
+            if context.viewer == EXCITED:
+                return checked_cut(DISSOLVE, 0.8, "Tętno widza wysokie (pobudzenie) -> wolniejszy montaż: łagodne przenikanie reakcji (0,8 s), aby wyciszyć.")
             return checked_cut(DISSOLVE, 0.4, "Reakcja postaci w tym samym miejscu: krótkie przenikanie.")
+
         moving = bool(context.from_place and context.to_place and context.from_place != context.to_place)
-        if context.hint:
-            transition, why = context.hint, "Przejście wskazane przez autora scenariusza"
-        elif context.to_ending:
-            transition, why = FADE_BLACK, "Zakończenie historii: spokojne zaciemnienie"
+
+        if context.to_ending:
+            transition, base_why = FADE_BLACK, "Zakończenie historii"
+        elif context.hint and context.viewer not in (EXCITED, BORED):
+            transition, base_why = context.hint, "Przejście wskazane przez autora scenariusza"
         elif moving:
-            transition, why = WIPE, f"Nowe miejsce ({context.to_place}): przetarcie jak przejście dalej"
+            transition, base_why = WIPE, f"Nowe miejsce ({context.to_place})"
         else:
-            transition, why = DISSOLVE, "Ciąg dalszy w tym samym miejscu: łagodne przenikanie"
+            transition, base_why = DISSOLVE, "Ciąg dalszy w tym samym miejscu"
+
         seconds = DEFAULT_SECONDS[transition]
-        if context.viewer == EXCITED:
-            seconds *= 1.5
-            transition = DISSOLVE if transition == WIPE else transition
-            why += "; widz pobudzony, więc dłużej i łagodniej"
-        elif context.viewer == BORED:
-            seconds *= 0.6
-            transition = WIPE if transition == DISSOLVE and not context.hint and not context.to_ending else transition
-            why += "; widz znużony, więc krócej i żywiej"
-        return checked_cut(transition, seconds, why + ".")
+
+        # Adaptacja dynamiki montażu wg biofeedbacku tętna:
+        if context.viewer == BORED:
+            # Tętno widza spada (znużenie) -> montaż staje się bardziej dynamiczny!
+            if context.to_ending:
+                transition = FADE_BLACK
+                seconds = 0.8
+                why = "Tętno widza spada (znużenie) -> dynamiczne, krótsze zaciemnienie (0,8 s) na finał."
+            elif moving:
+                transition = WIPE
+                seconds = 0.35
+                why = f"Tętno widza spada (znużenie) -> dynamiczny montaż w {context.to_place}: szybkie przetarcie (0,35 s) dla ożywienia uwagi."
+            else:
+                transition = CUT
+                seconds = 0.0
+                why = "Tętno widza spada (znużenie) -> dynamiczny montaż: natychmiastowe cięcie (0 s), aby obudzić ciekawość i zdynamizować film."
+        elif context.viewer == EXCITED:
+            # Tętno widza za wysokie (pobudzenie) -> montaż staje się wolniejszy, aby zrelaksować widza!
+            if context.to_ending:
+                transition = FADE_BLACK
+                seconds = 2.0
+                why = "Tętno widza za wysokie (pobudzenie) -> wolne, 2-sekundowe zaciemnienie, wyciszające emocje."
+            else:
+                transition = DISSOLVE
+                seconds = 1.8
+                why = "Tętno widza za wysokie (pobudzenie) -> wolniejszy montaż: długie, łagodne przenikanie (1,8 s), aby zrelaksować i uspokoić widza."
+        else:
+            why = f"{base_why}: {describe_cut(Cut(transition, seconds))}."
+
+        return checked_cut(transition, seconds, why)
 
 
 SYSTEM_PROMPT = """\
 Jesteś montażystą animowanej bajki interaktywnej dla dzieci w wieku 4-7 lat, oglądanej w domu w serwisie
-streamingowym. Widz właśnie wpłynął na historię. Zdecyduj, jak połączyć bieżący klip z następnym:
-- ciecie: natychmiastowa zmiana, tylko gdy akcja toczy się dalej w tym samym miejscu i ujęcia do siebie pasują;
-- przenikanie: łagodne nałożenie klipów na siebie, najbezpieczniejsze dla małych dzieci;
-- przetarcie: nowy obraz wsuwa się na stary, gdy bohaterowie ruszają w nowe miejsce;
-- zaciemnienie: przez ciemność, na zakończenie historii albo przy dużej zmianie czasu;
-- rozjasnienie: przez jasność, przy radosnej albo magicznej chwili, zawsze powoli i bez błysków.
-Długość: 0 sekund dla cięcia, od 0.3 do 2.5 sekundy dla pozostałych. Gdy widz jest pobudzony, wybieraj łagodne
-i dłuższe przejścia; gdy jest znużony, krótsze i żywsze. Podpowiedź autora zmieniaj tylko z ważnego powodu.
-W polu "reason" napisz jedno krótkie zdanie po polsku dla twórców: dlaczego takie przejście.
+streamingowym. Widz właśnie wpłynął na historię. Dostosowujesz montaż filmu do tętna i stanu emocjonalnego dziecka:
+- Gdy tętno widza SPADA i widz się nudzi (stan: znużenie): montaż staje się bardziej DYNAMICZNY i energiczny!
+  Wybieraj natychmiastowe cięcie (ciecie, 0.0 s) lub szybkie, dynamiczne przetarcie (0.3-0.4 s), aby ożywić tempo i skupić uwagę.
+- Gdy tętno widza jest ZA WYSOKIE (stan: pobudzenie): montaż staje się WOLNIEJSZY i kojący, aby zrelaksować widza!
+  Wybieraj długie, miękkie i powolne przenikanie (przenikanie, 1.5-2.2 s), aby uspokoić oddech i zrelaksować dziecko.
+- W stanie normy: standardowe przejścia (przenikanie 0.6 s, przetarcie 0.8 s przy zmianie miejsca).
+Dostępne rodzaje przejść:
+- ciecie: natychmiastowa zmiana (0 s), dynamiczny montaż w tym samym miejscu;
+- przenikanie: łagodne nałożenie klipów na siebie (0.3 - 2.5 s);
+- przetarcie: nowy obraz wsuwa się na stary przy zmianie miejsca (0.3 - 1.5 s);
+- zaciemnienie: przez ciemność, na zakończenie historii lub uspokojenie (0.6 - 2.5 s);
+- rozjasnienie: przez jasność przy radosnej chwili, powoli i bez błysków (0.8 - 2.5 s).
+W polu "reason" napisz jedno krótkie zdanie po polsku dla twórców: dlaczego takie przejście w odniesieniu do tętna i dynamiki.
 Odpowiedz wyłącznie jednym obiektem JSON, bez żadnego innego tekstu:
 {"transition": "<jedno z: ciecie, przenikanie, przetarcie, zaciemnienie, rozjasnienie>", "seconds": <liczba>, "reason": "<zdanie>"}
 """

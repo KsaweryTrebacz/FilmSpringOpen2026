@@ -124,8 +124,8 @@
 <body>
 <header>
   <h1>Odcinek, który <span>czuje widza</span></h1>
-  <div class="subtitle" id="mood">Drzewo scen, wybory widza i tętno na żywo</div>
-  <a id="playerLink" hidden target="_blank" style="color: var(--honey); text-decoration: none; font-weight: 600; padding: 4px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; margin-left: 10px;">▶ Otwórz odtwarzacz bajki</a>
+  <div class="subtitle" id="mood">Biofeedback tętna i montaż AI (znużenie → montaż dynamiczny, pobudzenie → montaż wolniejszy)</div>
+  <a id="playerLink" href="http://127.0.0.1:8080/" target="_blank" style="color: var(--honey); text-decoration: none; font-weight: 600; padding: 4px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; margin-left: 10px;">▶ Otwórz odtwarzacz bajki</a>
   <div id="connection">łączenie z odcinkiem…</div>
 </header>
 <main>
@@ -138,7 +138,7 @@
         <span><i style="background:#2a2f52"></i>już obejrzane</span>
         <span><i style="background:#1e2340;border:1px solid var(--line)"></i>przed nami</span>
         <span><i style="background:var(--honey)"></i>wybrana ścieżka</span>
-        <span style="color:var(--calm)">≈ scena ma wersje zależne od tętna widza; w ramce widać, którą zagrano</span>
+        <span style="color:var(--calm)">≈ tętno steruje montażem: znużenie (spadek tętna) → dynamiczne cięcia; pobudzenie → wolniejsze, kojące przenikanie</span>
       </div>
     </section>
     <section>
@@ -168,9 +168,9 @@
           <output id="target">90</output>
         </div>
         <div class="buttons">
-          <button data-preset="spokoj">Spokój</button>
-          <button data-preset="pobudzenie">Pobudzenie</button>
-          <button data-preset="znuzenie">Znużenie</button>
+          <button data-preset="spokoj">Spokój (norma)</button>
+          <button data-preset="pobudzenie">Pobudzenie (montaż zwalnia)</button>
+          <button data-preset="znuzenie">Znużenie (montaż przyspiesza)</button>
           <button class="primary" id="script">▶ Przebieg demo</button>
         </div>
         <div class="note">
@@ -318,7 +318,11 @@ function renderPulse(pulse) {
   const bpm = document.getElementById("bpm");
   bpm.firstChild.textContent = pulse.bpm == null ? "–" : Math.round(pulse.bpm);
   const chip = document.getElementById("state");
-  chip.textContent = pulse.state ? `stan: ${pulse.state}` : "brak punktu odniesienia";
+  let chipText = "brak punktu odniesienia";
+  if (pulse.state === "pobudzenie") chipText = "pobudzenie (montaż: wolniejszy, relaksujący)";
+  else if (pulse.state === "znużenie") chipText = "znużenie (montaż: dynamiczny, cięcia)";
+  else if (pulse.state === "norma") chipText = "w normie (montaż: zrównoważony)";
+  chip.textContent = chipText;
   chip.className = `chip ${STATE_CLASS[pulse.state] || ""}`;
   const meta = document.getElementById("pulse-meta");
   meta.textContent = pulse.baseline == null
