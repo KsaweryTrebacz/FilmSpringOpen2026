@@ -102,7 +102,7 @@ class RuleEditor:
             transition = DISSOLVE
             seconds = 1.2
             why = f"Widz pobudzony (wysokie tętno): wolniejszy montaż i łagodne przenikanie ({seconds} s), aby uspokoić i zrelaksować."
-        elif context.to_ending:
+        elif context.to_ending and not context.hint:  # z podpowiedzią autora powód mówi o jego przejściu
             why = "Zakończenie historii: spokojne zaciemnienie."
         else:
             why = f"{base_why}: {describe_cut(Cut(transition, seconds))}."

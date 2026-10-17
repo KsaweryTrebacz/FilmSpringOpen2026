@@ -70,6 +70,8 @@ Szczegóły formalne: [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md). Dl
 
 ## Zgłoszenie (18.10, 19:00) i pokaz online (29.10)
 
+- [ ] Dokument zespołu z badaniami nad bajkami interaktywnymi: przesłany plik był plikiem blokady Worda (`~$…docx`),
+  potrzebny właściwy `.docx`; wnioski dopisać do [prezentacja/BADANIA.md](prezentacja/BADANIA.md) (aktualizacja do 25.10).
 - [ ] Zgłoszenie wysłane według [listy kontrolnej](ZGODNOSC_Z_REGULAMINEM.md#lista-kontrolna-dla-zespołu-przed-1810-1900):
   PDF, wideo, link do repozytorium, nazwiska i kontakt.
 - [ ] Prezentacja oparta na kryteriach jury — argumenty w [raporcie zgodności](ZGODNOSC_Z_REGULAMINEM.md#pitch-wobec-kryteriów-jury-4-ust-5),

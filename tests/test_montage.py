@@ -47,6 +47,13 @@ def test_rules_pick_the_transition_from_place_ending_and_author_hint(fields, tra
     assert cut.reason.endswith(".")
 
 
+def test_ending_with_author_hint_explains_the_hinted_transition():
+    cut = RuleEditor().cut(context(to_ending=True, hint="rozjasnienie"))
+
+    assert cut.transition == "rozjasnienie"
+    assert "autora" in cut.reason and "zaciemnienie" not in cut.reason
+
+
 def test_excited_viewer_gets_longer_and_softer_transitions():
     cut = RuleEditor().cut(context(from_place="Dziupla", to_place="Las", viewer="pobudzenie"))
 

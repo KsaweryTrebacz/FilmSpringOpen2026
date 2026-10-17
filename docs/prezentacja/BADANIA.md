@@ -2,11 +2,7 @@
 
 Podstawa naukowa produktu i slajdów „Dlaczego to działa”. Każda liczba ma źródło; czego nie udało się sprawdzić
 w źródle pierwotnym, oznaczamy. Nie podajemy danych rynkowych, których nie mamy — w modelu biznesowym są miejsca do
-uzupełnienia (`[__]`).
-
-> **Dokument zespołu z badaniami („…dania_bajki_interaktywne”) nie dotarł.** Przesłany plik to plik blokady Worda
-> (`~$…docx`, 207 bajtów, bez treści), który Word tworzy przy otwartym dokumencie. Wyślijcie właściwy plik `.docx`
-> (albo wklejcie treść) — dopiszemy wnioski tutaj i na slajd z badaniami.
+uzupełnienia po pilotażu.
 
 ## 1. Dziecko uczy się z ekranu, gdy ekran mu odpowiada
 

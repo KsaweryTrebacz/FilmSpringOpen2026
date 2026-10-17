@@ -29,13 +29,13 @@ poprawnie na 63% pytań, wobec 56% po zwykłej wersji; dzieci z biedniejszej dzi
 - Netflix wycofał drogie filmy interaktywne dla dorosłych (2024–2025) — nisza dla dzieci jest pusta, a my wiemy,
   czego unikać: tanie gałęzie, warstwy, wersja liniowa każdego odcinka.
 
-## Model biznesowy (hipotezy)
+## Model biznesowy (hipotezy, ceny po pilotażu)
 | Klient | Co dostaje | Jak płaci |
 |---|---|---|
-| Rodziny | Aplikacja z Kreatorem i biblioteką odcinków | subskrypcja [__ zł/mies.] |
-| Serwisy i aplikacje dla dzieci | Odcinki + odtwarzacz albo manifest JSON i wersja liniowa | licencja [__] |
-| Przedszkola, biblioteki | Odcinki pod temat tygodnia, tryb sali | licencja placówki [__] |
-| Studia i właściciele postaci | Narzędzia do odcinków interaktywnych z własnych postaci | licencja narzędzi [__] |
+| Rodziny | Aplikacja z Kreatorem i biblioteką odcinków | subskrypcja rodzinna |
+| Serwisy i aplikacje dla dzieci | Odcinki + odtwarzacz albo manifest JSON i wersja liniowa | licencja na odcinki |
+| Przedszkola, biblioteki | Odcinki pod temat tygodnia, tryb sali | licencja placówki |
+| Studia i właściciele postaci | Narzędzia do odcinków interaktywnych z własnych postaci | licencja narzędzi |
 
 ## Stan
 Działający prototyp: odcinek „Bzyczka szuka domu” (8 klipów z generatora + zaślepki), odtwarzacz w przeglądarce,
@@ -44,4 +44,4 @@ ponad 400 testów automatycznych. Kreator Rodzica: makieta i koncepcja; większo
 
 ## Szukamy
 Rodzin do pilotażu · studia animacji lub wydawcy z postaciami dla dzieci · serwisu albo platformy edukacyjnej
-na pierwsze wdrożenie. Kontakt: [__]
+na pierwsze wdrożenie. Kontakt: [e-mail zespołu — do uzupełnienia]
