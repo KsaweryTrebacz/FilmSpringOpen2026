@@ -1,8 +1,8 @@
-"""Panel dla jury: strona w przeglądarce, która pokazuje drzewo scen, głosy, tętno sali i decyzje filmu.
+"""Panel podglądu (dla twórców i jury): drzewo scen, wybory widza, tętno i decyzje odcinka w przeglądarce.
 
 Silnik wysyła zdarzenia (`bajka.ports.ShowObserver`), `PanelState` trzyma z nich stan w pamięci, a `PanelServer`
 serwuje go stronie `bajka/panel_app/index.html`. Z panelu steruje się też symulatorem tętna (`bajka/pulse.py`).
-Podgląd bez filmu: python -m bajka.panel SCENARIUSZ (symulator tętna, przebieg demo)
+Podgląd bez odcinka: python -m bajka.panel SCENARIUSZ (symulator tętna, przebieg demo)
 """
 
 from __future__ import annotations
@@ -34,17 +34,17 @@ LOG_ENTRIES = 20
 MAX_COMMAND_BYTES = 1024
 
 HOW = {
+    "przycisk": "wybór pilotem albo dotykiem",
+    "glos": "odpowiedź głosem",
     "wiekszosc": "większość głosów z telefonów",
-    "okrzyk": "najgłośniejszy okrzyk",
-    "odpowiedz": "odpowiedź z mikrofonu",
-    "domyslna": "brak decyzji, postać wybrała sama",
+    "domyslna": "czas minął, postać wybrała sama",
 }
 VERSION = {"spokojna": "spokojnej", "zywa": "żywej", "zwykla": "zwykłej"}
 
 
 @dataclass(frozen=True)
 class PanelSettings:
-    host: str = "127.0.0.1"  # 0.0.0.0 udostępnia panel tabletowi jury w tej samej sieci
+    host: str = "127.0.0.1"  # 0.0.0.0 udostępnia panel tabletowi w tej samej sieci
     port: int = 8090
 
     @classmethod
@@ -88,7 +88,7 @@ def scenario_graph(scenario: Scenario) -> dict[str, Any]:
 
 
 class PanelState:
-    """Stan seansu dla panelu, budowany ze zdarzeń silnika i próbek tętna; bezpieczny dla wielu wątków."""
+    """Stan odcinka dla panelu, budowany ze zdarzeń silnika i próbek tętna; bezpieczny dla wielu wątków."""
 
     def __init__(
         self, scenario: Scenario, pulse_settings: PulseSettings, clock: Callable[[], float] = time.monotonic
@@ -172,12 +172,12 @@ class PanelState:
 
     def _on_odniesienie(self, data: Mapping[str, Any]) -> None:
         self._baseline = data["bpm"]
-        self._say(f"Punkt odniesienia tętna sali: {data['bpm']:.0f}")
+        self._say(f"Punkt odniesienia tętna widza: {data['bpm']:.0f}")
 
     def _on_wersja(self, data: Mapping[str, Any]) -> None:
         version = VERSION.get(data["variant"], data["variant"])
         self._say(
-            f"Tętno sali {data['bpm']:.0f} (odniesienie {data['baseline']:.0f}), sala {data['state']}: "
+            f"Tętno {data['bpm']:.0f} (odniesienie {data['baseline']:.0f}), stan: {data['state']}: "
             f"scena {data['scene']} w wersji {version}"
         )
 
@@ -185,7 +185,7 @@ class PanelState:
 class _Server(ThreadingHTTPServer):
     daemon_threads = True
     # Na Windows SO_REUSEADDR pozwala drugiemu procesowi zająć port, na którym ktoś już nasłuchuje:
-    # zapomniany podgląd panelu po cichu wygrywałby z panelem filmu. Tam więc wyłączamy ponowne użycie portu.
+    # zapomniany podgląd panelu po cichu wygrywałby z panelem odcinka. Tam więc wyłączamy ponowne użycie portu.
     allow_reuse_address = sys.platform != "win32"
     state: PanelState
     graph: dict[str, Any]
@@ -302,9 +302,9 @@ class PanelServer:
         # 127.0.0.1, nie localhost: na Windows localhost najpierw próbuje IPv6 i każde odświeżenie czeka.
         host = "127.0.0.1" if self._settings.host == "0.0.0.0" else self._settings.host
         url = f"http://{host}:{server.server_address[1]}/"
-        log.info("Panel dla jury: %s", url)
+        log.info("Panel podglądu: %s", url)
         if self._settings.host == "0.0.0.0":
-            log.info("Na tablecie jury w tej samej sieci: adres IP tego komputera, port %d", server.server_address[1])
+            log.info("Na tablecie w tej samej sieci: adres IP tego komputera, port %d", server.server_address[1])
         return url
 
     def stop(self) -> None:
@@ -323,7 +323,7 @@ class PanelServer:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="python -m bajka.panel", description="Podgląd panelu dla jury bez filmu.")
+    parser = argparse.ArgumentParser(prog="python -m bajka.panel", description="Panel podglądu bez odcinka.")
     parser.add_argument("scenario", type=Path, help="plik YAML ze scenariuszem bajki")
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(message)s")

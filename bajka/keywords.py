@@ -97,7 +97,7 @@ class FallbackResolver:
 class KeywordsFirstResolver:
     """Najpierw słowa kluczowe (natychmiast), model językowy tylko dla odpowiedzi, których nie rozpoznały.
 
-    Przy wielu odpowiedziach z telefonów widowni (`bajka/mobile.py`) większość krótkich okrzyków
+    Przy wielu odpowiedziach z telefonów (drugi ekran, `bajka/mobile.py`) większość krótkich odpowiedzi
     („mostek!”) rozpoznają słowa kluczowe, więc wolniejszy model nie spowalnia rundy.
     """
 

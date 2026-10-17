@@ -1,12 +1,10 @@
-"""Silnik opowiada panelowi dla jury, co się dzieje: sceny, wersje według tętna, głosy i decyzje."""
+"""Silnik opowiada panelowi podglądu, co się dzieje: sceny, wersje według tętna, głosy i decyzje."""
 
 import logging
 from pathlib import Path
 
-import pytest
-
 from bajka.engine import StoryEngine
-from bajka.ports import Interpretation, Pulse, ShowObserver
+from bajka.ports import Answer, Interpretation, Pulse, ShowObserver
 from bajka.scenario import parse_scenario
 
 
@@ -68,18 +66,14 @@ class PhoneAudience:
         return [Interpretation(choice, "") for choice in self._answers]
 
 
-class FakeMeter:
-    def __init__(self, levels):
-        self._levels = list(levels)
+class ButtonViewer:
+    """Okno wyboru, w którym widz wskazuje opcję pilotem."""
 
-    def calibrate(self):
-        pass
+    def __init__(self, choice_id):
+        self._choice_id = choice_id
 
-    def measure(self):
-        return self._levels.pop(0)
-
-    def winner(self, levels):
-        return max(levels, key=levels.get)
+    def ask(self, scene, seconds):
+        return Answer(choice_id=self._choice_id)
 
 
 def run(scenario, listener=None, **options):
@@ -101,7 +95,7 @@ def test_engine_reports_scenes_and_the_answer_from_the_microphone(scenario):
 
     assert events == [
         ("scena", {"scene": "intro", "clip": "intro.mp4", "variant": "zwykla"}),
-        ("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "odpowiedz"}),
+        ("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "glos"}),
         ("scena", {"scene": "las", "clip": "las.mp4", "variant": "zwykla"}),
     ]
 
@@ -122,7 +116,7 @@ def test_baseline_and_version_by_pulse_are_reported(scenario_dict):
     assert [kind for kind, _ in events] == ["scena", "odniesienie", "decyzja", "wersja", "scena"]
     assert events[1] == ("odniesienie", {"bpm": 90.0})
     assert events[3] == (
-        "wersja", {"scene": "las", "bpm": 110.0, "baseline": 90.0, "state": "pobudzona", "variant": "spokojna"}
+        "wersja", {"scene": "las", "bpm": 110.0, "baseline": 90.0, "state": "pobudzenie", "variant": "spokojna"}
     )
     assert events[4] == ("scena", {"scene": "las", "clip": "las_spokojna.mp4", "variant": "spokojna"})
 
@@ -134,32 +128,10 @@ def test_phone_votes_and_majority_are_reported(scenario):
     assert ("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "wiekszosc"}) in events
 
 
-def test_shout_round_is_reported(scenario_dict):
-    scene = scenario_dict["scenes"]["intro"]
-    scene["vote"] = True
-    scene["choices"]["las"]["call"] = "Kto do lasu?"
-    scene["choices"]["jaskinia"]["call"] = "Kto do jaskini?"
-    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
+def test_choice_from_the_remote_is_reported(scenario):
+    _, events = run(scenario, ButtonViewer("jaskinia"))
 
-    _, events = run(scenario, meter=FakeMeter([3000.4, 1000.0]))
-
-    assert ("glosy", {"scene": "intro", "source": "krzykomierz", "counts": {"las": 3000, "jaskinia": 1000}}) in events
-    assert ("decyzja", {"scene": "intro", "choice": "las", "label": "Las", "how": "okrzyk"}) in events
-
-
-@pytest.mark.parametrize("bad_level", [float("inf"), float("nan")])
-def test_non_finite_shout_level_does_not_stop_the_film(scenario_dict, bad_level):
-    # Do ConsoleMeter da się wpisać „inf”; round(inf) rzuca OverflowError i zatrzymałoby cały film.
-    scene = scenario_dict["scenes"]["intro"]
-    scene["vote"] = True
-    scene["choices"]["las"]["call"] = "Kto do lasu?"
-    scene["choices"]["jaskinia"]["call"] = "Kto do jaskini?"
-    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
-
-    visited, events = run(scenario, meter=FakeMeter([bad_level, 1000.0]))
-
-    assert visited == ["intro", "las"]
-    assert ("glosy", {"scene": "intro", "source": "krzykomierz", "counts": {"las": 0, "jaskinia": 1000}}) in events
+    assert ("decyzja", {"scene": "intro", "choice": "jaskinia", "label": "Jaskinia", "how": "przycisk"}) in events
 
 
 def test_broken_panel_does_not_stop_the_film(scenario, caplog):

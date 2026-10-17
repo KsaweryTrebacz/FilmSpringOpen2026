@@ -1,4 +1,8 @@
-"""Scenariusz bajki: graf scen wczytywany z pliku YAML."""
+"""Scenariusz odcinka: graf scen wczytywany z pliku YAML.
+
+Odcinek to sceny z gotowymi klipami. Scena z pytaniem kończy się oknem wyboru: widz wybiera pilotem,
+dotykiem albo głosem, a gdy czas minie, gra wybór domyślny. Po wyborze może zagrać krótki klip reakcji.
+"""
 
 from __future__ import annotations
 
@@ -7,16 +11,23 @@ from pathlib import Path
 
 import yaml
 
-# Rysowanie na żywo (sceny `open` i `generated`) usunięto z projektu. Parser pomija nieznane pola,
-# więc stare pola dają wprost błąd, zamiast cicho zniknąć.
-REMOVED_SCENE_FIELDS = (
-    "kind", "drawing", "image_prompt", "remember", "default_idea", "fallback_clips", "next", "narration",
-)
-REMOVED_SCENARIO_FIELDS = ("style", "references")
+# Parser pomija nieznane pola, więc pola usuniętych funkcji dają wprost błąd, zamiast cicho zniknąć.
+LIVE_DRAWING = "rysowanie na żywo usunięto z projektu"
+CINEMA = "seans kinowy z krzykomierzem zastąpił odcinek w serwisie streamingowym z oknami wyboru"
+REMOVED_SCENE_FIELDS = {
+    **dict.fromkeys(
+        ("kind", "drawing", "image_prompt", "remember", "default_idea", "fallback_clips", "next", "narration"),
+        LIVE_DRAWING,
+    ),
+    "vote": CINEMA,
+}
+REMOVED_CHOICE_FIELDS = dict.fromkeys(("call", "call_clip"), CINEMA)
+REMOVED_SCENARIO_FIELDS = dict.fromkeys(("style", "references"), LIVE_DRAWING)
 
-CALM_FILM, LIVELY_FILM = "spokojny", "zywy"  # nastrój filmu (`mood`): czego widownia oczekuje od filmu
-MOODS = (CALM_FILM, LIVELY_FILM)
-CALM, LIVELY = "spokojna", "zywa"  # wersje montażu sceny (`variants`), wybierane według tętna sali
+# Nastrój odcinka (`mood`): jakiej dynamiki oczekujemy. Gdy tętno widza od niej odbiega, scena gra inną wersję.
+CALM_FILM, LIVELY_FILM, BALANCED_FILM = "spokojny", "zywy", "zrownowazony"
+MOODS = (CALM_FILM, LIVELY_FILM, BALANCED_FILM)
+CALM, LIVELY = "spokojna", "zywa"  # wersje montażu sceny (`variants`), wybierane według tętna widza
 VARIANTS = (CALM, LIVELY)
 
 
@@ -31,9 +42,9 @@ class Choice:
     next: str  # identyfikator kolejnej sceny
     reply: str  # statyczna kwestia bohatera, gdy LLM nie odpowie
     keywords: tuple[str, ...] = ()  # słowa, po których wybór rozpozna się bez LLM (bajka/keywords.py)
-    call: str = ""  # scena `vote`: wezwanie do okrzyku, np. "Kto za mostkiem? Krzyczymy: MOSTEK!" (TTS)
-    call_clip: Path | None = None  # scena `vote`: to samo wezwanie jako nagrany klip (ma pierwszeństwo przed `call`)
-    label: str = ""  # krótka nazwa opcji na ekranie telefonu widza (bajka/mobile.py), np. "Tęczowy Mostek"
+    label: str = ""  # krótka nazwa opcji w oknie wyboru i na telefonie, np. "Tęczowy Mostek"
+    icon: str = ""  # obrazek opcji dla dzieci, które jeszcze nie czytają (emoji w prototypie, miniatura w produkcji)
+    reaction: Path | None = None  # nagrany klip reakcji postaci na ten wybór; bez niego postać mówi `reply`
 
     @property
     def display_label(self) -> str:
@@ -50,7 +61,7 @@ class Scene:
     fallback: str = ""
     default: str | None = None
     choices: dict[str, Choice] = field(default_factory=dict)
-    vote: bool = False  # widownia wybiera okrzykiem: wygrywa najgłośniej wykrzyczana opcja (seans w kinie)
+    timeout: float | None = None  # ile sekund trwa okno wyboru; None = wartość domyślna aplikacji
     variants: dict[str, Path] = field(default_factory=dict)  # wersje montażu: spokojna / zywa → klip
 
     @property
@@ -63,7 +74,8 @@ class Scenario:
     hero: str
     start: str
     scenes: dict[str, Scene]
-    mood: str = ""  # nastrój filmu; bez niego film nie dopasowuje się do tętna sali
+    mood: str = ""  # nastrój odcinka; bez niego odcinek nie dopasowuje się do tętna widza
+    title: str = ""  # tytuł odcinka na ekranie startowym odtwarzacza i w manifeście dla serwisu
 
     def scene(self, scene_id: str) -> Scene:
         return self.scenes[scene_id]
@@ -94,19 +106,25 @@ def parse_scenario(raw: object, base_dir: Path) -> Scenario:
         start=_require_str(raw, "start", "scenariusz"),
         scenes={sid: _parse_scene(sid, data, base_dir) for sid, data in raw_scenes.items()},
         mood=mood,
+        title=str(raw.get("title") or "").strip(),
     )
     _validate_graph(scenario)
     return scenario
 
 
-def missing_media(scenario: Scenario) -> list[Path]:
-    """Zwraca klipy i pętle oczekiwania, których nie ma na dysku."""
+def media_files(scenario: Scenario) -> list[Path]:
+    """Wszystkie pliki wideo odcinka bez powtórzeń: klipy scen, pętle oczekiwania, reakcje i wersje scen."""
     paths: list[Path] = []
     for scene in scenario.scenes.values():
         paths.extend(path for path in (scene.clip, scene.idle) if path is not None)
-        paths.extend(c.call_clip for c in scene.choices.values() if c.call_clip is not None)
+        paths.extend(c.reaction for c in scene.choices.values() if c.reaction is not None)
         paths.extend(scene.variants.values())
-    return [path for path in dict.fromkeys(paths) if not path.is_file()]
+    return list(dict.fromkeys(paths))
+
+
+def missing_media(scenario: Scenario) -> list[Path]:
+    """Zwraca pliki wideo odcinka, których nie ma na dysku."""
+    return [path for path in media_files(scenario) if not path.is_file()]
 
 
 def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
@@ -117,24 +135,7 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
     raw_choices = data.get("choices") or {}
     if not isinstance(raw_choices, dict):
         raise ScenarioError(f"{where}: 'choices' musi być słownikiem")
-    choices = {
-        cid: Choice(
-            id=cid,
-            description=_require_str(c, "description", f"{where}, wybór '{cid}'"),
-            next=_require_str(c, "next", f"{where}, wybór '{cid}'"),
-            reply=_require_str(c, "reply", f"{where}, wybór '{cid}'"),
-            keywords=_optional_words(c, "keywords", f"{where}, wybór '{cid}'"),
-            call=str(c.get("call") or "").strip() if isinstance(c, dict) else "",
-            label=str(c.get("label") or "").strip() if isinstance(c, dict) else "",
-            call_clip=base_dir / c["call_clip"] if isinstance(c, dict) and c.get("call_clip") else None,
-        )
-        for cid, c in raw_choices.items()
-    }
-    vote = bool(data.get("vote", False))
-    if vote:
-        silent = [c.id for c in choices.values() if not c.call and c.call_clip is None]
-        if silent:
-            raise ScenarioError(f"{where}: scena 'vote' wymaga 'call' albo 'call_clip' w wyborach: {', '.join(silent)}")
+    choices = {cid: _parse_choice(cid, c, base_dir, f"{where}, wybór '{cid}'") for cid, c in raw_choices.items()}
     clip = base_dir / _require_str(data, "clip", where)
     variants = _parse_variants(data, base_dir, where)
     if not choices:
@@ -148,9 +149,34 @@ def _parse_scene(scene_id: str, data: object, base_dir: Path) -> Scene:
         fallback=str(data.get("fallback") or "").strip(),
         default=_require_str(data, "default", where),
         choices=choices,
-        vote=vote,
+        timeout=_optional_seconds(data, "timeout", where),
         variants=variants,
     )
+
+
+def _parse_choice(cid: str, data: object, base_dir: Path, where: str) -> Choice:
+    if isinstance(data, dict):
+        _reject_removed(data, REMOVED_CHOICE_FIELDS, where)
+    reaction = data.get("reaction") if isinstance(data, dict) else None
+    return Choice(
+        id=cid,
+        description=_require_str(data, "description", where),
+        next=_require_str(data, "next", where),
+        reply=_require_str(data, "reply", where),
+        keywords=_optional_words(data, "keywords", where),
+        label=str(data.get("label") or "").strip(),
+        icon=str(data.get("icon") or "").strip(),
+        reaction=base_dir / _require_str(data, "reaction", where) if reaction is not None else None,
+    )
+
+
+def _optional_seconds(data: dict, key: str, where: str) -> float | None:
+    value = data.get(key)
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not 3 <= value <= 60:
+        raise ScenarioError(f"{where}: '{key}' to liczba sekund okna wyboru od 3 do 60, jest: {value!r}")
+    return float(value)
 
 
 def _require_str(data: object, key: str, where: str) -> str:
@@ -174,12 +200,11 @@ def _parse_variants(data: dict, base_dir: Path, where: str) -> dict[str, Path]:
     return {key: base_dir / _require_str(raw, key, f"{where}, wersje sceny") for key in raw}
 
 
-def _reject_removed(data: dict, removed: tuple[str, ...], where: str) -> None:
+def _reject_removed(data: dict, removed: dict[str, str], where: str) -> None:
     found = [key for key in removed if key in data]
     if found:
-        raise ScenarioError(
-            f"{where}: pola {', '.join(found)} nie są już obsługiwane (rysowanie na żywo usunięto z projektu)"
-        )
+        reasons = "; ".join(dict.fromkeys(removed[key] for key in found))
+        raise ScenarioError(f"{where}: pola {', '.join(found)} nie są już obsługiwane ({reasons})")
 
 
 def _optional_words(data: object, key: str, where: str) -> tuple[str, ...]:

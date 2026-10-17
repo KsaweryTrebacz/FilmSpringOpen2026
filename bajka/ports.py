@@ -1,7 +1,7 @@
 """Kontrakty między modułami bajki.
 
-Każdy moduł (STT, TTS, odtwarzacz, intencje) implementuje jeden z tych interfejsów i nie importuje
-pozostałych modułów, więc można go rozwijać i testować osobno. Silnik bajki zależy tylko od nich.
+Każdy moduł (odtwarzacz, okno wyboru, rozpoznawanie mowy, głos postaci, intencje) implementuje jeden z tych
+interfejsów i nie importuje pozostałych modułów, więc można go rozwijać i testować osobno. Silnik zależy tylko od nich.
 """
 
 from __future__ import annotations
@@ -35,6 +35,25 @@ class Listener(Protocol):
         """Słucha jednej wypowiedzi dziecka. None oznacza ciszę."""
 
 
+@dataclass(frozen=True)
+class Answer:
+    """Odpowiedź z okna wyboru: wskazana opcja (pilot, dotyk, klawiatura) albo to, co widz powiedział."""
+
+    choice_id: str | None = None
+    transcript: str | None = None
+
+
+@runtime_checkable
+class Viewer(Protocol):
+    """Widz przed ekranem: okno wyboru w odtwarzaczu (bajka/web_player.py), konsola przy próbach."""
+
+    def ask(self, scene: Scene, seconds: float) -> Answer:
+        """Pokazuje okno wyboru (i słucha mikrofonu, jeśli rodzic go włączył) aż do odpowiedzi albo upływu czasu.
+
+        Pusta odpowiedź oznacza, że czas minął bez wyboru.
+        """
+
+
 @runtime_checkable
 class Voice(Protocol):
     def say(self, text: str) -> None:
@@ -48,25 +67,11 @@ class IntentResolver(Protocol):
 
 
 @runtime_checkable
-class ShoutMeter(Protocol):
-    """Krzykomierz: mierzy okrzyki widowni w scenach `vote` (seans w kinie)."""
-
-    def calibrate(self) -> None:
-        """Mierzy gwar sali tuż przed rundą okrzyków."""
-
-    def measure(self) -> float:
-        """Mierzy okrzyk zaraz po wezwaniu do jednej opcji i zwraca jego głośność."""
-
-    def winner(self, levels: dict[str, float]) -> str | None:
-        """Zwycięska opcja rundy albo None, gdy było za cicho lub wyszedł remis."""
-
-
-@runtime_checkable
 class Audience(Protocol):
-    """Widownia z aplikacją mobilną: odpowiedzi przychodzą z mikrofonów telefonów (bajka/mobile.py)."""
+    """Drugi ekran: telefony domowników jako pilot głosowy, gdy telewizor nie ma mikrofonu (bajka/mobile.py)."""
 
     def connected(self) -> int:
-        """Ile telefonów jest teraz połączonych z seansem."""
+        """Ile telefonów jest teraz połączonych z odcinkiem."""
 
     def collect(self, scene: Scene) -> list[Interpretation]:
         """Otwiera rundę na telefonach (pytanie i opcje), czeka na odpowiedzi i zwraca rozpoznane wybory.
@@ -77,21 +82,21 @@ class Audience(Protocol):
 
 @dataclass(frozen=True)
 class Pulse:
-    bpm: float  # średnie tętno sali
-    viewers: int  # od ilu widzów pochodzi średnia (w demo: symulowanych)
+    bpm: float  # tętno widza (przy kilku widzach z zegarkami: średnia)
+    viewers: int  # od ilu widzów pochodzi odczyt (w demo: symulowanych)
 
 
 @runtime_checkable
 class AudiencePulse(Protocol):
-    """Tętno sali: średnia z zegarków widzów (na pokazie z symulatora, bajka/pulse.py)."""
+    """Tętno widza z zegarka, za zgodą rodzica (w przyszłości; dziś z symulatora, bajka/pulse.py)."""
 
     def read(self) -> Pulse:
-        """Bieżące średnie tętno sali."""
+        """Bieżące tętno widza."""
 
 
 @runtime_checkable
 class ShowObserver(Protocol):
-    """Obserwator seansu: panel dla jury (bajka/panel.py) dostaje zdarzenia z silnika."""
+    """Obserwator odcinka: panel podglądu (bajka/panel.py) dostaje zdarzenia z silnika."""
 
     def event(self, kind: str, data: Mapping[str, Any]) -> None:
-        """Zdarzenie seansu: `scena`, `odniesienie`, `wersja`, `glosy` albo `decyzja` z danymi do pokazania."""
+        """Zdarzenie odcinka: `scena`, `odniesienie`, `wersja`, `glosy` albo `decyzja` z danymi do pokazania."""

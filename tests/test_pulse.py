@@ -67,15 +67,15 @@ def test_target_is_kept_within_human_range():
 def test_presets_set_the_target():
     pulse, _ = make_pulse()
 
-    pulse.preset("ekscytuje-sie")
+    pulse.preset("pobudzenie")
 
-    assert pulse.target == PRESETS["ekscytuje-sie"] == 115.0
+    assert pulse.target == PRESETS["pobudzenie"] == 115.0
 
 
 def test_unknown_preset_is_refused():
     pulse, _ = make_pulse()
 
-    with pytest.raises(ValueError, match="nieznany stan sali"):
+    with pytest.raises(ValueError, match="nieznany stan widza"):
         pulse.preset("szaleje")
 
 
@@ -126,11 +126,11 @@ def test_hall_state_compares_pulse_with_baseline(bpm, state):
 
 
 def test_settings_from_env_defaults_and_overrides():
-    assert PulseSettings.from_env({}) == PulseSettings(viewers=30, start_bpm=90.0, excited=1.15, bored=0.97)
+    assert PulseSettings.from_env({}) == PulseSettings(viewers=1, start_bpm=90.0, excited=1.15, bored=0.97)
 
-    env = {"BAJKA_PULSE_VIEWERS": "50", "BAJKA_PULSE_START_BPM": "85", "BAJKA_PULSE_EXCITED": "1.2",
+    env = {"BAJKA_PULSE_VIEWERS": "2", "BAJKA_PULSE_START_BPM": "85", "BAJKA_PULSE_EXCITED": "1.2",
            "BAJKA_PULSE_BORED": "0.9"}  # fmt: skip
-    assert PulseSettings.from_env(env) == PulseSettings(viewers=50, start_bpm=85.0, excited=1.2, bored=0.9)
+    assert PulseSettings.from_env(env) == PulseSettings(viewers=2, start_bpm=85.0, excited=1.2, bored=0.9)
 
 
 @pytest.mark.parametrize(("excited", "bored"), [("0.9", "0.97"), ("1.15", "1.05")])

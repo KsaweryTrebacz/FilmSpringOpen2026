@@ -50,3 +50,19 @@ def test_ffmpeg_command_without_font_has_no_label():
     cmd = ffmpeg_command(Path("out/las.mp4"), "indigo", 2.0, with_tone=True, label="las", font=None)
 
     assert "-vf" not in cmd
+
+
+def test_reaction_clips_are_planned_with_tone(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["reaction"] = "reakcja_las.mp4"
+
+    clips = planned_clips(parse_scenario(scenario_dict, base_dir=Path("film")))
+
+    assert (Path("film/reakcja_las.mp4"), "darkgreen", True) in clips
+
+
+def test_mp4_starts_fast_in_a_browser_and_webm_uses_open_codecs():
+    mp4 = ffmpeg_command(Path("out/intro.mp4"), "indigo", 2.0, with_tone=True)
+    webm = ffmpeg_command(Path("out/intro.webm"), "indigo", 2.0, with_tone=True)
+
+    assert mp4[mp4.index("-movflags") + 1] == "+faststart"
+    assert "libvpx-vp9" in webm and "libopus" in webm and "-movflags" not in webm

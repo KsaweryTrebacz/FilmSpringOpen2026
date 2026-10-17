@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Film, który czuje salę — panel</title>
+<title>Odcinek, który czuje widza — panel podglądu</title>
 <style>
   :root {
     --bg: #0e1120;
@@ -123,40 +123,40 @@
 </head>
 <body>
 <header>
-  <h1>Film, który <span>czuje salę</span></h1>
-  <div class="subtitle" id="mood">Drzewo scen, głosy widowni i tętno sali na żywo</div>
-  <div id="connection">łączenie z filmem…</div>
+  <h1>Odcinek, który <span>czuje widza</span></h1>
+  <div class="subtitle" id="mood">Drzewo scen, wybory widza i tętno na żywo</div>
+  <div id="connection">łączenie z odcinkiem…</div>
 </header>
 <main>
   <div class="column">
     <section id="tree">
       <h2>Drzewo scen</h2>
-      <svg id="tree-svg" role="img" aria-label="Drzewo scen filmu"></svg>
+      <svg id="tree-svg" role="img" aria-label="Drzewo scen odcinka"></svg>
       <div class="legend">
         <span><i style="background:#3b3214;border:2px solid var(--honey)"></i>teraz na ekranie</span>
         <span><i style="background:#2a2f52"></i>już obejrzane</span>
         <span><i style="background:#1e2340;border:1px solid var(--line)"></i>przed nami</span>
         <span><i style="background:var(--honey)"></i>wybrana ścieżka</span>
-        <span style="color:var(--calm)">≈ scena ma wersje zależne od tętna sali; w ramce widać, którą zagrano</span>
+        <span style="color:var(--calm)">≈ scena ma wersje zależne od tętna widza; w ramce widać, którą zagrano</span>
       </div>
     </section>
     <section>
-      <h2>Dlaczego film zrobił to, co zrobił</h2>
+      <h2>Dlaczego odcinek zrobił to, co zrobił</h2>
       <ul id="log"><li class="empty">Czekam na pierwszą scenę…</li></ul>
     </section>
   </div>
   <div class="column">
     <section>
-      <h2>Tętno sali</h2>
+      <h2>Tętno widza</h2>
       <div class="pulse-head">
         <div id="bpm">–<small> uderzeń/min</small></div>
         <div class="chip" id="state">brak danych</div>
       </div>
       <div id="pulse-meta">Punkt odniesienia pojawi się po pierwszej scenie.</div>
-      <svg id="chart" role="img" viewBox="0 0 600 170" preserveAspectRatio="none" aria-label="Wykres tętna sali"></svg>
+      <svg id="chart" role="img" viewBox="0 0 600 170" preserveAspectRatio="none" aria-label="Wykres tętna widza"></svg>
     </section>
     <section>
-      <h2 id="votes-title">Głosy widowni</h2>
+      <h2 id="votes-title">Głosy z telefonów</h2>
       <div class="votes" id="votes"><div class="empty">Jeszcze nikt nie głosował.</div></div>
     </section>
     <section>
@@ -167,14 +167,14 @@
           <output id="target">90</output>
         </div>
         <div class="buttons">
-          <button data-preset="spokojna">Spokojna sala</button>
-          <button data-preset="ekscytuje-sie">Sala się ekscytuje</button>
-          <button data-preset="nudzi-sie">Sala się nudzi</button>
+          <button data-preset="spokoj">Spokój</button>
+          <button data-preset="pobudzenie">Pobudzenie</button>
+          <button data-preset="znuzenie">Znużenie</button>
           <button class="primary" id="script">▶ Przebieg demo</button>
         </div>
         <div class="note">
-          Dane symulowane, żadne prawdziwe tętno. W przyszłości zegarki widzów, tylko średnia całej sali,
-          za zgodą opiekunów i bez zapisywania.
+          Dane symulowane, żadne prawdziwe tętno. W przyszłości zegarek dziecka, tylko za zgodą rodzica,
+          przetwarzane na urządzeniu i bez zapisywania.
         </div>
       </div>
     </section>
@@ -183,9 +183,9 @@
 <script>
 "use strict";
 const SVG = "http://www.w3.org/2000/svg";
-const HOW = { wiekszosc: "telefony", okrzyk: "okrzyk", odpowiedz: "mikrofon", domyslna: "sama" };
-const SOURCE = { telefony: "z telefonów", krzykomierz: "z krzykomierza" };
-const STATE_CLASS = { pobudzona: "excited", "w normie": "normal", znudzona: "bored" };
+const HOW = { przycisk: "pilot", glos: "głos", wiekszosc: "telefony", domyslna: "czas minął" };
+const SOURCE = { telefony: "z telefonów" };
+const STATE_CLASS = { pobudzenie: "excited", norma: "normal", "znużenie": "bored" };
 const VERSION_NOTE = { spokojna: "tętno ↑ → wersja spokojna", zywa: "tętno ↓ → wersja żywa" };
 const REQUEST_TIMEOUT_MS = 4000;
 const NOTICE_MS = 5000;
@@ -251,7 +251,7 @@ function decisionNote(decision) {
   if (decision.how === "wiekszosc" && decision.counts) {
     return `${how} ${Object.values(decision.counts).map((n) => Math.round(n)).join(":")}`;
   }
-  return how;  // okrzyk: poziomy głośności to nie liczby głosów, więc bez cyfr
+  return how;
 }
 
 function renderTree(state) {
@@ -315,7 +315,7 @@ function renderPulse(pulse) {
   const bpm = document.getElementById("bpm");
   bpm.firstChild.textContent = pulse.bpm == null ? "–" : Math.round(pulse.bpm);
   const chip = document.getElementById("state");
-  chip.textContent = pulse.state ? `sala ${pulse.state}` : "brak punktu odniesienia";
+  chip.textContent = pulse.state ? `stan: ${pulse.state}` : "brak punktu odniesienia";
   chip.className = `chip ${STATE_CLASS[pulse.state] || ""}`;
   const meta = document.getElementById("pulse-meta");
   meta.textContent = pulse.baseline == null
@@ -363,7 +363,7 @@ function renderVotes(votes) {
   const box = document.getElementById("votes");
   if (!votes) return;
   document.getElementById("votes-title").textContent =
-    `Głosy widowni ${SOURCE[votes.source] || ""} — scena ${votes.scene}`;
+    `Głosy ${SOURCE[votes.source] || ""} — scena ${votes.scene}`;
   const labels = Object.fromEntries(graph.edges.filter((e) => e.from === votes.scene).map((e) => [e.choice, e.label]));
   const total = Object.values(votes.counts).reduce((a, b) => a + b, 0) || 1;
   box.replaceChildren(...Object.entries(votes.counts).map(([choice, count]) => {
@@ -400,20 +400,20 @@ function renderLog(entries) {
 
 function renderMood() {
   document.getElementById("mood").textContent = graph.mood
-    ? `Film ${graph.mood}: gdy sala odbiega od nastroju filmu, scena gra inną wersję montażu`
-    : "Film bez nastroju (mood): wersje scen wyłączone";
+    ? `Odcinek ${graph.mood}: gdy tętno widza odbiega od nastroju odcinka, scena gra inną wersję montażu`
+    : "Odcinek bez nastroju (mood): wersje scen wyłączone";
 }
 
 function paintConnection() {
-  let text = "łączenie z filmem…", offline = false;
+  let text = "łączenie z odcinkiem…", offline = false;
   if (notice) {
     text = notice;
     offline = true;
   } else if (online === false) {
-    text = "brak połączenia z filmem — czy aplikacja działa z flagą --panel?";
+    text = "brak połączenia z odcinkiem — czy aplikacja działa z flagą --panel?";
     offline = true;
   } else if (online) {
-    text = "połączono z filmem";
+    text = "połączono z odcinkiem";
   }
   const connection = document.getElementById("connection");
   connection.textContent = text;

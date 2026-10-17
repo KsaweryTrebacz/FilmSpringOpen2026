@@ -11,5 +11,5 @@ def test_package_data_lists_every_bundled_web_app():
     declared = set(pyproject["tool"]["setuptools"]["package-data"]["bajka"])
     web_apps = {f"{page.parent.name}/*" for page in (ROOT / "bajka").glob("*_app/index.html")}
 
-    assert web_apps == {"mobile_app/*", "panel_app/*"}
+    assert web_apps == {"mobile_app/*", "panel_app/*", "player_app/*"}
     assert web_apps <= declared

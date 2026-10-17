@@ -1,7 +1,7 @@
 {
-  "name": "Klub Ciekawskich — seans",
+  "name": "Klub Ciekawskich — drugi ekran",
   "short_name": "Klub Ciekawskich",
-  "description": "Odpowiadaj Lili głosem podczas seansu filmu „Bzyczka szuka domu”.",
+  "description": "Odpowiadaj Lili głosem z telefonu podczas odcinka „Bzyczka szuka domu”.",
   "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",

@@ -1,4 +1,4 @@
-"""Odtwarzacz VLC osadzony w jednym oknie tkinter, które trwa przez cały seans.
+"""Odtwarzacz VLC osadzony w jednym oknie tkinter, które trwa przez cały odcinek (`--player vlc`).
 
 Moduł importuje `vlc`, który wymaga zainstalowanego VLC 64-bit, dlatego testy go nie importują.
 Podgląd przejścia klip → pętla: python -m bajka.player KLIP [PĘTLA]   (Esc zamyka)

@@ -1,13 +1,14 @@
-"""Aplikacja mobilna widowni: telefony widzów nagrywają odpowiedzi mikrofonem i wysyłają je do komputera z filmem.
+"""Drugi ekran: telefony domowników jako pilot z mikrofonem, gdy telewizor albo komputer z odcinkiem nie ma mikrofonu.
 
-Komputer z filmem uruchamia lokalny serwer w tej samej sieci Wi-Fi. Widz skanuje kod QR z ekranu kina,
+Komputer z odcinkiem uruchamia lokalny serwer w tej samej sieci Wi-Fi. Domownik skanuje kod QR,
 otwiera aplikację w przeglądarce telefonu (bez instalacji; można dodać do ekranu głównego) i zezwala na
-mikrofon. Gdy Lila zadaje pytanie, telefon pokazuje je z opcjami i sam nagrywa odpowiedź, a komputer
-rozpoznaje ją lokalnie (Whisper), ustala wybór (słowa kluczowe, w razie potrzeby model językowy) i liczy głosy.
+mikrofon. Gdy postać zadaje pytanie, telefon pokazuje je z opcjami i sam nagrywa odpowiedź, a komputer
+rozpoznaje ją lokalnie (Whisper), ustala wybór (słowa kluczowe, w razie potrzeby model językowy) i liczy głosy:
+przy kilku telefonach (rodzeństwo) wygrywa większość.
 Moduł spełnia kontrakt `bajka.ports.Audience`. Nagrania nie są przechowywane: lokalne rozpoznawanie (Foundry Local)
 dostaje je przez plik tymczasowy WAV, usuwany zaraz po rozpoznaniu (w trybie azure nagranie trafia do Azure Speech).
 
-Próba z telefonami bez filmu: python -m bajka.mobile SCENARIUSZ [--scene ID] [--no-llm]
+Próba z telefonami bez odcinka: python -m bajka.mobile SCENARIUSZ [--scene ID] [--no-llm]
 """
 
 from __future__ import annotations
@@ -222,7 +223,7 @@ def lan_address() -> str:
 
 
 def ensure_certificate(directory: Path, address: str) -> tuple[Path, Path]:
-    """Samopodpisany certyfikat dla seansu; telefon raz pokaże ostrzeżenie, które trzeba zaakceptować."""
+    """Samopodpisany certyfikat drugiego ekranu; telefon raz pokaże ostrzeżenie, które trzeba zaakceptować."""
     cert_path, key_path = directory / "bajka-mobile.crt", directory / "bajka-mobile.key"
     if cert_path.is_file() and key_path.is_file():
         return cert_path, key_path
@@ -232,7 +233,7 @@ def ensure_certificate(directory: Path, address: str) -> tuple[Path, Path]:
     from cryptography.x509.oid import NameOID
 
     key = ec.generate_private_key(ec.SECP256R1())
-    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Bajka - seans")])
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Bajka - drugi ekran")])
     names: list[x509.GeneralName] = [x509.DNSName("localhost"), x509.IPAddress(ipaddress.ip_address("127.0.0.1"))]
     if address != "127.0.0.1":
         names.append(x509.IPAddress(ipaddress.ip_address(address)))
@@ -257,7 +258,7 @@ def ensure_certificate(directory: Path, address: str) -> tuple[Path, Path]:
 
 
 def join_page(url: str) -> str:
-    """Strona do wyświetlenia na ekranie kina przed seansem: duży kod QR i adres."""
+    """Strona z dużym kodem QR i adresem do zeskanowania telefonem (np. w drugiej karcie przeglądarki)."""
     try:
         import segno
 
@@ -265,9 +266,9 @@ def join_page(url: str) -> str:
     except ImportError:
         qr = ""
     return (
-        "<!doctype html><html lang=pl><meta charset=utf-8><title>Dołącz do seansu</title>"
+        "<!doctype html><html lang=pl><meta charset=utf-8><title>Drugi ekran</title>"
         "<body style='margin:0;background:#1b1b1b;color:#fffdf4;font:28px system-ui;display:grid;place-items:center;"
-        "min-height:100vh;text-align:center'><div><h1>Zeskanuj i dołącz do Klubu Ciekawskich!</h1>"
+        "min-height:100vh;text-align:center'><div><h1>Zeskanuj telefonem i dołącz do Klubu Ciekawskich!</h1>"
         f"<div style='background:#fffdf4;display:inline-block;padding:16px;border-radius:16px'>{qr}</div>"
         f"<p>{url}</p><p style='font-size:20px;opacity:.7'>Zezwól na mikrofon. Nagranie służy tylko do rozpoznania odpowiedzi i jest usuwane zaraz po rozpoznaniu.</p>"
         "</div></body></html>"
@@ -277,7 +278,7 @@ def join_page(url: str) -> str:
 class _Server(ThreadingHTTPServer):
     daemon_threads = True
     # Na Windows SO_REUSEADDR pozwala drugiemu procesowi zająć port, na którym ktoś już nasłuchuje:
-    # zapomniany podgląd po cichu trzymałby telefony zamiast serwera filmu. Tam więc wyłączamy ponowne użycie portu.
+    # zapomniany podgląd po cichu trzymałby telefony zamiast serwera odcinka. Tam więc wyłączamy ponowne użycie portu.
     allow_reuse_address = sys.platform != "win32"
     ssl_context: ssl.SSLContext | None = None
     audience: MobileAudience
@@ -411,7 +412,7 @@ class MobileServer:
         server.public_url = f"{scheme}://{address}:{port}/"
         threading.Thread(target=server.serve_forever, name="bajka-mobile-server", daemon=True).start()
         self._server = server
-        log.info("Aplikacja mobilna widowni: %s (kod QR na ekran: %sqr)", server.public_url, server.public_url)
+        log.info("Drugi ekran (telefony): %s (kod QR: %sqr)", server.public_url, server.public_url)
         return server.public_url
 
     def stop(self) -> None:
@@ -439,7 +440,7 @@ class MobileServer:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="python -m bajka.mobile", description="Próba aplikacji mobilnej widowni bez filmu: rundy pytań na telefonach."
+        prog="python -m bajka.mobile", description="Próba drugiego ekranu bez odcinka: rundy pytań na telefonach."
     )
     parser.add_argument("scenario", type=Path, help="plik YAML ze scenariuszem bajki")
     parser.add_argument("--scene", help="scena z pytaniem (domyślnie scena startowa)")
@@ -470,7 +471,7 @@ def main(argv: list[str] | None = None) -> int:
     server = MobileServer(audience, settings)
     url = server.start()
     _print_qr(url)
-    print(f"Telefony: otwórzcie {url} i zezwólcie na mikrofon. Na ekran kina: {url}qr", flush=True)
+    print(f"Telefony: otwórzcie {url} i zezwólcie na mikrofon. Kod QR do zeskanowania: {url}qr", flush=True)
     try:
         for number in range(1, args.rounds + 1):
             input(f"\nEnter = runda {number}: {scene.question} (połączonych: {audience.connected()}) ")

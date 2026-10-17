@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from bajka.engine import DEFAULT_FALLBACK, StoryEngine
-from bajka.ports import Interpretation
+from bajka.engine import DEFAULT_CHOICE_SECONDS, DEFAULT_FALLBACK, StoryEngine
+from bajka.ports import Answer, Interpretation
 from bajka.scenario import parse_scenario
 
 REPROMPT = "Hmm, nie usłyszałem. Las czy jaskinia?"
@@ -229,3 +229,81 @@ def test_stop_while_listening_ends_the_run_before_the_answer_is_acted_on(scenari
 
     assert voice.lines == []
     assert player.calls == [("play", "intro.mp4"), ("loop", "intro_idle.mp4")]
+
+
+# Okno wyboru: pilot, dotyk i głos
+
+
+class ScriptedViewer:
+    """Okno wyboru z kolejnymi odpowiedziami (Answer albo wyjątek); zapisuje, ile trwało każde okno."""
+
+    def __init__(self, *answers):
+        self._answers = list(answers)
+        self.windows = []
+
+    def ask(self, scene, seconds):
+        self.windows.append((scene.id, seconds))
+        answer = self._answers.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+
+def test_button_choice_skips_intent_recognition(scenario):
+    resolver = FakeResolver({})  # pusty: każde wywołanie modelu skończyłoby się błędem testu
+    engine, _, voice = make_engine(scenario, ScriptedViewer(Answer(choice_id="jaskinia")), resolver)
+
+    assert engine.run() == ["intro", "jaskinia"]
+    assert resolver.calls == [] and voice.lines == ["Do jaskini! Mam latarkę!"]
+
+
+def test_spoken_answer_in_the_choice_window_goes_through_intent_recognition(scenario):
+    resolver = FakeResolver({"do lasu": Interpretation("las", "")})
+    engine, _, voice = make_engine(scenario, ScriptedViewer(Answer(transcript="do lasu")), resolver)
+
+    assert engine.run() == ["intro", "las"]
+    assert voice.lines == [LAS_REPLY]
+
+
+def test_unknown_button_and_viewer_error_count_as_no_answer(scenario):
+    viewer = ScriptedViewer(Answer(choice_id="most"), OSError("pilot"), Answer(choice_id="las"))
+    engine, _, voice = make_engine(scenario, viewer)
+
+    assert engine.run() == ["intro", "las"]
+    assert voice.lines == [REPROMPT, REPROMPT, LAS_REPLY]
+
+
+def test_choice_window_time_comes_from_the_scene_or_the_app(scenario_dict):
+    scenario_dict["scenes"]["intro"]["timeout"] = 20
+    timed = parse_scenario(scenario_dict, base_dir=Path("film"))
+    default = parse_scenario({**scenario_dict, "scenes": {**scenario_dict["scenes"], "intro": {
+        k: v for k, v in scenario_dict["scenes"]["intro"].items() if k != "timeout"}}}, base_dir=Path("film"))
+    viewer = ScriptedViewer(Answer(choice_id="las"), Answer(choice_id="las"))
+
+    StoryEngine(timed, FakePlayer(), viewer, FakeVoice(), FakeResolver({})).run()
+    StoryEngine(default, FakePlayer(), viewer, FakeVoice(), FakeResolver({}), choice_seconds=8).run()
+
+    assert viewer.windows == [("intro", 20.0), ("intro", 8)]
+    assert DEFAULT_CHOICE_SECONDS >= 10  # dzieci potrzebują więcej czasu niż dorośli
+
+
+def test_recorded_reaction_clip_replaces_the_spoken_reply(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["reaction"] = "reakcja_las.mp4"
+    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
+    engine, player, voice = make_engine(scenario, ScriptedViewer(Answer(choice_id="las")))
+
+    engine.run()
+
+    assert player.calls == [("play", "intro.mp4"), ("loop", "intro_idle.mp4"), ("play", "reakcja_las.mp4"),
+                            ("play", "las.mp4")]  # fmt: skip
+    assert voice.lines == []
+
+
+def test_default_choice_says_the_fallback_before_the_reaction_clip(scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["reaction"] = "reakcja_las.mp4"
+    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
+    engine, player, voice = make_engine(scenario, ScriptedViewer(Answer(), Answer(), Answer()))
+
+    assert engine.run() == ["intro", "las"]
+    assert voice.lines == [REPROMPT, REPROMPT, DEFAULT_FALLBACK]
+    assert ("play", "reakcja_las.mp4") in player.calls

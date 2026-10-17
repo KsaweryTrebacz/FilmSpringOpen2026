@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from bajka.scenario import ScenarioError, load_scenario, missing_media, parse_scenario
+from bajka.scenario import (
+    ScenarioError,
+    load_scenario,
+    media_files,
+    missing_media,
+    parse_scenario,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -150,3 +156,44 @@ def test_missing_media_lists_missing_version_clips(tmp_path, scenario_dict):
     scenario = parse_scenario(calm_film(scenario_dict, {"spokojna": "las_spokojna.mp4"}), base_dir=tmp_path)
 
     assert missing_media(scenario) == [tmp_path / "las_spokojna.mp4"]
+
+
+@pytest.mark.parametrize(
+    ("where", "field"), [("scene", "vote"), ("choice", "call"), ("choice", "call_clip")]
+)
+def test_cinema_shout_fields_are_rejected_with_a_clear_message(scenario_dict, where, field):
+    intro = scenario_dict["scenes"]["intro"]
+    (intro if where == "scene" else intro["choices"]["las"])[field] = "Kto do lasu?"
+    with pytest.raises(ScenarioError, match=f"pola {field} .*oknami wyboru"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_choice_window_fields_title_icon_reaction_and_timeout(scenario_dict):
+    scenario_dict["title"] = "Lisek i las"
+    scenario_dict["scenes"]["intro"]["timeout"] = 15
+    scenario_dict["scenes"]["intro"]["choices"]["las"].update(icon="🌲", reaction="reakcja_las.mp4")
+    scenario = parse_scenario(scenario_dict, base_dir=Path("film"))
+
+    intro = scenario.scene("intro")
+    assert scenario.title == "Lisek i las"
+    assert intro.timeout == 15.0
+    assert intro.choices["las"].icon == "🌲"
+    assert intro.choices["las"].reaction == Path("film/reakcja_las.mp4")
+    assert intro.choices["jaskinia"].reaction is None and intro.choices["jaskinia"].display_label == "Jaskinia"
+    assert parse_scenario({**scenario_dict, "title": None}, base_dir=Path(".")).title == ""
+
+
+@pytest.mark.parametrize("timeout", [2, 61, "długo", True])
+def test_choice_window_time_must_be_reasonable(scenario_dict, timeout):
+    scenario_dict["scenes"]["intro"]["timeout"] = timeout
+    with pytest.raises(ScenarioError, match="timeout"):
+        parse_scenario(scenario_dict, base_dir=Path("film"))
+
+
+def test_reaction_clips_are_media_files_of_the_episode(tmp_path, scenario_dict):
+    scenario_dict["scenes"]["intro"]["choices"]["las"]["reaction"] = "reakcja_las.mp4"
+    scenario = parse_scenario(scenario_dict, base_dir=tmp_path)
+
+    assert media_files(scenario) == [tmp_path / name for name in
+                                     ("intro.mp4", "intro_idle.mp4", "reakcja_las.mp4", "las.mp4", "jaskinia.mp4")]
+    assert tmp_path / "reakcja_las.mp4" in missing_media(scenario)

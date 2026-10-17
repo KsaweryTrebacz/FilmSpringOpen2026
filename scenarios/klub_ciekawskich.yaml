@@ -1,171 +1,193 @@
-# „Bzyczka szuka domu” — interaktywny animowany film krótkometrażowy (Klub Ciekawskich)
-# Scenariusz filmowy z ujęciami, dialogami, interakcjami z widownią i napisami: scenarios/klub_ciekawskich.md
+# „Bzyczka szuka domu” — interaktywny odcinek animowany z cyklu „Klub Ciekawskich” dla serwisów streamingowych
+# Scenariusz odcinka z ujęciami, dialogami, oknami wyboru i reakcjami: scenarios/klub_ciekawskich.md
 # Klipy-zaślepki do prób: python -m bajka.placeholders scenarios/klub_ciekawskich.yaml
-# Próba bez mikrofonu i bez AI: python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm --windowed
+# Odcinek w przeglądarce: python -m bajka scenarios/klub_ciekawskich.yaml (bez modeli: --no-llm --no-mic)
+# Próba w konsoli, bez wideo i AI: python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm
 #
-# Seans w kinie: odpowiedzi widowni zbiera aplikacja mobilna (python -m bajka … --mobile): telefony nagrywają
-# odpowiedzi, a wygrywa większość głosów; `label` to nazwa opcji na ekranie telefonu. Bez telefonów sceny
-# `vote: true` rozstrzyga krzykomierz (bajka/vote.py: Lila wzywa do opcji, wygrywa najgłośniejszy okrzyk),
-# a pozostałe rozpoznają odpowiedź wykrzyczaną chórem (Whisper + model językowy albo słowa kluczowe).
-# Na żywo mówi tylko Lila (głos syntezatora). Do widowni w liczbie mnogiej, bez czasu przeszłego
-# („pomożecie?”, „świetnie wam idzie”), więc bez form zależnych od płci.
+# Na końcu każdej sceny z pytaniem pojawia się okno wyboru: opcje z obrazkiem (`icon`) i krótką nazwą (`label`),
+# odliczanie (`timeout`, domyślnie BAJKA_CHOICE_SECONDS) i — gdy rodzic włączy mikrofon — odpowiedź głosem
+# (Whisper i model Phi lokalnie albo słowa kluczowe). Cisza: postać dopytuje (`reprompt`), potem wybiera sama.
+# Po wyborze gra nagrany klip reakcji (`reaction`), a gdy go nie ma, postać mówi `reply` (napisy + głos).
+# Widz ogląda zwykle sam, czasem z rodzeństwem albo rodzicem: postacie mówią do niego w liczbie pojedynczej
+# i bez czasu przeszłego („pomożesz?”, „świetnie liczysz”), więc bez form zależnych od płci.
+
+title: "Klub Ciekawskich: Bzyczka szuka domu"
 
 hero: >
   Lila Lupka: siedmioletnia odkrywczyni w żółtych kaloszach, z wielką lupą na sznurku. Prowadzi
   Klub Ciekawskich w dziupli starego dębu razem z przyjacielem Fiku Fikołkiem, wesołym wiewiórkiem,
   który nie wstydzi się mówić, że czegoś się boi. Lila uwielbia zagadki, liczenie i majsterkowanie.
   Jest ciepła, cierpliwa i dzielna, mówi prosto i radośnie, czasem dodaje „Zajrzyjmy przez lupkę!”.
-  Motto klubu: „Patrzymy, myślimy, pomagamy!”. To film w kinie: przed ekranem siedzi widownia dzieci,
-  wszystkie są członkiniami i członkami klubu, więc Lila mówi do nich w liczbie mnogiej.
-  Lila, Fiku i widownia pomagają pszczółce Bzyczce wrócić do ula na końcu Kwiatowej Łąki.
+  Motto klubu: „Patrzymy, myślimy, pomagamy!”. To odcinek interaktywny w serwisie streamingowym:
+  przed ekranem w domu siedzi zwykle jedno dziecko, nowy członek klubu, więc Lila mówi do niego
+  w liczbie pojedynczej. Lila, Fiku i widz pomagają pszczółce Bzyczce wrócić do ula na końcu Kwiatowej Łąki.
 start: powitanie
-# Film jest spokojny. Gdy tętno sali skacze (flaga --panel, symulator tętna), sceny z `variants` grają wersję
-# spokojną: dłuższe ujęcia, wolniejszy montaż. Bez --panel film leci zawsze w zwykłych wersjach.
-mood: spokojny
+# Odcinek zrównoważony. Z czujnikiem tętna (dziś symulator: flaga --panel) scena z `variants` gra wersję
+# spokojną, gdy widz jest bardzo pobudzony, i żywą, gdy tętno spada (znużenie). Bez tętna: zwykłe wersje.
+mood: zrownowazony
 
 scenes:
-  # SC. 1. Dziupla klubu. Interakcja: wspólne zawołanie (krzykomierz, jedna opcja).
+  # SC. 1. Dziupla klubu. Okno wyboru uczy zasad: dwie opcje, obie budzą Kuferek, inna jest tylko reakcja.
   powitanie:
     clip: clips/klub_ciekawskich/01_powitanie.mp4
     idle: clips/klub_ciekawskich/01_powitanie_idle.mp4
-    question: Zawołacie z nami Kuferek? Wszyscy razem, głośno, „Hop-sa-sa”!
-    reprompt: Kuferek śpi jak suseł! Jeszcze głośniej, wszyscy razem!
-    fallback: Nic nie szkodzi, zawołam go sama.
+    question: Jak obudzimy Kuferek? Zawołasz „Hop-sa-sa” czy zapukasz w wieko?
+    reprompt: Kuferek śpi jak suseł! Wybierz na ekranie albo powiedz głośno „Hop-sa-sa”!
+    fallback: Nic nie szkodzi, spróbuję pierwsza.
     default: hopsasa
-    vote: true
+    timeout: 15
     choices:
       hopsasa:
         label: Hop-sa-sa!
-        description: dzieci wołają hasło „Hopsasa” albo coś podobnego (np. „hop”, „sasa”) lub zgadzają się zawołać Kuferek
+        icon: "📣"
+        description: dziecko woła hasło „Hopsasa” albo coś podobnego (np. „hop”, „sasa”) lub chce zawołać Kuferek
         next: kuferek
-        reply: Hop-sa-sa! Słyszycie? Kuferek się budzi!
-        call: Na trzy krzyczymy „Hop-sa-sa”. Raz… dwa… trzy!
-        keywords: [hopsasa, hop, sasa, kuferek, tak]
+        reply: Hop-sa-sa! Słyszysz? Kuferek się budzi!
+        reaction: clips/klub_ciekawskich/01_reakcja_hopsasa.mp4
+        keywords: [hopsasa, hop, sasa, zawołam, wołam, tak]
+      pukanie:
+        label: Puk, puk!
+        icon: "✊"
+        description: dziecko chce zapukać w wieko kufra (puk, pukam, zapukaj, stuk)
+        next: kuferek
+        reply: Puk, puk, puk! Słyszysz? Kuferek się budzi!
+        reaction: clips/klub_ciekawskich/01_reakcja_pukanie.mp4
+        keywords: [puk, pukam, zapukam, zapukaj, pukanie, stuk, wieko]
 
-  # SC. 2. Kuferek i mapa. Interakcja: wybór drogi okrzykiem (rozgałęzienie fabuły).
+  # SC. 2. Kuferek i mapa. Pierwsze rozgałęzienie fabuły: wybór drogi.
   kuferek:
     clip: clips/klub_ciekawskich/02_kuferek.mp4
     idle: clips/klub_ciekawskich/02_kuferek_idle.mp4
     question: Którędy lecimy do Kwiatowej Łąki? Przez Tęczowy Mostek czy przez Szumiący Las?
-    reprompt: Nie słychać, która droga wygrywa! Jeszcze jedna runda, głośniej!
+    reprompt: Mostek czy las? Wybierz drogę na ekranie albo powiedz ją głośno!
     fallback: Hmm, to ja zdecyduję.
     default: most
-    vote: true
     choices:
       most:
         label: Tęczowy Mostek
+        icon: "🌈"
         description: iść przez Tęczowy Mostek nad strumykiem (most, mostek, tęcza, kolory, woda)
         next: most
-        reply: Wygrywa Tęczowy Mostek! Ciekawe, jakie ma kolory!
-        call: Kto chce przez Tęczowy Mostek? Krzyczymy… Mostek!
+        reply: Tęczowy Mostek! Ciekawe, jakie ma kolory!
         keywords: [most, mostek, tęcza, tęczowy, kolorowy, strumyk, woda, rzeka]
       las:
         label: Szumiący Las
+        icon: "🌳"
         description: iść przez Szumiący Las (las, drzewa, szumi)
         next: las
-        reply: Wygrywa Szumiący Las! Posłuchamy, kto tam mieszka!
-        call: A kto przez Szumiący Las? Krzyczymy… Las!
+        reply: Szumiący Las! Posłuchamy, kto tam mieszka!
         keywords: [las, lasek, drzewa, drzewo, szumiący, szumi]
 
-  # SC. 3a. Tęczowy Mostek. Interakcja: zagadka „co dalej we wzorze”, odpowiedź chórem.
+  # SC. 3a. Tęczowy Mostek. Zagadka „co dalej we wzorze”.
   most:
     clip: clips/klub_ciekawskich/03a_most.mp4
     idle: clips/klub_ciekawskich/03a_most_idle.mp4
     question: Deski idą po kolei. Czerwona, niebieska, czerwona, niebieska. Jaka deska pasuje do dziury, czerwona czy niebieska?
-    reprompt: Popatrzcie na deski. Czerwona, niebieska, czerwona, niebieska… a teraz?
+    reprompt: Popatrz na deski. Czerwona, niebieska, czerwona, niebieska… a teraz?
     fallback: Pomyślę na głos.
     default: czerwona
     choices:
       czerwona:
         label: Czerwona deska
-        description: dzieci mówią, że pasuje czerwona deska (dobra odpowiedź, bo kolory idą na zmianę)
+        icon: "🟥"
+        description: dziecko mówi, że pasuje czerwona deska (dobra odpowiedź, bo kolory idą na zmianę)
         next: wiaterek
         reply: Czerwona! Brawo, wzór się zgadza. Czerwona, niebieska, czerwona!
         keywords: [czerwona, czerwony, czerwone, truskawka]
       niebieska:
         label: Niebieska deska
-        description: dzieci mówią, że pasuje niebieska deska (pomyłka; łagodnie pokaż, że po niebieskiej przychodzi czerwona)
+        icon: "🟦"
+        description: dziecko mówi, że pasuje niebieska deska (pomyłka; łagodnie pokaż, że po niebieskiej przychodzi czerwona)
         next: wiaterek
         reply: Niebieska była przed chwilą, więc teraz kolej na czerwoną. Wkładamy czerwoną i pasuje!
         keywords: [niebieska, niebieski, niebieskie, niebo]
 
-  # SC. 3b. Szumiący Las. Interakcja: rozpoznanie zwierzęcia po odgłosie, odpowiedź chórem.
+  # SC. 3b. Szumiący Las. Rozpoznanie zwierzęcia po odgłosie. Wersje: spokojna i żywa (według tętna widza).
   las:
     clip: clips/klub_ciekawskich/03b_las.mp4
     variants:
       spokojna: clips/klub_ciekawskich/03b_las_spokojna.mp4
+      zywa: clips/klub_ciekawskich/03b_las_zywa.mp4
     idle: clips/klub_ciekawskich/03b_las_idle.mp4
     question: Kto tak woła „hu-hu”? Sowa czy żaba?
-    reprompt: Posłuchajcie jeszcze raz. Hu-hu, hu-hu. To sowa czy żaba?
+    reprompt: Posłuchaj jeszcze raz. Hu-hu, hu-hu. To sowa czy żaba?
     fallback: Zajrzyjmy przez lupkę.
     default: sowa
     choices:
       sowa:
         label: Sowa
-        description: dzieci mówią, że to sowa (dobra odpowiedź) albo naśladują „hu-hu”
+        icon: "🦉"
+        description: dziecko mówi, że to sowa (dobra odpowiedź) albo naśladuje „hu-hu”
         next: wiaterek
-        reply: Sowa! Macie rację. Sowy w dzień zwykle śpią, a my ją chyba budzimy!
+        reply: Sowa! Masz rację. Sowy w dzień zwykle śpią, a my ją chyba budzimy!
         keywords: [sowa, sówka, sowy, hu, huhu, ptak]
       zaba:
         label: Żaba
-        description: dzieci mówią, że to żaba (pomyłka; łagodnie popraw, że żaba robi kum-kum, a hu-hu woła sowa)
+        icon: "🐸"
+        description: dziecko mówi, że to żaba (pomyłka; łagodnie popraw, że żaba robi kum-kum, a hu-hu woła sowa)
         next: wiaterek
-        reply: Żaba robi kum-kum! A hu-hu woła sowa. Zobaczcie, siedzi tam na gałęzi!
+        reply: Żaba robi kum-kum! A hu-hu woła sowa. Zobacz, siedzi tam na gałęzi!
         keywords: [żaba, żabka, żaby, kum, kumkum]
 
-  # SC. 4. Wiaterek Fiufiu. Interakcja: cała sala oddycha spokojnie, potem okrzyk „tak” (krzykomierz).
+  # SC. 4. Wiaterek Fiufiu. Wspólny oddech; dłuższe okno, bo oddech trwa. Wersja spokojna przy pobudzeniu.
   wiaterek:
     clip: clips/klub_ciekawskich/04_wiaterek.mp4
     variants:
       spokojna: clips/klub_ciekawskich/04_wiaterek_spokojna.mp4
     idle: clips/klub_ciekawskich/04_wiaterek_idle.mp4
-    question: Pomożecie Fiufiu się uspokoić? Wielki wdech nosem… i powolny wydech buzią. Udało się?
-    reprompt: Jeszcze raz, razem. Wdech nosem… i wydech buzią, fffuuu. Udało się? Krzyknijcie „tak”!
+    question: Pomożesz Fiufiu się uspokoić? Wielki wdech nosem… i powolny wydech buzią. Udało się, czy oddychamy jeszcze raz?
+    reprompt: Oddychaj razem z nami. Wdech nosem… i wydech buzią, fffuuu. Udało się?
     fallback: Fiufiu chyba sam to poczuł.
     default: spokojnie
-    vote: true
+    timeout: 20
     choices:
       spokojnie:
-        label: Tak, udało się!
-        description: dzieci mówią, że się udało, oddychają albo dmuchają razem z bohaterką (tak, już, fuu, uff, udało się)
+        label: Udało się!
+        icon: "😌"
+        description: dziecko mówi, że się udało, oddycha albo dmucha razem z bohaterką (tak, już, fuu, uff, udało się)
         next: pomocnik
         reply: Hurra! Fiufiu oddycha spokojnie i już nic nie fruwa. Dziękujemy za pomoc!
-        call: Jeśli Fiufiu już oddycha spokojnie, krzyknijcie… Tak!
-        keywords: [tak, już, udało, fu, fuu, uff, spokojnie, dmucham, pomożemy]
+        keywords: [tak, już, udało, fu, fuu, uff, spokojnie, dmucham]
+      jeszcze:
+        label: Jeszcze raz
+        icon: "🌬️"
+        description: dziecko chce oddychać jeszcze raz albo mówi, że jeszcze się nie udało (jeszcze, znowu, nie)
+        next: pomocnik
+        reply: Dobrze, jeszcze raz razem. Wdech… i wydech, fffuuu. Fiufiu oddycha spokojnie. Dziękujemy za pomoc!
+        keywords: [jeszcze, znowu, powtórz, powtórzmy, nie]
 
-  # SC. 5. Ul na końcu łąki. Interakcja: wybór pomocnika okrzykiem (do czego służą przedmioty).
+  # SC. 5. Brzeg łąki. Do czego służą przedmioty: trzy opcje.
   pomocnik:
     clip: clips/klub_ciekawskich/05_pomocnik.mp4
     idle: clips/klub_ciekawskich/05_pomocnik_idle.mp4
     question: Który pomocnik pomoże zobaczyć ul daleko na końcu łąki? Mapa, latarka czy lornetka?
-    reprompt: Mapa pokazuje drogę, latarka świeci w ciemności, a lornetka przybliża. Jeszcze raz, głośniej!
+    reprompt: Mapa pokazuje drogę, latarka świeci w ciemności, a lornetka przybliża. Który wybierasz?
     fallback: Już wiem!
     default: lornetka
-    vote: true
     choices:
       mapa:
         label: Mapa Rozkładanka
-        description: dzieci wybierają mapę (pokazała drogę, ale nie przybliży ula; łagodnie podsuń lornetkę)
+        icon: "🗺️"
+        description: dziecko wybiera mapę (pokazała drogę, ale nie przybliży ula; łagodnie podsuń lornetkę)
         next: laka
         reply: Mapa pokazała nam drogę! A żeby zobaczyć daleko, weźmy lornetkę… Jest ul!
-        call: Kto wybiera Mapę Rozkładankę? Krzyczymy… Mapa!
         keywords: [mapa, mapę, mapy, rozkładanka]
       latarka:
         label: Latarka Świetliczka
-        description: dzieci wybierają latarkę (nie pomoże, bo jest jasno; łagodnie podsuń lornetkę)
+        icon: "🔦"
+        description: dziecko wybiera latarkę (nie pomoże, bo jest jasno; łagodnie podsuń lornetkę)
         next: laka
         reply: Latarka świeci w ciemności, a teraz jest jasno. Weźmy lornetkę… Jest ul!
-        call: Kto wybiera Latarkę Świetliczkę? Krzyczymy… Latarka!
         keywords: [latarka, latarkę, latarki, świetliczka, światło]
       lornetka:
         label: Lornetka Patrzałka
-        description: dzieci wybierają lornetkę (dobra odpowiedź, lornetka przybliża to, co daleko)
+        icon: "🔭"
+        description: dziecko wybiera lornetkę (dobra odpowiedź, lornetka przybliża to, co daleko)
         next: laka
         reply: Lornetka! Przybliża to, co jest daleko. Widzę ul!
-        call: A kto wybiera Lornetkę Patrzałkę? Krzyczymy… Lornetka!
         keywords: [lornetka, lornetkę, lornetki, patrzałka, daleko]
 
-  # SC. 6. Ul na Kwiatowej Łące. Interakcja: liczenie do trzech, odpowiedź chórem.
+  # SC. 6. Ul na Kwiatowej Łące. Liczenie do trzech; obrazki opcji to pszczółki do porównania z ekranem.
   laka:
     clip: clips/klub_ciekawskich/06_laka.mp4
     idle: clips/klub_ciekawskich/06_laka_idle.mp4
@@ -173,45 +195,48 @@ scenes:
     reprompt: Policzmy razem paluszkami. Jedna, dwie… ile ich jest?
     fallback: Policzę na głos.
     default: trzy
+    timeout: 15
     choices:
       trzy:
         label: Trzy
-        description: dzieci mówią, że pszczółek są trzy (dobra odpowiedź; liczy się też „jeden, dwa, trzy”)
+        icon: "🐝🐝🐝"
+        description: dziecko mówi, że pszczółek są trzy (dobra odpowiedź; liczy się też „jeden, dwa, trzy”)
         next: swieto
-        reply: Trzy! Jedna, dwie, trzy pszczółki. Brawo, świetnie liczycie!
+        reply: Trzy! Jedna, dwie, trzy pszczółki. Brawo, świetnie liczysz!
         keywords: [trzy, "3", trzech, trzema, trójka]
       inna_liczba:
-        label: Inna liczba
-        description: dzieci podają inną liczbę niż trzy (łagodnie policz z nimi jeszcze raz do trzech)
+        label: Cztery
+        icon: "🐝🐝🐝🐝"
+        description: dziecko podaje inną liczbę niż trzy, np. cztery (łagodnie policz z nim jeszcze raz do trzech)
         next: swieto
-        reply: Policzmy razem jeszcze raz. Jedna, dwie, trzy! Trzy pszczółki. Super, że liczycie ze mną!
+        reply: Policzmy razem jeszcze raz. Jedna, dwie, trzy! Trzy pszczółki. Super, że liczysz ze mną!
         keywords: [cztery, pięć, sześć, dużo, "4", "5", "6"]
 
-  # SC. 7. Święto. Interakcja: wybór zakończenia okrzykiem (ruch albo śpiew).
+  # SC. 7. Święto. Drugie rozgałęzienie: wybór zakończenia. Wersje: spokojna i żywa (według tętna widza).
   swieto:
     clip: clips/klub_ciekawskich/07_swieto.mp4
     variants:
       spokojna: clips/klub_ciekawskich/07_swieto_spokojna.mp4
+      zywa: clips/klub_ciekawskich/07_swieto_zywa.mp4
     idle: clips/klub_ciekawskich/07_swieto_idle.mp4
     question: Jak świętujemy powrót Bzyczki? Pszczółkowym tańcem czy piosenką o kwiatkach?
-    reprompt: Nie słychać, co wygrywa! Jeszcze jedna runda, głośniej. Taniec czy piosenka?
+    reprompt: Taniec czy piosenka? Wybierz na ekranie albo powiedz głośno!
     fallback: To ja wybiorę.
     default: taniec
-    vote: true
     choices:
       taniec:
         label: Pszczółkowy taniec
+        icon: "💃"
         description: świętować tańcem pszczółek (taniec, tańczyć, ruch, skakać)
         next: koniec_taniec
-        reply: Pszczółkowy taniec! Wstańcie i machajcie rękami jak skrzydełkami. Bzz, bzz!
-        call: Kto chce pszczółkowy taniec? Krzyczymy… Taniec!
+        reply: Pszczółkowy taniec! Wstań i machaj rękami jak skrzydełkami. Bzz, bzz!
         keywords: [taniec, tańczyć, tańczymy, tańca, skaczemy, skakać]
       piosenka:
         label: Piosenka o kwiatkach
+        icon: "🎵"
         description: świętować piosenką o kwiatkach (piosenka, śpiewać, muzyka)
         next: koniec_piosenka
-        reply: Piosenka! Śpiewajcie z nami. La, la, la!
-        call: A kto chce piosenkę o kwiatkach? Krzyczymy… Piosenka!
+        reply: Piosenka! Śpiewaj z nami. La, la, la!
         keywords: [piosenka, piosenkę, piosenki, śpiewać, śpiewamy, muzyka]
 
   # SC. 8a / 8b. Finał, pożegnanie i napisy końcowe (patrz scenariusz).

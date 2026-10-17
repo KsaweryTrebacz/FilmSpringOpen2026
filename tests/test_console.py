@@ -1,24 +1,48 @@
-from bajka.console import ConsoleListener, ConsoleVoice
+from bajka.console import ConsolePlayer, ConsoleViewer, ConsoleVoice
+from bajka.ports import Answer, Player, Viewer, Voice
 
 
-def test_listener_returns_typed_answer():
-    assert ConsoleListener(read=lambda prompt: "  do lasu ").listen() == "do lasu"
+def viewer(*typed):
+    answers, printed = iter(typed), []
 
-
-def test_empty_line_is_silence():
-    assert ConsoleListener(read=lambda prompt: "   ").listen() is None
-
-
-def test_end_of_input_is_silence():
     def read(prompt):
-        raise EOFError
+        try:
+            return next(answers)
+        except StopIteration:
+            raise EOFError from None
 
-    assert ConsoleListener(read=read).listen() is None
+    return ConsoleViewer(read=read, write=printed.append), printed
 
 
-def test_voice_prints_hero_line():
+def test_number_works_like_a_remote_button(scenario):
+    console, printed = viewer("2")
+
+    assert isinstance(console, Viewer)
+    assert console.ask(scenario.scene("intro"), 12) == Answer(choice_id="jaskinia")
+    assert printed[1:] == ["  1. Las", "  2. Jaskinia"]
+
+
+def test_words_go_to_intent_recognition(scenario):
+    console, _ = viewer("  do lasu ")
+
+    assert console.ask(scenario.scene("intro"), 12) == Answer(transcript="do lasu")
+
+
+def test_empty_line_number_out_of_range_and_end_of_input(scenario):
+    scene = scenario.scene("intro")
+
+    assert viewer("   ")[0].ask(scene, 12) == Answer()
+    assert viewer("7")[0].ask(scene, 12) == Answer(transcript="7")  # „7” może być odpowiedzią na pytanie o liczbę
+    assert viewer()[0].ask(scene, 12) == Answer()
+
+
+def test_player_and_voice_print_what_would_be_on_screen(tmp_path):
     printed = []
+    player, voice = ConsolePlayer(write=printed.append), ConsoleVoice(write=printed.append)
 
-    ConsoleVoice(write=printed.append).say("Do lasu!")
+    player.play(tmp_path / "intro.mp4")
+    player.loop(tmp_path / "intro_idle.mp4")
+    voice.say("Do lasu!")
 
-    assert printed == ["Bohater: Do lasu!"]
+    assert isinstance(player, Player) and isinstance(voice, Voice)
+    assert printed == ["[klip] intro.mp4", "[w pętli] intro_idle.mp4", "Postać: Do lasu!"]

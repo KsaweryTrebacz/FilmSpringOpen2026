@@ -1,8 +1,9 @@
-"""Tętno sali. Na pokazie pochodzi z symulatora sterowanego z panelu: bez zegarków i bez danych prawdziwych osób.
+"""Tętno widza. Dziś pochodzi z symulatora sterowanego z panelu: bez zegarków i bez danych prawdziwych osób.
 
-Wizja: aplikacja mobilna czyta tętno z zegarków widzów i wysyła do komputera z filmem tylko średnią całej sali.
+Wizja: zegarek dziecka (za zgodą rodzica) przekazuje tętno odtwarzaczowi, a odcinek dopasowuje dynamikę:
+przy pobudzeniu gra spokojniejszą wersję sceny, przy znużeniu — żywszą, która przyciąga uwagę.
 Moduł spełnia kontrakt `bajka.ports.AudiencePulse`; `hall_state` porównuje tętno z punktem odniesienia,
-a `pick_variant` dobiera wersję sceny, która przybliża salę do nastroju filmu.
+a `pick_variant` dobiera wersję sceny, która przybliża widza do nastroju odcinka.
 Podgląd symulatora bez reszty aplikacji: python -m bajka.pulse [--script] [--seconds 30]
 """
 
@@ -19,14 +20,15 @@ from dataclasses import dataclass
 
 from bajka.config import ConfigError, get_float, get_int, load_env
 from bajka.ports import Pulse
-from bajka.scenario import CALM, CALM_FILM, LIVELY, LIVELY_FILM
+from bajka.scenario import BALANCED_FILM, CALM, CALM_FILM, LIVELY, LIVELY_FILM
 
-EXCITED = "pobudzona"
-NORMAL = "w normie"
-BORED = "znudzona"
+# Stany widza jako rzeczowniki, bez form zależnych od płci.
+EXCITED = "pobudzenie"
+NORMAL = "norma"
+BORED = "znużenie"
 
 MIN_BPM, MAX_BPM = 60.0, 160.0
-PRESETS = {"spokojna": 90.0, "ekscytuje-sie": 115.0, "nudzi-sie": 85.0}
+PRESETS = {"spokoj": 90.0, "pobudzenie": 115.0, "znuzenie": 85.0}
 # Przebieg demo: (sekunda od startu, tętno) — spokojny początek, ekscytacja, uspokojenie.
 DEMO_SCRIPT: tuple[tuple[float, float], ...] = ((0, 90.0), (20, 90.0), (35, 118.0), (75, 118.0), (95, 92.0))
 
@@ -36,10 +38,10 @@ JITTER_BPM = 1.5
 
 @dataclass(frozen=True)
 class PulseSettings:
-    viewers: int = 30  # ilu widzów „ma zegarek” w symulacji
+    viewers: int = 1  # ilu widzów z zegarkiem symulujemy (odcinek ogląda się zwykle w pojedynkę albo z rodzeństwem)
     start_bpm: float = 90.0
-    excited: float = 1.15  # sala pobudzona: tętno co najmniej 15% powyżej punktu odniesienia
-    bored: float = 0.97  # sala znudzona: tętno co najmniej 3% poniżej
+    excited: float = 1.15  # pobudzenie: tętno co najmniej 15% powyżej punktu odniesienia
+    bored: float = 0.97  # znużenie: tętno co najmniej 3% poniżej
 
     @classmethod
     def from_env(cls, env: Mapping[str, str]) -> PulseSettings:
@@ -55,7 +57,7 @@ class PulseSettings:
 
 
 def hall_state(bpm: float, baseline: float, settings: PulseSettings) -> str:
-    """Stan sali względem punktu odniesienia (tętna tuż po pierwszej scenie)."""
+    """Stan widza względem punktu odniesienia (tętna tuż po pierwszej scenie)."""
     if bpm >= baseline * settings.excited:
         return EXCITED
     if bpm <= baseline * settings.bored:
@@ -64,11 +66,11 @@ def hall_state(bpm: float, baseline: float, settings: PulseSettings) -> str:
 
 
 def pick_variant(mood: str, state: str) -> str | None:
-    """Wersja sceny, która przybliża salę do nastroju filmu; None oznacza zwykły klip."""
-    if mood == CALM_FILM and state == EXCITED:
-        return CALM  # spokojny film, a sala się ekscytuje: wolniejszy montaż
-    if mood == LIVELY_FILM and state == BORED:
-        return LIVELY
+    """Wersja sceny, która przybliża widza do nastroju odcinka; None oznacza zwykły klip."""
+    if mood in (CALM_FILM, BALANCED_FILM) and state == EXCITED:
+        return CALM  # widz się nakręca: wolniejszy montaż, spokojniejsza muzyka
+    if mood in (LIVELY_FILM, BALANCED_FILM) and state == BORED:
+        return LIVELY  # uwaga ucieka: krótsza, żywsza wersja sceny
     return None
 
 
@@ -83,7 +85,7 @@ def script_value(script: Sequence[tuple[float, float]], seconds: float) -> float
 
 
 class SimulatedPulse:
-    """Symulowana sala: tętno płynnie dochodzi do wartości docelowej i lekko drga."""
+    """Symulowany widz: tętno płynnie dochodzi do wartości docelowej i lekko drga."""
 
     def __init__(
         self,
@@ -114,7 +116,7 @@ class SimulatedPulse:
 
     def preset(self, name: str) -> None:
         if name not in PRESETS:
-            raise ValueError(f"nieznany stan sali {name!r}, dostępne: {', '.join(PRESETS)}")
+            raise ValueError(f"nieznany stan widza {name!r}, dostępne: {', '.join(PRESETS)}")
         self.set_target(PRESETS[name])
 
     def play_script(self, script: Sequence[tuple[float, float]] = DEMO_SCRIPT) -> None:
@@ -139,7 +141,7 @@ class SimulatedPulse:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="python -m bajka.pulse", description="Podgląd symulatora tętna sali.")
+    parser = argparse.ArgumentParser(prog="python -m bajka.pulse", description="Podgląd symulatora tętna widza.")
     parser.add_argument("--script", action="store_true", help="przebieg demo: spokojnie, ekscytacja, uspokojenie")
     parser.add_argument("--seconds", type=int, default=30, help="jak długo pokazywać odczyty (co sekundę)")
     args = parser.parse_args(argv)
@@ -155,7 +157,7 @@ def main(argv: list[str] | None = None) -> int:
     for _ in range(args.seconds):
         reading = pulse.read()
         state = hall_state(reading.bpm, baseline, settings)
-        line = f"tętno {reading.bpm:5.1f} (cel {pulse.target:5.1f}), widzów {reading.viewers}, sala: {state}"
+        line = f"tętno {reading.bpm:5.1f} (cel {pulse.target:5.1f}), widzów {reading.viewers}, stan: {state}"
         print(line, flush=True)
         time.sleep(1)
     return 0

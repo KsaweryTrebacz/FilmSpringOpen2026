@@ -131,16 +131,16 @@ def test_pulse_samples_baseline_and_hall_state(scenario):
     assert pulse["bpm"] == 110.0 and pulse["viewers"] == 30
     assert pulse["baseline"] == 90.0
     assert pulse["excited"] == pytest.approx(103.5) and pulse["bored"] == pytest.approx(87.3)
-    assert pulse["state"] == "pobudzona"
-    assert texts(state.snapshot()) == ["Punkt odniesienia tętna sali: 90"]
+    assert pulse["state"] == "pobudzenie"
+    assert texts(state.snapshot()) == ["Punkt odniesienia tętna widza: 90"]
 
 
 def test_version_choice_is_explained_in_one_sentence(scenario):
     state = PanelState(scenario, PulseSettings())
 
-    state.event("wersja", {"scene": "las", "bpm": 110.0, "baseline": 90.0, "state": "pobudzona", "variant": "spokojna"})
+    state.event("wersja", {"scene": "las", "bpm": 110.0, "baseline": 90.0, "state": "pobudzenie", "variant": "spokojna"})
 
-    assert texts(state.snapshot()) == ["Tętno sali 110 (odniesienie 90), sala pobudzona: scena las w wersji spokojnej"]
+    assert texts(state.snapshot()) == ["Tętno 110 (odniesienie 90), stan: pobudzenie: scena las w wersji spokojnej"]
 
 
 def test_history_and_log_keep_only_the_latest_entries(scenario):
@@ -226,7 +226,7 @@ def test_server_samples_the_pulse_in_the_background(server):
 
 @pytest.mark.parametrize(
     ("body", "target"),
-    [({"target": 120}, 120.0), ({"preset": "nudzi-sie"}, 85.0), ({"target": "130"}, 130.0)],
+    [({"target": 120}, 120.0), ({"preset": "znuzenie"}, 85.0), ({"target": "130"}, 130.0)],
 )
 def test_pulse_commands_set_the_simulator(server, body, target):
     _, url, simulator = server
@@ -246,7 +246,7 @@ def test_demo_script_command_starts_the_scripted_run(server):
 @pytest.mark.parametrize(
     ("body", "error"),
     [
-        ({"preset": "szaleje"}, "nieznany stan sali"),
+        ({"preset": "szaleje"}, "nieznany stan widza"),
         ({"target": "dużo"}, "liczbą"),
         ({}, "nieznane polecenie"),
         (b"nie json", "obiektu JSON"),
@@ -269,12 +269,12 @@ def test_panel_page_works_offline_and_has_all_sections(server):
         assert response.headers["Content-Type"].startswith("text/html")
         page = response.read().decode("utf-8")
 
-    assert "<title>Film, który czuje salę" in page
-    sections = ('id="tree-svg"', 'id="chart"', 'id="votes"', 'id="log"', 'id="slider"', 'data-preset="ekscytuje-sie"')
+    assert "<title>Odcinek, który czuje widza" in page
+    sections = ('id="tree-svg"', 'id="chart"', 'id="votes"', 'id="log"', 'id="slider"', 'data-preset="pobudzenie"')
     for element in sections:
         assert element in page
     for external in ("<link", "@import", "url(http", 'src="http', "src='http", "//cdn"):
-        assert external not in page  # bez internetu na sali: żadnych zewnętrznych plików
+        assert external not in page  # bez internetu: żadnych zewnętrznych plików
     # Strona prosi dokładnie o te adresy, które serwer obsługuje (/graph, /state, POST /pulse).
     assert set(re.findall(r'(?:fetch|getJSON)\(\s*"([^"]+)"', page)) == {"graph", "state", "pulse"}
 

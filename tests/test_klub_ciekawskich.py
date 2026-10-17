@@ -1,4 +1,4 @@
-"""Scenariusz „Klub Ciekawskich”: poprawny graf i typowe odpowiedzi dzieci rozpoznawane bez modelu językowego."""
+"""Odcinek „Klub Ciekawskich”: poprawny graf, okna wyboru i typowe odpowiedzi dzieci rozpoznawane bez modelu."""
 
 import re
 from pathlib import Path
@@ -27,32 +27,54 @@ def test_every_scene_is_reachable_and_story_has_two_endings():
 
 
 LIVE_LINES = [line for s in SCENARIO.scenes.values() for line in (s.question, s.reprompt, s.fallback)] + [
-    line for s in SCENARIO.scenes.values() for c in s.choices.values() for line in (c.reply, c.call)
+    c.reply for s in SCENARIO.scenes.values() for c in s.choices.values()
 ]
 # Czas przeszły zdradza płeć: "zrobiłeś/zrobiłaś", "zrobiliście/zrobiłyście", "obudziliśmy/obudziłyśmy".
 GENDERED_PAST = re.compile(r"\w+(łeś|łaś|liście|łyście|liśmy|łyśmy)\b")
 
 
-def test_hero_is_lila_and_talks_to_a_cinema_audience():
+def test_hero_is_lila_and_talks_to_one_viewer_at_home():
     assert "Lila Lupka" in SCENARIO.hero
-    assert "widownia" in SCENARIO.hero
+    assert "liczbie pojedynczej" in SCENARIO.hero
+    assert "widowni" not in SCENARIO.hero  # prompt modelu przechodzi na liczbę mnogą, gdy opis postaci mówi o widowni
+    assert SCENARIO.title == "Klub Ciekawskich: Bzyczka szuka domu"
+
+
+# Zwroty do grupy w liczbie mnogiej: odcinek ogląda zwykle jedno dziecko.
+PLURAL_ADDRESS = re.compile(r"\b(pomożecie|macie|wybierzcie|powiedzcie|posłuchajcie|popatrzcie|zobaczcie|liczycie|"
+                            r"wstańcie|śpiewajcie|krzyknijcie|krzyczymy|sala|widownia)\b", re.IGNORECASE)
 
 
 def test_live_lines_have_no_gendered_forms():
     assert [line for line in LIVE_LINES if GENDERED_PAST.search(line)] == []
 
 
-def test_decisions_in_the_cinema_are_shouted_and_every_option_is_called():
-    voting = {s.id for s in SCENARIO.scenes.values() if s.vote}
+def test_live_lines_talk_to_one_viewer():
+    assert [line for line in LIVE_LINES if PLURAL_ADDRESS.search(line)] == []
 
-    assert voting == {"powitanie", "kuferek", "wiaterek", "pomocnik", "swieto"}
-    assert all(c.call for s in SCENARIO.scenes.values() if s.vote for c in s.choices.values())
+
+def test_every_choice_window_has_two_or_three_options_with_pictures():
+    windows = [s for s in SCENARIO.scenes.values() if s.choices]
+
+    assert all(2 <= len(s.choices) <= 3 for s in windows)
+    assert all(c.icon for s in windows for c in s.choices.values())  # dla dzieci, które jeszcze nie czytają
+
+
+def test_choice_windows_give_children_enough_time():
+    assert {s.id: s.timeout for s in SCENARIO.scenes.values() if s.timeout} == {
+        "powitanie": 15.0, "wiaterek": 20.0, "laka": 15.0,
+    }
+
+
+def test_first_window_shows_recorded_reactions():
+    assert all(c.reaction is not None for c in SCENARIO.scene("powitanie").choices.values())
 
 
 @pytest.mark.parametrize(
     ("scene", "answer", "choice"),
     [
         ("powitanie", "Hop sasa!", "hopsasa"),
+        ("powitanie", "puk, puk", "pukanie"),
         ("kuferek", "przez ten kolorowy mostek", "most"),
         ("kuferek", "do lasu", "las"),
         ("most", "czerwoną", "czerwona"),
@@ -60,10 +82,12 @@ def test_decisions_in_the_cinema_are_shouted_and_every_option_is_called():
         ("las", "to sówka", "sowa"),
         ("las", "żabka!", "zaba"),
         ("wiaterek", "już!", "spokojnie"),
+        ("wiaterek", "jeszcze raz", "jeszcze"),
         ("pomocnik", "lornetkę", "lornetka"),
         ("pomocnik", "latarkę", "latarka"),
         ("laka", "trzy", "trzy"),
         ("laka", "5", "inna_liczba"),
+        ("laka", "cztery", "inna_liczba"),
         ("swieto", "chcę tańczyć", "taniec"),
         ("swieto", "zaśpiewajmy piosenkę", "piosenka"),
     ],
@@ -85,13 +109,22 @@ def test_screenplay_dialogue_has_no_gendered_forms_towards_the_audience():
     assert [line for line in dialogue if GENDERED_PAST.search(line)] == []
 
 
-def test_every_option_has_a_short_label_for_audience_phones():
+def test_every_option_has_a_short_label_for_the_choice_window():
     labels = [c.label for s in SCENARIO.scenes.values() for c in s.choices.values()]
 
     assert all(labels) and max(map(len, labels)) <= 24
 
 
-def test_calm_film_has_calm_versions_of_three_lively_scenes():
-    assert SCENARIO.mood == "spokojny"
-    assert {s.id for s in SCENARIO.scenes.values() if s.variants} == {"las", "wiaterek", "swieto"}
-    assert all(set(s.variants) == {"spokojna"} for s in SCENARIO.scenes.values() if s.variants)
+def test_balanced_episode_has_calm_and_lively_versions_of_scenes():
+    assert SCENARIO.mood == "zrownowazony"
+    assert {s.id: set(s.variants) for s in SCENARIO.scenes.values() if s.variants} == {
+        "las": {"spokojna", "zywa"}, "wiaterek": {"spokojna"}, "swieto": {"spokojna", "zywa"},
+    }
+
+
+def test_screenplay_talks_to_one_viewer_when_characters_face_the_camera():
+    screenplay = (Path(__file__).resolve().parents[1] / "scenarios" / "klub_ciekawskich.md").read_text(encoding="utf-8")
+    to_camera = [line for line in screenplay.splitlines() if line.startswith("> **") and "do kamery" in line]
+
+    assert len(to_camera) >= 8
+    assert [line for line in to_camera if PLURAL_ADDRESS.search(line)] == []

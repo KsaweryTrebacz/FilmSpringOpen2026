@@ -1,7 +1,7 @@
 """Siatka bezpieczeństwa dla kwestii pisanych na żywo przez model językowy.
 
 Regulamin hackathonu (§3 ust. 8) wyklucza treści wulgarne, obraźliwe, propagujące przemoc i nieprawdziwe,
-a kwestie Lili słyszą dzieci na sali. Prompt (`bajka/intent.py`) prosi model o bezpieczne odpowiedzi;
+a kwestie Lili słyszą małe dzieci. Prompt (`bajka/intent.py`) prosi model o bezpieczne odpowiedzi;
 ten moduł sprawdza wynik. Kwestia podejrzana albo za długa zostaje pusta — silnik powie wtedy stałą,
 sprawdzoną kwestię ze scenariusza (`reply` albo `reprompt`). Sam wybór dziecka zostaje uszanowany.
 """
