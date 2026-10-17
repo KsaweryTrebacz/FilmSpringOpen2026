@@ -7,10 +7,11 @@
 <!-- Makieta do prezentacji (nie działa: nie ma za nią logiki). Wybory i sposób odpowiedzi silnik już zapisuje
      (StoryEngine.decisions, zdarzenie "decyzja" z polem how); umiejętności i pytania do rozmowy to propozycja. -->
 <style>
+  @font-face { font-family: "Nunito"; src: url("../../../bajka/fonts/nunito.woff2") format("woff2"); font-weight: 200 1000; }
   :root { --bg: #f7f1e6; --card: #fffaf2; --ink: #2a2118; --dim: #6b5d4d; --line: #e6dccb; --accent: #f2b33d;
           --blue: #2f6f9f; --ok: #3f8f55; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 "Segoe UI", system-ui, sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 "Nunito", "Segoe UI", system-ui, sans-serif; }
   .app { width: 1440px; min-height: 900px; padding: 32px 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-content: start; }
   header { grid-column: 1 / -1; }
   header h1 { font-size: 30px; margin: 0 0 4px; }

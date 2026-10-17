@@ -6,13 +6,13 @@
 
 | Do obejrzenia (bez instalowania czegokolwiek) | |
 |---|---|
-| Nagranie prawdziwego odtwarzacza, 60 s, z napisami | [media/demo_z_napisami.mp4](media/demo_z_napisami.mp4) |
+| Nagranie prawdziwego odtwarzacza, 1 min, z napisami | [media/demo_z_napisami.mp4](media/demo_z_napisami.mp4) |
 | Zwiastun z klipów odcinka, 35 s | [media/zwiastun.mp4](media/zwiastun.mp4) |
-| Slajdy (21) z notatkami | eksport PDF w załączniku · [link do slajdów](https://claude.ai/artifact/LhY5PzguvLUpW7VHhCCYtg) |
+| Slajdy (24) z notatkami | eksport PDF w załączniku · [link do slajdów](https://claude.ai/artifact/LhY5PzguvLUpW7VHhCCYtg) |
 | Kod, scenariusz i cała dokumentacja | [github.com/KsaweryTrebacz/FilmSpringOpen2026](https://github.com/KsaweryTrebacz/FilmSpringOpen2026) |
 
 > **In English (summary).** *Klub Ciekawskich* (“The Curious Club”) is an interactive animated series for children
-> aged 3–7 on streaming platforms. At key moments a character asks a question and a choice window appears: the child
+> aged 4–7 on streaming platforms. At key moments a character asks a question and a choice window appears: the child
 > answers with the remote, by touch or **by voice, in their own words**, and the story follows — every answer has its
 > own scene, and the child's choices are layered onto the clips. An **AI editor** on the device picks the transition
 > between clips (dissolve, wipe, fade) from the place, the choice and the child's mood. A **Parent Creator** lets a
@@ -25,7 +25,7 @@
 
 ## 1. Co to jest
 
-Animowany serial dla dzieci 3–7 lat do serwisów streamingowych, w którym **dziecko rozmawia z bohaterami**.
+Animowany serial dla dzieci 4–7 lat do serwisów streamingowych, w którym **dziecko rozmawia z bohaterami**.
 Odcinek pilotażowy: „Bzyczka szuka domu” — Lila Lupka i wiewiórek Fiku pomagają zagubionej pszczółce wrócić do ula.
 
 1. Postać zadaje pytanie, klip przechodzi w cichą pętlę, a na dole ekranu pojawia się **okno wyboru**: 2–3 opcje
@@ -36,13 +36,15 @@ Odcinek pilotażowy: „Bzyczka szuka domu” — Lila Lupka i wiewiórek Fiku p
    mostek się chwieje i naprawiamy go razem. Wybory „kosmetyczne” (kwiatek dla mamy Bzyczki) to przezroczyste
    **warstwy** nakładane na jeden klip, zamiast osobnych wersji scen.
 4. **Montażysta AI** wybiera przejście między klipami (przenikanie, przetarcie, zaciemnienie, rozjaśnienie, cięcie)
-   i jego długość — według miejsca akcji, wyboru i słów dziecka, a w przyszłości jego tętna. Gdy nie zdąży,
+   i jego długość — według miejsca akcji, wyboru i słów dziecka oraz jego tętna (dziś z symulatora). Gdy nie zdąży,
    decydują reguły; odcinek nigdy nie staje.
 5. Cisza nie karze: postać dopytuje, a potem wybiera sama. Na końcu ekran „Twoje wybory” i „Obejrzyj jeszcze raz”.
-6. Każdy odcinek ma też **wersję liniową** (zwykły film z napisami) i **manifest** dla odtwarzacza serwisu.
+6. Telewizor bez mikrofonu? **Telefon** staje się pilotem z mikrofonem: wystarczy zeskanować kod QR.
+7. Każdy odcinek ma też **wersję liniową** (zwykły film z napisami) i **manifest** dla odtwarzacza serwisu.
+   Twórcy widzą w **panelu podglądu** drogę widza, tętno i uzasadnienie każdej decyzji montażysty.
 
 **Kreator Rodzica** (koncepcja i makieta): rodzic wybiera, czego dziecko ma się dziś uczyć (liczenie, wzory, emocje,
-przyroda), ile ma być zagadek, ile czasu na odpowiedź, czy dziecko odpowiada głosem, i ustawia limit ekranu.
+przyroda), ile ma być zagadek, ile czasu dziecko ma na odpowiedź i czy odpowiada głosem, oraz ustawia limit ekranu.
 Po odcinku dostaje krótki raport z pomysłami na rozmowę bez ekranu ([KREATOR_RODZICA.md](KREATOR_RODZICA.md)).
 
 ![Kreator Rodzica — makieta](media/kreator.png)
@@ -69,7 +71,7 @@ powstawały błyski.
 
 | Kto | Co zyskuje |
 |---|---|
-| **Dzieci 3–7 lat** | Aktywne oglądanie: rozmowa z postacią, decyzje ze skutkiem, zagadki, w których pomyłka jest częścią przygody |
+| **Dzieci 4–7 lat** | Aktywne oglądanie: rozmowa z postacią, decyzje ze skutkiem, zagadki, w których pomyłka jest częścią przygody |
 | **Dzieci, które nie czytają albo nie mówią płynnie** | Obrazki zamiast tekstu, pilot i dotyk działają zawsze, głos jest dodatkiem, długi czas na odpowiedź |
 | **Dzieci z rodzin o mniejszych zasobach** | W badaniu wersji serialu z rozmową dzieci z biedniejszej dzielnicy dorównały rówieśnikom z zamożnej (sekcja 5) |
 | **Rodzice** | Wpływ na treść i czas ekranu (Kreator), raport po odcinku, pomysły na rozmowę i zabawę bez ekranu |
@@ -82,7 +84,7 @@ powstawały błyski.
 
 | Wyzwanie | Nasza odpowiedź |
 |---|---|
-| **Koszt produkcji gałęzi** (powód porażki filmów interaktywnych) | Gałęzie trwają 15–25 s i wracają na wspólną drogę; wybory kosmetyczne to warstwy na jednym klipie. Odcinek Bzyczki: 17 scen (10 głównych, 7 krótkich gałęzi) i 3 warstwy dają 32 różne układy scen |
+| **Koszt produkcji gałęzi** (główna bariera filmów interaktywnych) | Gałęzie trwają 15–25 s i wracają na wspólną drogę; wybory kosmetyczne to warstwy na jednym klipie. Odcinek Bzyczki: 17 scen (10 głównych, 7 krótkich gałęzi) i 3 warstwy dają 32 różne układy scen |
 | **Rozpoznawanie mowy małych dzieci** | Głos nie jest warunkiem (pilot, dotyk). Whisper z podpowiedzią słów odcinka, model Phi do sensu odpowiedzi, słowa kluczowe w zapasie, dopytanie przy niejasnej odpowiedzi. Zmierzone w eksperymencie (sekcja 5), do sprawdzenia z dziećmi |
 | **Prywatność dziecka, RODO** | AI na urządzeniu, bez chmury. Mikrofon tylko w oknie wyboru, nagranie usuwane zaraz po rozpoznaniu. Tętno (przyszła funkcja) to dane o zdrowiu (art. 9): osobna zgoda rodzica, przetwarzanie na urządzeniu, bez zapisu; dziś tylko symulator |
 | **Bezpieczeństwo treści AI** | AI nie generuje wideo ani fabuły na żywo. Klipy powstają wcześniej i sprawdza je człowiek; krótkie kwestie modelu przechodzą przez filtr treści. Montażysta wybiera tylko sposób połączenia gotowych klipów |

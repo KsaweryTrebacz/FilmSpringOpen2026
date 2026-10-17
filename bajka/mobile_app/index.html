@@ -11,10 +11,11 @@
 <title>Klub Ciekawskich — drugi ekran</title>
 <style>
   /* Ciemny ekran: telefon nie odciąga wzroku od odcinka na dużym ekranie. */
+  @font-face { font-family: "Nunito"; src: url("nunito.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; }
   :root { --bg: #14110f; --card: #221c18; --ink: #f3e9d7; --dim: #a8998a; --lila: #e8b931; --ok: #7fb685; }
   * { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink);
-    font: 20px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    font: 20px/1.4 "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif; }
   main { max-width: 520px; margin: 0 auto; padding: 24px 16px calc(24px + env(safe-area-inset-bottom)); }
   h1 { font-size: 26px; margin: 8px 0 4px; color: var(--lila); }
   p { margin: 8px 0; }
@@ -48,7 +49,7 @@
     <p>Lila będzie zadawać pytania. Kiedy zaświeci się lupka, powiedz odpowiedź do telefonu.</p>
     <button id="joinButton" class="big">Dołączam</button>
     <p class="dim">Telefon poprosi o dostęp do mikrofonu. Nagranie służy tylko do rozpoznania odpowiedzi
-      na komputerze w kinie: trafia tam na chwilę do pliku tymczasowego, usuwanego zaraz po rozpoznaniu,
+      na komputerze z odcinkiem: trafia tam na chwilę do pliku tymczasowego, usuwanego zaraz po rozpoznaniu,
       i nie jest przechowywane.</p>
     <p id="joinError" class="dim" hidden></p>
   </section>

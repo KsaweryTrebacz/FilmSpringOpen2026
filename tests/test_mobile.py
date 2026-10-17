@@ -269,6 +269,8 @@ def test_server_serves_the_phone_app_and_manifest(server):
     assert b"getUserMedia" in body and b"manifest.webmanifest" in body
     assert json.loads(get(url + "manifest.webmanifest")[2])["display"] == "standalone"
     assert b"Zeskanuj" in get(url + "qr")[2]
+    status, content_type, font = get(url + "nunito.woff2")
+    assert (status, content_type, font[:4]) == (200, "font/woff2", b"wOF2")  # czcionka bez internetu
 
 
 def test_server_round_trip_from_phone_to_engine(server, scenario):

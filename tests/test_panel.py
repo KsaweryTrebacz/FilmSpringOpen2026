@@ -279,6 +279,14 @@ def test_panel_page_works_offline_and_has_all_sections(server):
     assert set(re.findall(r'(?:fetch|getJSON)\(\s*"([^"]+)"', page)) == {"graph", "state", "pulse"}
 
 
+def test_panel_font_is_served_locally(server):
+    _, url, _ = server
+
+    with urllib.request.urlopen(url + "nunito.woff2", timeout=5) as response:
+        assert response.headers["Content-Type"] == "font/woff2"
+        assert response.read()[:4] == b"wOF2"
+
+
 def test_unknown_page_is_404(server):
     _, url, _ = server
 

@@ -1,6 +1,6 @@
 # Klub Ciekawskich — bajka, która słucha
 
-**Interaktywna animacja dla dzieci 3–7 lat, w której dziecko rozmawia z bohaterami, a rodzic decyduje, czego się uczy.**
+**Interaktywna animacja dla dzieci 4–7 lat, w której dziecko rozmawia z bohaterami, a rodzic decyduje, czego się uczy.**
 (nazwa robocza · FilmSpring Open 2026)
 
 ![Okno wyboru na klipie odcinka](media/okno-droga-glos.jpg)

@@ -12,4 +12,4 @@ def test_package_data_lists_every_bundled_web_app():
     web_apps = {f"{page.parent.name}/*" for page in (ROOT / "bajka").glob("*_app/index.html")}
 
     assert web_apps == {"mobile_app/*", "panel_app/*", "player_app/*"}
-    assert web_apps <= declared
+    assert web_apps | {"fonts/*"} <= declared  # wspólna czcionka stron

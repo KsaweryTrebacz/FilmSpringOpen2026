@@ -7,10 +7,11 @@
 <link rel="icon" href="data:,">
 <title>Bajka interaktywna</title>
 <style>
+  @font-face { font-family: "Nunito"; src: url("nunito.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; }
   :root { --ink: #f6efe4; --dim: #c2b5a3; --accent: #ffc94d; --card: rgba(24, 19, 14, 0.86); --ok: #7fd18b; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #000; color: var(--ink); overflow: hidden;
-    font: 20px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    font: 20px/1.4 "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif; }
   [hidden] { display: none !important; }
   button { font: inherit; color: inherit; cursor: pointer; }
 
@@ -67,6 +68,7 @@
     color: #241b05; font-size: clamp(22px, 3vw, 34px); font-weight: 800; }
   .big:focus-visible { outline: 4px solid #fff; outline-offset: 4px; }
   .ghost { margin: 0.4em; padding: 0.5em 1.2em; border: 2px solid var(--dim); border-radius: 999px; background: transparent; }
+  a.ghost { color: var(--ink); }  /* link do panelu wygląda jak przycisk, nie jak niebieski link */
   fieldset { border: 0; padding: 0; margin: 1em auto; display: grid; gap: 0.6em; text-align: left; width: fit-content; }
   label { display: flex; gap: 0.6em; align-items: center; cursor: pointer; }
   input[type="checkbox"] { width: 1.2em; height: 1.2em; accent-color: var(--accent); }

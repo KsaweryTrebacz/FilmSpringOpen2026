@@ -44,6 +44,7 @@ from bajka.scenario import Scene, ScenarioError, load_scenario
 log = logging.getLogger(__name__)
 
 APP_DIR = Path(__file__).with_name("mobile_app")
+FONT = Path(__file__).with_name("fonts") / "nunito.woff2"  # ta sama czcionka co w odtwarzaczu
 CERT_DIR = Path.home() / ".bajka"
 ACTIVE_SECONDS = 6.0  # telefon, który tyle nie pytał o stan, uznajemy za rozłączony
 MAX_UPLOAD_BYTES = 2_000_000  # ok. minuta nagrania 16 kHz mono; więcej to błąd albo nadużycie
@@ -267,7 +268,8 @@ def join_page(url: str) -> str:
         qr = ""
     return (
         "<!doctype html><html lang=pl><meta charset=utf-8><title>Drugi ekran</title>"
-        "<body style='margin:0;background:#1b1b1b;color:#fffdf4;font:28px system-ui;display:grid;place-items:center;"
+        "<style>@font-face{font-family:Nunito;src:url(nunito.woff2) format('woff2');font-weight:200 1000}</style>"
+        "<body style='margin:0;background:#1b1b1b;color:#fffdf4;font:28px Nunito,system-ui;display:grid;place-items:center;"
         "min-height:100vh;text-align:center'><div><h1>Zeskanuj telefonem i dołącz do Klubu Ciekawskich!</h1>"
         f"<div style='background:#fffdf4;display:inline-block;padding:16px;border-radius:16px'>{qr}</div>"
         f"<p>{url}</p><p style='font-size:20px;opacity:.7'>Zezwól na mikrofon. Nagranie służy tylko do rozpoznania odpowiedzi i jest usuwane zaraz po rozpoznaniu.</p>"
@@ -318,6 +320,8 @@ class _Handler(BaseHTTPRequestHandler):
         if url.path in self.STATIC:
             name, content_type = self.STATIC[url.path]
             self._send(200, (APP_DIR / name).read_bytes(), content_type)
+        elif url.path == "/nunito.woff2":
+            self._send(200, FONT.read_bytes(), "font/woff2")
         elif url.path == "/api/state":
             device = self._device(url)
             if device:

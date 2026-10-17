@@ -35,7 +35,7 @@ mobile = ["cryptography>=42", "segno>=1.6"]
 packages = ["bajka"]
 
 [tool.setuptools.package-data]
-bajka = ["mobile_app/*", "panel_app/*", "player_app/*"]
+bajka = ["fonts/*", "mobile_app/*", "panel_app/*", "player_app/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

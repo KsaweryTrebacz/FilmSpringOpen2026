@@ -47,6 +47,7 @@ from bajka.scenario import Scenario, Scene, media_files
 log = logging.getLogger(__name__)
 
 APP_DIR = Path(__file__).with_name("player_app")
+FONT = Path(__file__).with_name("fonts") / "nunito.woff2"  # czcionka wszystkich stron (SIL OFL), bez internetu
 STALE_SECONDS = 3.0  # strona, która tyle nie pytała o stan, jest zamknięta albo uśpiona: odliczanie stoi
 MAX_TRANSCRIBE_SECONDS = 15.0  # dłużej na rozpoznanie nagrania po końcu odliczania nie czekamy
 MAX_UPLOAD_BYTES = 2_000_000  # ok. minuta nagrania 16 kHz mono; więcej to błąd albo nadużycie
@@ -362,6 +363,8 @@ class _Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path in ("/", "/index.html"):
             self._send(200, (APP_DIR / "index.html").read_bytes(), "text/html; charset=utf-8")
+        elif path == "/nunito.woff2":
+            self._send(200, FONT.read_bytes(), "font/woff2")
         elif path == "/api/state":
             self._json(200, self.server.episode.state())
         elif (media := self.server.episode.media(path)) is not None and media.is_file():

@@ -6,10 +6,11 @@
 <title>Kreator Rodzica — makieta</title>
 <!-- Makieta do prezentacji (nie działa: nie ma za nią logiki). Opis funkcji: docs/prezentacja/KREATOR_RODZICA.md -->
 <style>
+  @font-face { font-family: "Nunito"; src: url("../../../bajka/fonts/nunito.woff2") format("woff2"); font-weight: 200 1000; }
   :root { --bg: #f7f1e6; --card: #fffaf2; --ink: #2a2118; --dim: #6b5d4d; --line: #e6dccb; --accent: #f2b33d;
           --accent-ink: #3a2a08; --blue: #2f6f9f; --ok: #3f8f55; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 "Segoe UI", system-ui, sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 18px/1.45 "Nunito", "Segoe UI", system-ui, sans-serif; }
   .app { width: 1440px; min-height: 900px; padding: 32px 40px; display: grid; grid-template-columns: 1fr 420px; gap: 28px; }
   header { grid-column: 1 / -1; display: flex; align-items: center; gap: 18px; }
   header h1 { font-size: 30px; margin: 0; }
@@ -57,7 +58,7 @@
   .limit .bar i { display: block; height: 100%; width: 45%; background: var(--blue); }
   .limit p { margin: 0; color: var(--dim); font-size: 15px; }
   .cta { display: block; width: 100%; padding: 16px; border: none; border-radius: 14px; background: var(--accent);
-         color: var(--accent-ink); font: 700 22px "Segoe UI", system-ui, sans-serif; }
+         color: var(--accent-ink); font: 800 22px "Nunito", "Segoe UI", system-ui, sans-serif; }
   .ai { font-size: 15px; color: var(--dim); margin: 12px 0 0; }
 </style>
 </head>
@@ -84,7 +85,7 @@
       <div class="row"><b>Liczba zagadek<span class="hint">okna wyboru w odcinku</span></b>
         <div class="slider"><i style="width:57%"></i><em style="left:57%"></em></div><div class="val">4 z 8</div></div>
       <div class="row"><b>Długość odcinka<span class="hint">mniej zagadek = krótszy odcinek</span></b>
-        <div class="slider"><i style="width:45%"></i><em style="left:45%"></em></div><div class="val">ok. 12 min</div></div>
+        <div class="slider"><i style="width:45%"></i><em style="left:45%"></em></div><div class="val">ok. 10 min</div></div>
       <div class="row"><b>Czas na odpowiedź<span class="hint">potem postać dopytuje</span></b>
         <div class="slider"><i style="width:50%"></i><em style="left:50%"></em></div><div class="val">15 s</div></div>
       <div class="row"><b>Podpowiedzi<span class="hint">zanim postać wybierze sama</span></b>
@@ -114,7 +115,7 @@
         <li>Wiaterek — wspólny oddech <i>(bez okna: robi to postać)</i></li>
         <li>Łąka — <span>ile pszczółek?</span> (liczenie)</li>
       </ol>
-      <div class="stats"><div><b>4</b><small>okna wyboru</small></div><div><b>6+</b><small>różnych ścieżek</small></div><div><b>12 min</b><small>z napisami</small></div></div>
+      <div class="stats"><div><b>4</b><small>okna wyboru</small></div><div><b>8</b><small>układów scen</small></div><div><b>10 min</b><small>z napisami</small></div></div>
       <button class="cta">▶ Utwórz i oglądaj</button>
       <p class="ai" style="color:#c2b5a3">Sceny pochodzą z biblioteki zatwierdzonych modułów. Nowe klipy AI trafiają na ekran dopiero po sprawdzeniu przez człowieka.</p>
     </section>

@@ -38,7 +38,7 @@ głosem, swoimi słowami. Wybór zmienia historię: każda odpowiedź ma swoją 
 czego dziecko się uczy, ile jest zagadek i ile ekranu.”
 
 **5. Kto skorzysta.**
-„Najwięcej — dzieci 3–7 lat: rozmawiają z postacią, a ich decyzje mają skutek. Dzieci, które nie czytają, mają
+„Najwięcej — dzieci 4–7 lat: rozmawiają z postacią, a ich decyzje mają skutek. Dzieci, które nie czytają, mają
 obrazki, pilot i dotyk. Rodzice dostają wpływ na treść i czas ekranu, przedszkola — odcinki pod temat tygodnia,
 serwisy i studia — format i narzędzia, które wdrożą u siebie.”
 
@@ -133,5 +133,5 @@ Pytania techniczne i o dane: [DEMO_DLA_JURY.md](../DEMO_DLA_JURY.md#pytania-jury
 
 Mapowanie argumentów na kryteria: [ZGODNOSC_Z_REGULAMINEM.md](../ZGODNOSC_Z_REGULAMINEM.md#pitch-wobec-kryteriów-jury-4-ust-5).
 W skrócie: **innowacyjność** — rozmowa z postacią na urządzeniu i montaż AI; **adekwatność** — przyszłość odbioru
-w serwisach, z wnioskami z wycofania się Netflixa; **oryginalność** — własny świat i interakcja dla 3–7 lat;
+w serwisach, z wnioskami z wycofania się Netflixa; **oryginalność** — własny świat i interakcja dla 4–7 lat;
 **kreatywność** — zagadki, wspólny oddech, warstwy wyborów, Kreator Rodzica.

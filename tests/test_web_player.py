@@ -317,6 +317,15 @@ def test_page_and_state_are_served(server):
     assert json.loads(data)["title"] == "Bajka interaktywna"
 
 
+def test_page_font_is_served_locally(server):
+    _, port = server
+
+    font, data = request(port, "GET", "/nunito.woff2")
+
+    assert font.status == 200 and font.getheader("Content-Type") == "font/woff2"
+    assert data[:4] == b"wOF2"  # czcionka stron bez internetu
+
+
 def test_clips_are_served_with_byte_ranges_for_the_video_element(server):
     _, port = server
 

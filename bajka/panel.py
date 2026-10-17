@@ -29,6 +29,7 @@ from bajka.scenario import Scenario, ScenarioError, load_scenario
 log = logging.getLogger(__name__)
 
 APP_DIR = Path(__file__).parent / "panel_app"
+FONT = Path(__file__).parent / "fonts" / "nunito.woff2"  # ta sama czcionka co w odtwarzaczu
 HISTORY_SAMPLES = 120  # ostatnie 2 minuty tętna przy próbce co sekundę
 LOG_ENTRIES = 20
 MAX_COMMAND_BYTES = 1024
@@ -217,6 +218,8 @@ class _Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path in ("/", "/index.html") and (APP_DIR / "index.html").is_file():
             self._send(200, (APP_DIR / "index.html").read_bytes(), "text/html; charset=utf-8")
+        elif path == "/nunito.woff2":
+            self._send(200, FONT.read_bytes(), "font/woff2")
         elif path == "/graph":
             self._json(200, self.server.graph)
         elif path == "/state":

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Odcinek, który czuje widza — panel podglądu</title>
 <style>
+  @font-face { font-family: "Nunito"; src: url("nunito.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; }
   :root {
     --bg: #0e1120;
     --card: #171b2e;
@@ -22,7 +23,7 @@
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font: 15px/1.45 system-ui, "Segoe UI", sans-serif;
+    font: 15px/1.45 "Nunito", system-ui, "Segoe UI", sans-serif;
   }
   header {
     display: flex;
@@ -406,8 +407,9 @@ function renderLog(entries) {
 }
 
 function renderMood() {
+  const MOOD_NAMES = { spokojny: "spokojny", zywy: "żywy", zrownowazony: "zrównoważony" };  // identyfikatory bez polskich znaków
   document.getElementById("mood").textContent = graph.mood
-    ? `Odcinek ${graph.mood}: gdy tętno widza odbiega od nastroju odcinka, scena gra inną wersję montażu`
+    ? `Odcinek ${MOOD_NAMES[graph.mood] || graph.mood}: gdy tętno widza odbiega od nastroju odcinka, scena gra inną wersję montażu`
     : "Odcinek bez nastroju (mood): wersje scen wyłączone";
 }
 

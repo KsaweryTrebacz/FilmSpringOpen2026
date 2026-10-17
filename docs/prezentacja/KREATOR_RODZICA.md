@@ -9,7 +9,7 @@ i [mockupy/raport.html](mockupy/raport.html) (po odcinku); zrzuty w [media/](med
 
 ## Dla kogo i po co
 
-- **Rodzic dziecka 3–7 lat**, który i tak włącza bajkę, ale chce, żeby te 15 minut było aktywne i czegoś uczyło,
+- **Rodzic dziecka 4–7 lat**, który i tak włącza bajkę, ale chce, żeby te 15 minut było aktywne i czegoś uczyło,
   i żeby to on decydował, czego i jak długo.
 - **Rodzeństwo**: odcinek dla dwójki dzieci w różnym wieku (profile, odpowiedzi na zmianę).
 - **Przedszkole, biblioteka, świetlica**: nauczyciel ustawia odcinek pod temat tygodnia.
