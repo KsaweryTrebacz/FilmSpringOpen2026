@@ -140,7 +140,10 @@ class WebEpisode:
             self._wait_done(self._issue({"kind": "say", "text": text}))
 
     def ask(self, scene: Scene, seconds: float) -> Answer:
-        choices = [{"id": c.id, "label": c.display_label, "icon": c.icon} for c in scene.choices.values()]
+        choices = [
+            {"id": c.id, "label": c.display_label, "icon": c.icon, "keywords": list(c.keywords)}
+            for c in scene.choices.values()
+        ]
         with self._cond:
             self._issue({"kind": "ask", "scene": scene.id, "question": scene.question, "choices": choices,
                          "seconds": seconds})  # fmt: skip

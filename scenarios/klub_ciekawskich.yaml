@@ -284,8 +284,6 @@ scenes:
         description: dziecko wybiera słonecznik (duży żółty kwiat, jak słońce)
         next: swieto
         reply: Słonecznik! Duży i żółty jak słońce!
-        layer: clips/klub_ciekawskich/warstwa_slonecznik.webm
-        slot: kwiatek
         keywords: [słonecznik, słonecznika, słońce, żółty, duży]
       koniczyna:
         label: Koniczyna
@@ -293,8 +291,6 @@ scenes:
         description: dziecko wybiera koniczynę (małe kwiatki w kulce, pszczoły bardzo je lubią)
         next: swieto
         reply: Koniczyna! Pszczoły bardzo lubią jej kwiatki!
-        layer: clips/klub_ciekawskich/warstwa_koniczyna.webm
-        slot: kwiatek
         keywords: [koniczyna, koniczynę, koniczynka, koniczynkę, zielona]
       stokrotka:
         label: Stokrotka
@@ -302,11 +298,9 @@ scenes:
         description: dziecko wybiera stokrotkę (mały biały kwiatek z żółtym środkiem)
         next: swieto
         reply: Stokrotka! Mała i biała, z żółtym środkiem!
-        layer: clips/klub_ciekawskich/warstwa_stokrotka.webm
-        slot: kwiatek
         keywords: [stokrotka, stokrotkę, stokrotki, biała, mała]
 
-  # SC. 7. Święto. Wybór zakończenia. Wersje: spokojna i żywa. Bzyczka trzyma kwiatek wybrany przez widza.
+  # SC. 7. Święto. Wybór zakończenia. Wersje: spokojna i żywa.
   swieto:
     clip: clips/klub_ciekawskich/07_swieto.mp4
     variants:
@@ -314,7 +308,6 @@ scenes:
       zywa: clips/klub_ciekawskich/07_swieto_zywa.mp4
     idle: clips/klub_ciekawskich/07_swieto_idle.mp4
     place: Kwiatowa Łąka
-    layers: [kwiatek]
     question: Jak świętujemy powrót Bzyczki? Pszczółkowym tańcem czy piosenką o kwiatkach?
     reprompt: Taniec czy piosenka? Wybierz na ekranie albo powiedz głośno!
     fallback: To ja wybiorę.
@@ -339,11 +332,9 @@ scenes:
   koniec_taniec:
     clip: clips/klub_ciekawskich/08a_koniec_taniec.mp4
     place: Kwiatowa Łąka
-    layers: [kwiatek]
     transition: rozjasnienie
 
   koniec_piosenka:
     clip: clips/klub_ciekawskich/08b_koniec_piosenka.mp4
     place: Kwiatowa Łąka
-    layers: [kwiatek]
     transition: rozjasnienie

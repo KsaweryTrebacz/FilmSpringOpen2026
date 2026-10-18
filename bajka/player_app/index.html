@@ -675,6 +675,7 @@ function openChoice(command) {
     const button = document.createElement("button");
     button.className = "option";
     button.dataset.choice = choice.id;
+    if (choice.keywords) button.dataset.keywords = JSON.stringify(choice.keywords);
     if (choice.icon) button.append(Object.assign(document.createElement("span"), { className: "icon", textContent: choice.icon }));
     button.append(Object.assign(document.createElement("span"), { textContent: choice.label }));
     button.append(Object.assign(document.createElement("span"), { className: "key", textContent: String(index + 1) }));
@@ -726,7 +727,7 @@ function timeUp(seq) {
   if (front) fadeVolume(front.video, front.loop ? LOOP_VOLUME : 1, 300);
   speechActive = false;
   if (recognition) { try { recognition.stop(); } catch (_) {} }
-  if (recorder && recorder.speaking) { stopRecording(true); return; }  // dziecko właśnie mówi: wysyłamy, co jest
+  if (recorder && recorder.chunks.length > 5) { stopRecording(true); return; }  // jeśli cokolwiek nagrano: wyślij do Whispera
   recorder = null;
   if (!ask.sending) post("api/event", { type: "timeout", seq });
 }
@@ -831,7 +832,19 @@ function textMatchesChoice(heardText, choiceId, label) {
     mapa: ["mapa", "mape", "mapy", "rozkladanka"],
     latarka: ["latarka", "latarke", "latarki", "swietliczka", "swiatlo"],
     lornetka: ["lornetka", "lornetke", "lornetki", "patrzalka", "daleko"],
-    trzy: ["trzy", "trojka", "trzecia", "trzech", "3", "jeden dwa trzy"]
+    trzy: ["trzy", "trojka", "trzecia", "trzech", "3", "jeden dwa trzy"],
+    slonecznik: ["slonecznik", "slonecznika", "sloneczniki", "slonecznikiem", "slonce", "zolty", "duzy", "kwiat", "kwiatek", "pierwszy", "1"],
+    koniczyna: ["koniczyna", "koniczyne", "koniczynka", "koniczynke", "koniczynki", "zielona", "drugi", "2"],
+    stokrotka: ["stokrotka", "stokrotke", "stokrotki", "stokrotce", "biala", "mala", "trzeci", "3"],
+    taniec: [
+      "taniec", "tanca", "tancem", "tanczyc", "tanczymy", "zatanczyc", "zatanczmy", "tanczmy",
+      "skaczemy", "skakac", "ruch", "machac", "bzz", "pszczolkowy taniec", "pszczolkowy", "pierwszy", "1"
+    ],
+    piosenka: [
+      "piosenka", "piosenke", "piosenki", "piosence", "spiewac", "spiewamy", "zaspiewac", "zaspiewajmy",
+      "muzyka", "la la la", "piosenka o kwiatkach", "druga", "2"
+    ],
+    inna_liczba: ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "czworeczka", "inna", "nie trzy"]
   };
 
   const list = synonyms[choiceId] || [];
@@ -866,7 +879,19 @@ function matchChoice(heardText) {
       return { choiceId, button: btn, label };
     }
 
-    // 2. Sprawdź po nazwie i synonimach
+    // 2. Sprawdź keywords przypisane do opcji ze scenariusza
+    try {
+      const kws = JSON.parse(btn.dataset.keywords || "[]");
+      const heardWords = cleanHeard.split(/[^a-z0-9]+/);
+      for (const kw of kws) {
+        const cleanKw = kw.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+        if (cleanKw.length >= 4 ? cleanHeard.includes(cleanKw) : heardWords.includes(cleanKw)) {
+          return { choiceId, button: btn, label };
+        }
+      }
+    } catch (_) {}
+
+    // 3. Sprawdź po nazwie i synonimach
     if (textMatchesChoice(heardText, choiceId, label)) {
       return { choiceId, button: btn, label };
     }
@@ -888,7 +913,7 @@ function listening(text, cls) {
 }
 
 function startRecording(seq, seconds, maxSeconds) {
-  recorder = { seq, chunks: [], preRoll: [], speaking: false, floor: 0.01, silentMs: 0, spokenMs: 0,
+  recorder = { seq, chunks: [], speaking: false, floor: 0.005, silentMs: 0, spokenMs: 0,
     maxMs: maxSeconds * 1000, deadline: performance.now() + seconds * 1000 };
 }
 
@@ -908,22 +933,20 @@ function onAudio(input, rate) {
   if (!r || !ask || ask.seq !== r.seq) return;
   const ms = samples.length / rate * 1000;
   r.rate = rate;
-  if (!r.speaking) {
-    r.floor = 0.95 * r.floor + 0.05 * rms;  // szum w pokoju
-    r.preRoll.push(samples);
-    if (r.preRoll.length > 5) r.preRoll.shift();
-    if (rms > Math.max(0.015, r.floor * 2)) {
-      r.speaking = true;
-      r.chunks.push(...r.preRoll);
-    } else if (performance.now() > r.deadline) {
-      recorder = null;
-    }
-    return;
-  }
   r.chunks.push(samples);
   r.spokenMs += ms;
-  r.silentMs = rms > Math.max(0.012, r.floor * 1.5) ? 0 : r.silentMs + ms;
-  if (r.silentMs >= 700 || r.spokenMs >= r.maxMs || performance.now() > r.deadline) stopRecording(true);
+  r.floor = 0.95 * r.floor + 0.05 * rms;
+
+  if (rms > Math.max(0.008, r.floor * 1.3)) {
+    r.speaking = true;
+    r.silentMs = 0;
+  } else {
+    r.silentMs += ms;
+  }
+
+  if ((r.speaking && r.silentMs >= 650) || r.spokenMs >= r.maxMs || performance.now() > r.deadline) {
+    stopRecording(true);
+  }
 }
 
 async function stopRecording(sendIt) {

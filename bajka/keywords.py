@@ -100,6 +100,18 @@ SYNONYMS: dict[str, list[str]] = {
     "latarka": ["latarka", "latarke", "latarki", "swietliczka", "swiatlo"],
     "lornetka": ["lornetka", "lornetke", "lornetki", "patrzalka", "daleko"],
     "trzy": ["trzy", "trojka", "trzecia", "trzech", "3", "jeden dwa trzy"],
+    "slonecznik": ["slonecznik", "slonecznika", "sloneczniki", "slonecznikiem", "slonce", "zolty", "duzy", "kwiat", "kwiatek", "pierwszy", "1"],
+    "koniczyna": ["koniczyna", "koniczyne", "koniczynka", "koniczynke", "koniczynki", "zielona", "drugi", "2"],
+    "stokrotka": ["stokrotka", "stokrotke", "stokrotki", "stokrotce", "biala", "mala", "trzeci", "3"],
+    "taniec": [
+        "taniec", "tanca", "tancem", "tanczyc", "tanczymy", "zatanczyc", "zatanczmy", "tanczmy",
+        "skaczemy", "skakac", "ruch", "machac", "bzz", "pszczolkowy taniec", "pszczolkowy", "pierwszy", "1"
+    ],
+    "piosenka": [
+        "piosenka", "piosenke", "piosenki", "piosence", "spiewac", "spiewamy", "zaspiewac", "zaspiewajmy",
+        "muzyka", "la la la", "piosenka o kwiatkach", "druga", "2"
+    ],
+    "inna_liczba": ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "czworeczka", "inna", "nie trzy"],
 }
 
 ORDINALS: list[list[str]] = [
