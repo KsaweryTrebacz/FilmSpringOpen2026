@@ -116,7 +116,7 @@ SYNONYMS: dict[str, list[str]] = {
         "piosenka", "piosenke", "piosenki", "piosence", "spiewac", "spiewamy", "zaspiewac", "zaspiewajmy",
         "muzyka", "la la la", "piosenka o kwiatkach", "druga", "2"
     ],
-    "inna_liczba": ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "czworeczka", "inna", "nie trzy"],
+    "inna_liczba": ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "czworeczka", "inna"]  # bez „nie trzy”: samo „trzy” byłoby wtedy w obu opcjach,
 }
 
 ORDINALS: list[list[str]] = [

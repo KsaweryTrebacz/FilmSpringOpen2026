@@ -150,11 +150,9 @@ def test_puzzle_answers_lead_to_their_own_scenes_and_rejoin_the_common_path():
     }
 
 
-def test_flower_chosen_by_the_viewer_is_layered_over_the_finale():
-    flowers = SCENARIO.scene("kwiatek").choices.values()
-
-    assert {c.slot for c in flowers} == {"kwiatek"} and all(c.layer.suffix == ".webm" for c in flowers)
-    assert {s.id for s in SCENARIO.scenes.values() if "kwiatek" in s.layers} == {"swieto", "koniec_taniec", "koniec_piosenka"}
+def test_every_flower_leads_to_the_celebration():
+    # Warstwa kwiatka jest w odcinku na razie wyłączona; nakładanie warstw sprawdzają testy silnika i odtwarzacza.
+    assert {c.next for c in SCENARIO.scene("kwiatek").choices.values()} == {"swieto"}
 
 
 def test_every_scene_tells_the_montage_where_it_happens():

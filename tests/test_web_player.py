@@ -112,7 +112,10 @@ def test_button_choice_closes_the_window(scenario):
 
     state = wait_for(episode, "ask")
     assert state["question"] == scenario.scene("intro").question
-    assert state["choices"] == [{"id": "las", "label": "Las", "icon": ""}, {"id": "jaskinia", "label": "Jaskinia", "icon": ""}]
+    assert state["choices"] == [
+        {"id": "las", "label": "Las", "icon": "", "keywords": []},
+        {"id": "jaskinia", "label": "Jaskinia", "icon": "", "keywords": []},
+    ]
     assert 29 < state["seconds_left"] <= 30
     assert episode.event({"type": "choice", "seq": state["seq"], "choice": "most"}) == "closed"
     assert episode.event({"type": "choice", "seq": state["seq"], "choice": "jaskinia"}) == "ok"
@@ -235,8 +238,8 @@ def test_end_screen_lists_only_choices_that_changed_the_story():
                  ("pomocnik", "mapa"), ("laka", "trzy"), ("kwiatek", "stokrotka"), ("swieto", "piosenka")]  # fmt: skip
 
     assert story_labels(scenario, decisions) == [
-        "Tęczowy Mostek", "Niebieska deska", "Udało się!", "Trzy", "Stokrotka", "Piosenka o kwiatkach",
-    ]  # bez „Puk, puk!” i mapy: wszystkie opcje prowadzą tam samo i nic nie nakładają
+        "Tęczowy Mostek", "Niebieska deska", "Udało się!", "Trzy", "Piosenka o kwiatkach",
+    ]  # bez „Puk, puk!”, mapy i kwiatka: wszystkie ich opcje prowadzą tam samo i nic nie nakładają
     assert branch_labels(scenario, visited) == ["Tęczowy Mostek", "Niebieska deska", "Udało się!", "Trzy",
                                                 "Piosenka o kwiatkach"]  # fmt: skip
 
