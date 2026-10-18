@@ -793,12 +793,17 @@ function textMatchesChoice(heardText, choiceId, label) {
   const h = clean(heardText);
   const id = clean(choiceId);
   const l = clean(label);
+  const heardWords = (heardText || "").toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/);
 
   if (!h) return false;
-  // Fragment wypowiedzi w nazwie wyboru liczy się od 4 liter (jak w bajka/keywords.py): krótki strzęp
-  // rozpoznawanej mowy („a”, „nie”) nie może sam wybrać opcji.
-  if (h.includes(id) || (h.length >= 4 && id.includes(h))) return true;
-  if (h.includes(l) || (h.length >= 4 && l.includes(h))) return true;
+  // Krótkie słowa (< 4 litery, np. "las") tylko jako CAŁE wyrazy, nie jako podciąg w innym słowie ("lastek", "klasa")!
+  if (id.length >= 4) {
+    if (h.includes(id) || id.includes(h)) return true;
+  } else if (heardWords.includes(id)) {
+    return true;
+  }
+
+  if (l.length >= 4 && (h.includes(l) || l.includes(h))) return true;
 
   const synonyms = {
     hopsasa: [
@@ -814,7 +819,8 @@ function textMatchesChoice(heardText, choiceId, label) {
     ],
     most: [
       "most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek",
-      "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka"
+      "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka",
+      "tenczowy", "tenczowym", "teczowym", "lastek", "mastek", "trawym"
     ],
     las: [
       "las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu",

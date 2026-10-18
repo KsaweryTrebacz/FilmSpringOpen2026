@@ -95,7 +95,12 @@ def cut_utterance(frames: Iterable[np.ndarray], settings: LocalSttSettings, fram
 
 
 NON_SPEECH_TAGS = re.compile(r"\[[^\]]*\]|\([^)]*\)")
-DEFAULT_PROMPT = "Klub Ciekawskich. Dziecko odpowiada na głos: Hop-sa-sa, puk puk, zapukaj, Tęczowy Mostek, most, mostek, Szumiący Las, las, szumiący, czerwona, niebieska, kwiatek."
+DEFAULT_PROMPT = (
+    "Klub Ciekawskich: Hop-sa-sa, puk puk, zapukaj w wieko, Tęczowy Mostek, tęczowy mostek, most, mostek, "
+    "Szumiący Las, szumiący las, las, czerwona deska, niebieska deska, wdech, wydech, udało się, jeszcze raz, "
+    "mapa rozkładanka, latarka świetliczka, lornetka patrzałka, trzy pszczółki, cztery, słonecznik, koniczyna, "
+    "stokrotka, pszczółkowy taniec, piosenka o kwiatkach."
+)
 
 
 def clean_transcript(text: str) -> str | None:

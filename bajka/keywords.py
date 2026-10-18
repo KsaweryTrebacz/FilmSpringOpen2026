@@ -53,7 +53,11 @@ def same_word(spoken: str, keyword: str) -> bool:
     # Krótkie wyrazy i liczby tylko dosłownie: inaczej „do” pasowałoby do „dom”, a „lato” do „las”.
     if spoken.isdigit() or keyword.isdigit() or min(len(spoken), len(keyword)) < 3:
         return False
-    if spoken.startswith(keyword):  # odmiana: "lasu" ~ "las"
+    if len(keyword) <= 3:
+        if spoken.startswith(keyword):
+            return spoken[len(keyword):] in ("u", "a", "em", "ie", "y", "ow", "ach", "ami")
+        return False
+    if spoken.startswith(keyword):  # odmiana: "mostkiem" ~ "mostek"
         return True
     if len(spoken) < 4:  # krótkie słowo dziecka to nie początek dłuższego: „nie” to nie „niebo”
         return False
@@ -64,7 +68,7 @@ def same_word(spoken: str, keyword: str) -> bool:
         if a != b:
             break
         common += 1
-    return common >= max(3, min(len(spoken), len(keyword)) - 2)
+    return common >= max(4, min(len(spoken), len(keyword)) - 1)
 
 
 SYNONYMS: dict[str, list[str]] = {
@@ -81,7 +85,8 @@ SYNONYMS: dict[str, list[str]] = {
     ],
     "most": [
         "most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek",
-        "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka"
+        "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka",
+        "tenczowy", "tenczowym", "teczowym", "lastek", "mastek", "trawym"
     ],
     "las": [
         "las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu",
@@ -137,12 +142,19 @@ def matches(transcript: str, choice: Choice, index: int | None = None) -> bool:
         if any(ord_word in clean_spoken for ord_word in ORDINALS[index]):
             return True
 
+    spoken_words = words(transcript)
+
     # 2. Identyfikator i etykieta wyboru
     clean_id = compact(choice.id)
     clean_label = compact(choice.display_label)
-    # Fragment wypowiedzi w nazwie wyboru liczy się od 4 liter: inaczej „nie” wybierałoby „niebieską”.
-    if clean_id and (clean_id in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_id)):
-        return True
+    # Krótkie identyfikatory (< 4 litery, np. "las") tylko jako całe wyrazy, nie jako podciąg w innym słowie (np. "lastek", "klasa")
+    if clean_id:
+        if len(clean_id) >= 4:
+            if clean_id in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_id):
+                return True
+        elif clean_id in spoken_words:
+            return True
+
     if clean_label and (clean_label in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_label)):
         return True
 
@@ -152,12 +164,14 @@ def matches(transcript: str, choice: Choice, index: int | None = None) -> bool:
         clean_kw = compact(kw)
         if not clean_kw:
             continue
-        # Krótkie słowa („nie”, „tak”, „hu”) tylko jako całe wyrazy (krok 4): „spokojnie” kończy się na „nie”.
-        if (len(clean_kw) >= 4 and clean_kw in clean_spoken) or (len(clean_spoken) >= 4 and clean_spoken in clean_kw):
+        # Krótkie słowa („las”, „nie”, „tak”, „hu”) tylko jako całe wyrazy: „lastek” to nie „las”.
+        if len(clean_kw) >= 4:
+            if clean_kw in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_kw):
+                return True
+        elif clean_kw in spoken_words:
             return True
 
     # 4. Dopasowanie wyraz po wyrazie
-    spoken_words = words(transcript)
     for kw in kws:
         parts = words(kw)
         for start in range(len(spoken_words) - len(parts) + 1) if parts else ():
