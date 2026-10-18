@@ -157,7 +157,8 @@ przeglądarki i VLC.
 
 | Dokument | Po co |
 |---|---|
-| [README](../README.md) | Instalacja, uruchamianie, wszystkie tryby, rozwiązywanie problemów |
+| [README](../README.md) | Opis projektu dla jury: problem, rozwiązanie, nagrania, wyniki prób |
+| [URUCHOMIENIE.md](URUCHOMIENIE.md) | Instalacja, uruchamianie, wszystkie tryby, rozwiązywanie problemów |
 | [DOKUMENTACJA_TECHNICZNA.md](DOKUMENTACJA_TECHNICZNA.md) | Pełna architektura techniczna, komponenty, API, testy i wdrożenie |
 | [prezentacja/](prezentacja/README.md) | Prezentacja produktu, materiały pitchowe i badania |
 | [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md) | Przebieg pokazu przed jury |

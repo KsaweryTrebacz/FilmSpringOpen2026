@@ -97,7 +97,7 @@ i że nagrań odpowiedzi nie przechowujemy; kwestie na żywo mają zawsze napisy
 ## Mikrofon w odtwarzaczu i drugi ekran — prywatność i bezpieczeństwo
 
 Odpowiedź głosem nagrywa strona odtwarzacza w trakcie okna wyboru, a opcjonalnie telefon domownika
-(drugi ekran, [README](../README.md#drugi-ekran-telefon-jako-pilot-z-mikrofonem)). Głos dziecka to dane osobowe,
+(drugi ekran, [URUCHOMIENIE.md](URUCHOMIENIE.md#drugi-ekran-telefon-jako-pilot-z-mikrofonem)). Głos dziecka to dane osobowe,
 a widzami są małe dzieci, dlatego:
 
 | Kwestia | Rozwiązanie | Stan |

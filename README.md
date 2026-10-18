@@ -1,286 +1,189 @@
-# Bajka interaktywna: odcinek, w którym decyduje widz
+# Klub Ciekawskich — bajka, która słucha
 
-Prototyp na hackathon FilmSpring Open 2026: animowana bajka dla dzieci do oglądania w serwisie streamingowym.
-W kluczowych momentach postać zadaje pytanie, a na ekranie pojawia się **okno wyboru** z obrazkami i odliczaniem.
-Dziecko wybiera **pilotem, dotykiem albo głosem** („przez ten kolorowy mostek!”), a historia idzie w wybraną stronę:
-każda odpowiedź może prowadzić do innej sceny, a wybory widza są **nakładane na klipy jako warstwy** (np. kwiatek,
-który Bzyczka niesie do finału). O **płynnym przejściu** między klipami decyduje **montażysta AI** na urządzeniu.
-W przyszłości tempo odcinka może dopasowywać się do **tętna widza** z zegarka (dziś: symulator).
+**Interaktywny serial animowany dla dzieci 4–7 lat do serwisów streamingowych.** Postać zadaje pytanie, dziecko
+odpowiada pilotem, dotykiem albo **własnymi słowami**, a historia idzie w wybraną stronę. Rozpoznawanie mowy
+i model językowy działają na urządzeniu widza, więc głos dziecka nie trafia do chmury. Montażysta AI łączy klipy
+przejściami dobranymi do sytuacji, a rodzic decyduje, czego dziecko się uczy.
 
-Domyślnie całe AI działa **lokalnie na urządzeniu** (Foundry Local z Whisper i Phi na NPU/GPU/CPU) — bez chmury
-i bez kluczy: [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md). Usługi Azure zostają jako alternatywa (`--backend azure`).
+Zgłoszenie na hackathon **FilmSpring Open 2026** („Kino szuka nowej formy”). Działający prototyp, odcinek
+pilotażowy „Bzyczka szuka domu” i wszystkie dokumenty powstały w trakcie hackathonu, 16–18.10.2026.
 
-Odcinek: **„Klub Ciekawskich: Bzyczka szuka domu”** ([scenariusz odcinka](scenarios/klub_ciekawskich.md),
-[graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)). Dlaczego streaming, jak to wygląda na rynku i jak
-odcinek trafia do serwisów: [docs/STREAMING.md](docs/STREAMING.md). Zgodność z regulaminem hackathonu:
-[docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
-**Pełna dokumentacja inżynierska i techniczna systemu: [docs/DOKUMENTACJA_TECHNICZNA.md](docs/DOKUMENTACJA_TECHNICZNA.md).**
-**Prezentacja produktu, pitch, Kreator Rodzica i badania: [docs/prezentacja/](docs/prezentacja/README.md).**
-**Architektura i wprowadzenie do kodu: [docs/ONBOARDING.md](docs/ONBOARDING.md).** Przebieg pokazu konkursowego: [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md).
+![Odcinek w odtwarzaczu: okno wyboru, odpowiedź głosem i przejście do lasu](docs/prezentacja/media/odcinek.gif)
 
-## Jak to działa
+*Fragment nagrania prawdziwego odtwarzacza. Napis „Słyszę…” jest tu zainscenizowany (nagrywaliśmy bez modelu mowy);
+w odcinku odpowiedź rozpoznaje mikrofon i Whisper.*
 
-1. Odtwarzacz (strona w przeglądarce, jak w serwisie streamingowym) gra klip, w którym postać zadaje pytanie.
-2. Klip przechodzi w cichą pętlę oczekiwania, a na dole ekranu wysuwa się okno wyboru: 2–3 opcje z obrazkami,
-   nazwami i paskiem odliczania (domyślnie 12 s). Pytanie jest też w napisach.
-3. Widz wybiera:
-   - **pilotem** (strzałki i OK; w przeglądarce strzałki i Enter), **dotykiem**, myszą albo cyfrą 1–3 — wybór od razu;
-   - **głosem**, jeśli rodzic zostawił włączony mikrofon: strona nagrywa odpowiedź w trakcie okna wyboru, Whisper
-     (Foundry Local) zamienia ją na tekst, a Phi (Foundry Local) rozpoznaje intencję i może dopisać krótką osobistą
-     kwestię. Gdy model zawiedzie, wybór rozpoznają słowa kluczowe ze scenariusza.
-4. Po wyborze gra nagrany klip reakcji postaci, a gdzie go nie ma — postać mówi kwestię ze scenariusza
-   (w odtwarzaczu w przeglądarce jako napisy; głosy postaci nagrywamy w klipach). Potem startuje scena wybranej
-   ścieżki: w zagadkach każda odpowiedź
-   może mieć własną scenę (gałąź), która wraca na wspólną drogę.
-5. **Montaż AI:** w trakcie reakcji montażysta (model Phi na urządzeniu) przetwarza informacje — skąd i dokąd
-   idziemy, co widz wybrał i powiedział, jak się czuje według tętna, co podpowiada autor — i wybiera przejście
-   (przenikanie, przetarcie, zaciemnienie, rozjaśnienie albo cięcie) oraz jego długość. Odtwarzacz nakłada kolejny
-   klip na koniec poprzedniego, a warstwy z wyborami widza (przezroczyste klipy) kładzie nad sceną. Gdy model
-   nie zdąży, decydują reguły (`bajka/montage.py`).
-6. Czas minął bez wyboru albo odpowiedź była niejasna: postać dopytuje (domyślnie 2 razy), potem wybiera sama.
-   Odcinek nigdy nie staje.
-7. Na końcu ekran „Koniec odcinka!” pokazuje wybory, które zmieniły odcinek, i proponuje obejrzenie jeszcze raz.
+## Obejrzyj w 5 minut
 
-Kwestie pisane na żywo przez model przechodzą przez filtr treści (`bajka/safety.py`). Awaria rozpoznawania mowy,
-modelu albo głosu nie zatrzymuje odcinka: zostaje wybór pilotem, a w ostateczności wybór domyślny.
+Nic nie trzeba instalować:
 
-## Wymagania
+| Materiał | Co pokazuje |
+|---|---|
+| [Zwiastun](docs/prezentacja/media/zwiastun.mp4) (32 s) | Świat odcinka: Lila, Fiku i pszczółka Bzyczka; przejścia jak u montażysty AI |
+| [Cały odcinek w odtwarzaczu](docs/prezentacja/media/odcinek_przejscie.mp4) (ok. 3 min, z dźwiękiem) | Jedno przejście od powitania do finału: 8 okien wyboru, napisy objaśniają każdy krok |
+| [Tętno a montaż](docs/prezentacja/media/tetno_montaz.mp4) (47 s) | Odtwarzacz i panel obok siebie: symulowane tętno przyspiesza albo uspokaja montaż |
+| [Mapa odcinka](docs/prezentacja/media/mapa_odcinka.jpg) | Wszystkie etapy, odpowiedzi i gałęzie na jednej planszy |
+| [Zgłoszenie](docs/prezentacja/ZGLOSZENIE.md) ([PDF](docs/prezentacja/ZGLOSZENIE.pdf)) i [one-pager](docs/prezentacja/ONE_PAGER.md) | To samo co tutaj, w formie dokumentu do wysłania |
+| [Slajdy i scenariusz wystąpienia](docs/prezentacja/README.md) | Prezentacja z notatkami prelegenta i plan pokazu online 29.10 |
 
-- Windows 10/11 (działa też na Linuksie i macOS), Python 3.11+ w wersji 64-bit
-- Przeglądarka: Edge albo Chrome (odtwarzacz i mikrofon); polski głos syntezatora (Ustawienia → Czas i język → Mowa)
-  potrzebny tylko w trybie `--player vlc`
-- ffmpeg do klipów-zaślepek i wersji liniowej: `winget install --id Gyan.FFmpeg -e`
-- Tryb lokalny (domyślny): najlepiej Copilot+ PC z NPU; bez NPU modele idą na GPU albo CPU
-- Opcjonalnie VLC 3.x 64-bit (`--player vlc`): `winget install --id VideoLAN.VLC -e`
-- Tryb `azure`: zasób AI Speech oraz zasób Azure OpenAI z wdrożeniem modelu `gpt-4o-mini`
+## Problem
 
-## Instalacja
+- **Bajka mówi do dziecka, ale go nie słyszy.** Dzieci od zawsze odpowiadają ekranowi („za tobą!”), a pytanie
+  z ekranu to w zwykłym filmie tylko pauza. 15 minut z bajką to 15 minut słuchania.
+- **Rodzic wybiera tytuł i na tym kończy się jego wpływ** na to, czego bajka uczy, ile w niej zadań i jak długo trwa.
+  Zalecenia dla małych dzieci (WHO 2019, AAP 2016) mówią o ograniczonym czasie ekranu, w którym liczy się jakość
+  i wspólne oglądanie, a rodzic nie ma narzędzia, żeby ten czas tak wyglądał.
+- **Filmy interaktywne w serwisach się nie przyjęły.** Netflix usunął w 2024 r. 20 z 24 tytułów interaktywnych:
+  były drogie w produkcji, dla dorosłych i bez rozmowy. Szukamy formy, która jest tania w produkcji i daje wartość,
+  której zwykły film nie da.
+
+**Co mówią badania.** Zespół Ying Xu dodał rozmowę do serialu PBS KIDS *Elinor Wonders Why*: w badaniu z udziałem
+240 dzieci wersja, w której postać naprawdę reaguje na odpowiedź, dała **63%** poprawnych odpowiedzi w teście wiedzy,
+wersja z pytaniem i pauzą 61%, zwykła 56%. Dzieci z biedniejszej dzielnicy z wersją z rozmową osiągnęły wyniki
+porównywalne z rówieśnikami z zamożnej dzielnicy. To wyniki tamtych badań, nie nasze; źródła i wnioski dla projektu:
+[BADANIA.md](docs/prezentacja/BADANIA.md).
+
+## Rozwiązanie: jak wygląda odcinek
+
+| | |
+|---|---|
+| ![Okno wyboru: jak obudzimy Kuferek?](docs/prezentacja/media/okno-wyboru.jpg) | **1. Pytanie i okno wyboru.** Postać pyta, klip przechodzi w cichą pętlę, a na dole ekranu pojawiają się 2–3 opcje z obrazkami i paskiem odliczania. Obrazki zamiast tekstu, bo widz w tym wieku często jeszcze nie czyta |
+| ![Odpowiedź głosem w oknie wyboru](docs/prezentacja/media/okno-glos.jpg) | **2. Odpowiedź pilotem, dotykiem albo głosem.** Mowę rozpoznaje Whisper, a sens odpowiedzi mały model Phi — oba na komputerze widza. Gdy model zawiedzie, wybór rozpoznają słowa kluczowe. „Nie wiem” albo cisza kończą się dopytaniem, a potem postać wybiera sama: odcinek nigdy nie staje |
+| ![Sowa budzi się po odpowiedzi dziecka](docs/prezentacja/media/galaz-sowa.jpg) | **3. Każda odpowiedź ma skutek.** Nagrana reakcja postaci i często osobna scena: „Sowa!” budzi sowę, która wskazuje drogę; zła deska w mostku nie kończy gry, tylko mostek się chwieje i naprawiamy go razem. Krótkie gałęzie (15–25 s) wracają na wspólną drogę, więc produkcja jest tania |
+| ![Plakietka montażu dynamicznego w odtwarzaczu](docs/prezentacja/media/tetno-dynamiczny.jpg) | **4. Montażysta AI.** Wybiera przejście między klipami (przenikanie, przetarcie, zaciemnienie, rozjaśnienie, cięcie) i jego długość według miejsca akcji, wyboru dziecka i jego stanu. Przy znużeniu montaż przyspiesza (przetarcie 0,4 s, tempo 1,08×, żywa wersja sceny), przy pobudzeniu zwalnia (przenikanie 1,2 s, tempo 0,92×, spokojna wersja). Tętno pochodzi dziś z symulatora |
+| ![Ekran końcowy z wyborami widza](docs/prezentacja/media/koniec.jpg) | **5. Wyraźny koniec.** Ekran pokazuje drogę, którą wybrało dziecko, i zachęca, żeby obejrzeć jeszcze raz inną drogą. Bez automatycznego następnego odcinka |
+
+Telewizor bez mikrofonu? **Telefon staje się pilotem z mikrofonem**: wystarczy zeskanować kod QR, bez instalowania
+aplikacji. Twórcy widzą w **panelu podglądu** drogę widza, tętno i powód każdej decyzji montażysty zapisany jednym
+zdaniem.
+
+| Telefon jako pilot | Panel podglądu dla twórców |
+|---|---|
+| ![Telefon: pytanie o Kuferek i dwie odpowiedzi](docs/prezentacja/media/telefon-round-1.jpg) | ![Panel: drzewo scen, tętno widza i dziennik decyzji](docs/prezentacja/media/panel.jpg) |
+
+**Kreator Rodzica** (koncepcja i klikalna makieta): rodzic wybiera, czego dziecko ma się dziś uczyć (liczenie,
+wzory, emocje, przyroda), ile ma być zagadek, ile czasu na odpowiedź i czy odpowiada głosem, oraz ustawia limit
+ekranu. Po odcinku dostaje krótki raport z pomysłami na rozmowę bez ekranu
+([KREATOR_RODZICA.md](docs/prezentacja/KREATOR_RODZICA.md), [makiety](docs/prezentacja/mockupy/)).
+
+## Odcinek pilotażowy: „Bzyczka szuka domu”
+
+Lila Lupka i wiewiórek Fiku z Klubu Ciekawskich pomagają zagubionej pszczółce wrócić do ula. Po drodze dziecko budzi
+Kuferek, wybiera drogę przez mostek albo las, rozwiązuje zagadkę, oddycha razem z wiaterkiem Fiufiu, liczy pszczółki
+i wybiera zakończenie. Postacie mówią do widza w liczbie pojedynczej i bez form zależnych od płci, bo przed ekranem
+siedzi zwykle jedno dziecko, czasem z rodzeństwem.
+
+![Mapa odcinka: 10 etapów, odpowiedzi i gałęzie](docs/prezentacja/media/mapa_odcinka.jpg)
+
+- **17 scen** (10 głównych i 7 krótkich gałęzi), na każdej ścieżce **8 okien wyboru**, **32 różne układy scen**
+  (576 kombinacji odpowiedzi). Silnik sprawdza przy wczytaniu, że każda ścieżka kończy się finałem.
+- **Trzy sceny mają dodatkowe wersje montażu** wybierane według stanu widza: las i święto — żywą i spokojną,
+  wiaterek — spokojną.
+- **31 z 33 klipów** pochodzi z generatora wideo według naszej biblii wizualnej postaci; w miejsce dwóch brakujących
+  gra zaślepka. Scenariusz z dialogami i ujęciami: [scenarios/klub_ciekawskich.md](scenarios/klub_ciekawskich.md),
+  biblia wizualna i przegląd klipów: [docs/SCENARIUSZ_WIZUALNY_PROMPTY_AI.md](docs/SCENARIUSZ_WIZUALNY_PROMPTY_AI.md).
+
+## Dla kogo
+
+| Kto | Co zyskuje |
+|---|---|
+| **Dzieci 4–7 lat** | Aktywne oglądanie: rozmowa z postacią, decyzje ze skutkiem, zagadki, w których pomyłka jest częścią przygody |
+| **Dzieci, które nie czytają albo nie mówią płynnie** | Obrazki zamiast tekstu; pilot i dotyk działają zawsze, głos jest dodatkiem |
+| **Rodzice** | Wpływ na treść i czas ekranu (Kreator), raport po odcinku, pomysły na rozmowę i zabawę bez ekranu |
+| **Przedszkola i biblioteki** | Odcinki pod temat tygodnia; rzutnik i pilot u nauczyciela albo głosowanie z kilku telefonów |
+| **Serwisy streamingowe i aplikacje dla dzieci** | Format interaktywny gotowy do wdrożenia: nasz odtwarzacz, manifest odcinka dla ich odtwarzacza albo zwykła wersja liniowa z napisami — bez kosztów chmury za AI |
+| **Studia animacji i wydawcy** | Narzędzia do robienia odcinków interaktywnych z własnych bohaterów |
+
+## Co sprawdziliśmy
+
+| Próba | Wynik |
+|---|---|
+| **Cały odcinek w przeglądarce** (Chromium sterowany automatycznie) z klipami z 18.10 | Od powitania do finału: 8 okien wyboru, 10 decyzji montażysty, **0 błędów strony**. [Nagranie](docs/prezentacja/media/odcinek_przejscie.mp4) |
+| **Tętno a montaż** (symulator w panelu) | Spadek tętna: przetarcie 0,4 s i żywa wersja lasu; wzrost: przenikanie 1,2 s i spokojna wersja wiaterka. [Nagranie](docs/prezentacja/media/tetno_montaz.mp4) |
+| **Rozpoznawanie odpowiedzi po słowach kluczowych**: 100 typowych odpowiedzi dzieci napisanych przez zespół ([eksperyment](docs/prezentacja/eksperyment/)) | **79 z 81** jasnych odpowiedzi rozpoznanych dobrze, **0** złych wyborów; **19 z 19** niejasnych („nie wiem”) kończy się dopytaniem. Eksperyment znalazł błąd: przed poprawką 4 niejasne odpowiedzi wybierały opcję |
+| **Testy automatyczne** silnika, okna wyboru, rozpoznawania, montażu, wersji liniowej, manifestu, importu klipów i skryptów stron | **444** testy przechodzą bez chmury, mikrofonu i przeglądarki |
+| **Przegląd klipów z generatora** (dwie partie) | Uwagi i poprawione prompty; import kończy oba finały przed wymyślonymi przez generator napisami końcowymi |
+
+**Czego jeszcze nie sprawdziliśmy:** testu z dziećmi (plan: 5–10 rodzin, wyniki w aktualizacji do 25.10), jakości
+Whispera na polskiej mowie dzieci i czasów modeli na komputerze z NPU oraz zainteresowania rodziców Kreatorem.
+
+## Bezpieczeństwo i prywatność
+
+- **AI na urządzeniu.** Whisper i Phi działają lokalnie (Foundry Local); mikrofon słucha tylko w oknie wyboru,
+  a nagranie znika zaraz po rozpoznaniu. Pilot działa zawsze.
+- **AI nie generuje fabuły ani wideo na żywo.** Klipy powstają wcześniej i sprawdza je człowiek. Krótkie kwestie
+  modelu przechodzą przez filtr treści, a montażysta wybiera tylko sposób połączenia gotowych klipów.
+- **Tętno to funkcja przyszła.** Dane o zdrowiu (RODO, art. 9): osobna zgoda rodzica, przetwarzanie tylko na
+  urządzeniu i tylko w trakcie odcinka, bez zapisu; w prototypie wyłącznie symulator.
+- **Zdrowy czas ekranu.** Odcinki 10–15 minut z wyraźnym końcem, limit dnia i tryb „Oglądamy razem” w Kreatorze.
+
+## Wyzwania
+
+| Wyzwanie | Nasza odpowiedź |
+|---|---|
+| **Koszt produkcji gałęzi** — główna bariera filmów interaktywnych | Gałęzie trwają 15–25 s i wracają na wspólną drogę; trzy wersje montażu zamiast osobnych odcinków; wybory kosmetyczne jako przezroczyste warstwy na jednym klipie (silnik i odtwarzacz je obsługują, w odcinku wrócą z kwiatkiem wyciętym z ilustracji) |
+| **Mowa małych dzieci** | Głos nie jest warunkiem (pilot, dotyk). Whisper z podpowiedzią słów odcinka, Phi do sensu odpowiedzi, słowa kluczowe w zapasie, dopytanie przy niejasnej odpowiedzi |
+| **Spójność klipów z generatora** | Biblia wizualna postaci, stały dopisek stylu, przegląd każdej partii klipów; import wyrównuje format, robi płynne pętle i przycina klipy |
+| **Klipy nie pasują do siebie montażowo** | Montażysta AI dobiera przejście; pętle oczekiwania mają płynny szew, a nowe ujęcie zachodzi na koniec poprzedniego |
+| **Serwisy nie chcą nowego formatu** | Trzy drogi: nasz odtwarzacz, manifest JSON dla odtwarzacza serwisu, wersja liniowa jako zwykły film |
+| **Słabszy sprzęt widza** | Gdy model jest wolny albo go nie ma, decydują reguły i słowa kluczowe; odcinek nigdy nie czeka na AI |
+
+## Co powstało na hackathonie
+
+Projekt **nie rozwija wdrożonego produktu**: pomysł, scenariusz, odcinek, kod i dokumentacja powstały 16–18.10.2026
+(historia zmian w repozytorium od 16.10). W trakcie hackathonu zmieniliśmy formę z seansu kinowego z udziałem sali
+na odcinek do serwisów streamingowych i dodaliśmy koncepcję Kreatora Rodzica.
+
+**Nasze:** świat i postacie, scenariusz z gałęziami, silnik odcinka, odtwarzacz w przeglądarce z przejściami,
+okno wyboru z odpowiedzią głosem, montażysta AI z regułami, telefon jako pilot, panel podglądu, symulator tętna,
+wersja liniowa i manifest, import klipów, makiety Kreatora i raportu, eksperyment z rozpoznawaniem odpowiedzi.
+**Gotowe składniki:** Foundry Local, Whisper, Phi, ffmpeg, generator wideo (klipy według naszych promptów),
+biblioteki Pythona.
+
+## Rynek, model i plan
+
+Model biznesowy (hipotezy do sprawdzenia w pilotażu): subskrypcja dla rodzin, licencja dla serwisów i placówek
+edukacyjnych, licencja narzędzi dla studiów. Realia rynku i drogi do serwisów:
+[docs/STREAMING.md](docs/STREAMING.md), skrót: [ONE_PAGER.md](docs/prezentacja/ONE_PAGER.md).
+
+| Kiedy | Co |
+|---|---|
+| do 25.10 | Aktualizacja zgłoszenia: test z kilkoma rodzinami i brakujące klipy |
+| 29.10 | Pokaz na żywo na sesji online: widzowie transmisji wybierają drogę odcinka |
+| 1–3 miesiące | Pilotaż z 5–10 rodzinami, nagrane głosy postaci, pierwsza wersja Kreatora |
+| 3–6 miesięcy | Biblioteka modułów z oznaczonymi umiejętnościami, raport dla rodzica, trzy odcinki |
+| 6–12 miesięcy | Pierwszy partner (serwis albo platforma edukacyjna); tętno w wersji testowej, tylko za zgodą rodzica |
+
+**Czego szukamy:** rodzin z dziećmi 4–7 lat do pilotażu, studia animacji albo wydawcy z postaciami dla dzieci oraz
+serwisu albo platformy edukacyjnej na pierwsze wdrożenie.
+
+## Jak uruchomić prototyp
+
+Do oceny nie jest to potrzebne (nagrania wyżej pokazują prawdziwy odtwarzacz). Windows, macOS albo Linux,
+Python 3.11+, ffmpeg i Edge albo Chrome:
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -e ".[dev,local,mobile]"
-Copy-Item .env.example .env   # tryb lokalny działa bez zmian; klucze tylko dla --backend azure
+python -m bajka.clips download/klipy.yaml                       # klipy z generatora pod nazwy scen
+python -m bajka.placeholders scenarios/klub_ciekawskich.yaml    # zaślepki dla brakujących scen
+python -m bajka scenarios/klub_ciekawskich.yaml --no-llm --no-mic --panel   # odcinek bez modeli, z panelem
 ```
 
-## Uruchomienie
+Pełny prototyp z odpowiedziami głosem (Whisper i Phi lokalnie) to `python -m bajka scenarios/klub_ciekawskich.yaml`.
+Wszystkie tryby, moduły, format scenariusza i rozwiązywanie problemów: [docs/URUCHOMIENIE.md](docs/URUCHOMIENIE.md).
 
-```powershell
-# klipy z generatora wideo (download/) pod nazwy scen: wspólny format, płynne pętle
-python -m bajka.clips download/klipy.yaml
-# klipy-zaślepki (kolorowe plansze z nazwą pliku) dla scen, które nie mają jeszcze animacji
-python -m bajka.placeholders scenarios/klub_ciekawskich.yaml
+## Dokumentacja
 
-# najszybsza próba: cały odcinek w konsoli, bez wideo, mikrofonu i AI (cyfra = przycisk pilota, tekst = głos)
-python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm
-
-# odcinek w przeglądarce bez modeli: okna wyboru pilotem i dotykiem, wybór po słowach kluczowych
-python -m bajka scenarios/klub_ciekawskich.yaml --no-llm --no-mic
-
-# pełny prototyp: okna wyboru, odpowiedzi głosem, Whisper i Phi lokalnie
-python -m bajka scenarios/klub_ciekawskich.yaml
-
-# z panelem podglądu (drzewo wyborów, symulowane tętno widza) i drugim ekranem (telefony jako pilot z mikrofonem)
-python -m bajka scenarios/klub_ciekawskich.yaml --panel --mobile
-
-# dawny tryb: pełny ekran VLC, odpowiedzi tylko głosem z mikrofonu komputera
-python -m bajka scenarios/klub_ciekawskich.yaml --player vlc
-```
-
-Aplikacja sama otwiera przeglądarkę z odcinkiem (`http://127.0.0.1:8080/`; `--no-browser`, żeby nie otwierać).
-Przycisk **▶ Oglądaj** odblokowuje dźwięk i mikrofon (zasada przeglądarek), **⚙** to ustawienia rodzica
-(mikrofon, głos postaci, napisy), **F** — pełny ekran, **✕** kończy odcinek i aplikację. Zamknięta karta wstrzymuje
-odcinek: po ponownym otwarciu bieżący klip gra od początku. Ctrl+C w konsoli kończy aplikację.
-
-## Odcinek w serwisie streamingowym
-
-Prototyp sam jest odtwarzaczem (`bajka/web_player.py`), ale odcinek da się też oddać serwisowi:
-
-| Droga | Polecenie | Dla kogo |
-|---|---|---|
-| **Wersja interaktywna z naszym silnikiem** | `python -m bajka …` | Pokaz, aplikacja na tablet/PC, test z rodzinami |
-| **Manifest odcinka** (JSON) | `python -m bajka.manifest scenarios/klub_ciekawskich.yaml --out odcinek.json` | Serwis z własnym odtwarzaczem interaktywnym: graf scen, okna wyboru, reakcje, wersje scen, opisy do rozpoznawania głosu |
-| **Wersja liniowa** (zwykły film) | `python -m bajka.linear scenarios/klub_ciekawskich.yaml` | Serwisy i telewizory bez interakcji: ścieżka wyborów domyślnych, postać sama wybiera, kwestie w napisach `.srt` |
-
-Szczegóły, realia rynku i plan dystrybucji: [docs/STREAMING.md](docs/STREAMING.md).
-
-## Montaż AI: gałęzie, warstwy i płynne przejścia
-
-- **Gałęzie.** Odpowiedź w zagadce prowadzi do własnej sceny (np. niebieska deska → mostek się chwieje i naprawiamy
-  go razem), a scena bez pytania wraca na wspólną drogę polem `next`.
-- **Warstwy.** Wybór może nałożyć przezroczysty klip (`layer`) na kolejne sceny, które go pokazują (`layers`):
-  jedna animacja finału + trzy małe warstwy kwiatków zamiast trzech wersji finału.
-- **Montażysta.** Zaraz po wyborze model dostaje informacje o przejściu i wybiera rodzaj oraz długość przejścia
-  z powodem jednym zdaniem (widać go w panelu podglądu). Pracuje w tle, gdy gra reakcja postaci; jeśli nie odpowie
-  w `BAJKA_MONTAGE_WAIT` (domyślnie 0,5 s od chwili, gdy przejście trzeba zagrać), decydują reguły. `--no-llm`
-  albo `BAJKA_MONTAGE=reguly`: same reguły. Rozjaśnienie zawsze trwa co najmniej 0,8 s — bez błysków.
-- **Odtwarzacz.** Strona ma dwa pokłady wideo: nowe ujęcie wchodzi na wierzch przejściem i zachodzi na ostatnią
-  sekundę poprzedniego klipu; pętla oczekiwania zaczyna się cięciem na ostatniej klatce. `--player vlc` gra klipy
-  po kolei, bez warstw i przejść; tryb `--text` wypisuje decyzje montażu w konsoli.
-
-Sprawdzenie decyzji bez reszty aplikacji:
-`python -m bajka.montage scenarios/klub_ciekawskich.yaml --from kuferek --choice las --viewer pobudzenie --said "do lasu"`.
-
-## Drugi ekran: telefon jako pilot z mikrofonem
-
-Telewizor często nie ma mikrofonu. Wtedy domownik może odpowiadać z telefonu (`--mobile` albo `BAJKA_MOBILE=1`):
-
-1. Komputer z odcinkiem uruchamia lokalny serwer HTTPS i wypisuje adres, np. `https://192.168.1.20:8443/`
-   (pod `…/qr` jest strona z kodem QR).
-2. Telefon w tej samej sieci Wi-Fi otwiera stronę (bez instalowania) i po dotknięciu „Dołączam” zezwala na mikrofon.
-3. Gdy postać zadaje pytanie, telefon wibruje, pokazuje opcje i sam nagrywa odpowiedź; można też dotknąć opcji.
-   Komputer rozpoznaje nagrania lokalnie i liczy głosy — przy kilku telefonach (rodzeństwo) wygrywa większość.
-
-Gdy połączony jest choć jeden telefon, decyzje zbierają telefony; okno wyboru na dużym ekranie wraca, gdy telefony
-się rozłączą. Przeglądarki dają mikrofon tylko przez HTTPS: aplikacja tworzy samopodpisany certyfikat, więc telefon
-raz pokaże ostrzeżenie do zaakceptowania (bez ostrzeżeń: `BAJKA_MOBILE_CERT` i `BAJKA_MOBILE_KEY`). Nagrania trafiają
-do komputera na chwilę do pliku tymczasowego i są usuwane zaraz po rozpoznaniu. Próba bez odcinka:
-`python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek --no-llm`.
-
-## Odcinek, który czuje widza (tętno — pomysł na przyszłość)
-
-Scenariusz mówi, jakiej dynamiki chcemy (`mood: spokojny`, `zywy` albo `zrownowazony`), a wybrane sceny mają
-inne wersje montażu (`variants: spokojna / zywa`). Gdy tętno widza odbiega od punktu odniesienia z początku odcinka,
-scena gra wersję, która przywraca uwagę albo spokój: przy pobudzeniu — spokojną (dłuższe ujęcia, cichszy dźwięk),
-przy znużeniu — żywą (szybszy montaż, zabawny gag). Odcinek „Bzyczka” jest zrównoważony i ma obie wersje
-w trzech scenach ([szczegóły w dokumentacji technicznej](docs/DOKUMENTACJA_TECHNICZNA.md#5-dynamiczny-montaż-ai-i-silnik-biofeedbacku)).
-
-**Tętno jest dziś symulowane** (`bajka/pulse.py`), a **panel podglądu** (`--panel`, `http://127.0.0.1:8090/`)
-pokazuje drzewo scen z przebytą ścieżką, wybory widza, wykres tętna z pasmem normy i dziennik decyzji odcinka;
-suwak i gotowe stany (spokój, pobudzenie, znużenie) sterują symulatorem. Przebieg pokazu: [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md).
-
-Wizja: zegarek dziecka sparowany z telefonem rodzica przekazuje tętno przez Health Connect (Android), HealthKit (iOS)
-albo standardową usługę Bluetooth „Heart Rate” do urządzenia, na którym gra odcinek. Dane o zdrowiu to szczególna
-kategoria danych osobowych (RODO, art. 9), więc: wyraźna zgoda rodzica, przetwarzanie tylko na urządzeniu i tylko
-w trakcie odcinka, żadnego zapisywania ani wysyłania do serwisu, a tętno służy wyłącznie do wyboru wersji sceny.
-
-## Sprawdzanie modułów osobno
-
-Każdy moduł ma własne demo, które działa bez reszty aplikacji:
-
-```powershell
-python -m bajka.foundry --device NPU                 # katalog modeli Foundry Local i ich warianty
-python -m bajka.local_stt --repeat 3                 # mikrofon → tekst (Whisper lokalnie)
-python -m bajka.local_tts "Cześć! Jestem Lila Lupka!"  # tekst → głos postaci (Windows)
-python -m bajka.local_intent scenarios/klub_ciekawskich.yaml "tam gdzie ciemno" --scene kuferek   # wypowiedź → wybór (Phi)
-python -m bajka.keywords scenarios/klub_ciekawskich.yaml "lornetkę" --scene pomocnik   # wypowiedź → wybór (słowa kluczowe)
-python -m bajka.mobile scenarios/klub_ciekawskich.yaml --scene kuferek   # rundy pytań na telefonach (drugi ekran)
-python -m bajka.manifest scenarios/klub_ciekawskich.yaml   # manifest odcinka (JSON) na ekran
-python -m bajka.linear scenarios/klub_ciekawskich.yaml --plan   # plan montażu wersji liniowej
-python -m bajka.montage scenarios/klub_ciekawskich.yaml --from kuferek --choice las --viewer pobudzenie   # decyzja montażysty (model i reguły)
-python -m bajka.stt --repeat 3                       # mikrofon → tekst (Azure STT)
-python -m bajka.tts "Idziemy do lasu czy do jaskini?" # tekst → głos postaci (Azure TTS)
-python -m bajka.intent scenarios/las_czy_jaskinia.yaml "tam gdzie ciemno"   # wypowiedź → wybór (Azure OpenAI)
-python -m bajka.player scenarios/clips/intro.mp4 scenarios/clips/intro_idle.mp4   # klip → pętla (VLC)
-python -m bajka.pulse --script                       # symulator tętna widza: spokój, pobudzenie, uspokojenie
-python -m bajka.panel scenarios/klub_ciekawskich.yaml   # panel podglądu bez odcinka (symulator tętna)
-```
-
-## Scenariusz
-
-Odcinek to graf scen w YAML ([pełny odcinek](scenarios/klub_ciekawskich.yaml),
-[najprostszy przykład](scenarios/las_czy_jaskinia.yaml)). Ścieżki klipów są względne wobec pliku
-scenariusza. Scena bez `choices` kończy odcinek.
-
-| Pole | Opis |
+| Dokument | Zawartość |
 |---|---|
-| `title` | Opcjonalnie: tytuł odcinka na ekranie startowym i w manifeście |
-| `hero` | Opis postaci dla modelu językowego: imię, charakter, sposób mówienia, do kogo mówi |
-| `start` | Identyfikator pierwszej sceny |
-| `mood` | Opcjonalnie: `spokojny`, `zywy` albo `zrownowazony` — jak odcinek reaguje na tętno widza |
-| `scenes.<id>.clip` | Klip sceny (postać zadaje pytanie albo kończy historię) |
-| `scenes.<id>.variants` | Opcjonalnie: wersje montażu sceny według tętna, np. `spokojna: las_spokojna.mp4`, `zywa: …` |
-| `scenes.<id>.idle` | Cicha pętla oczekiwania, tło okna wyboru (wymagana, gdy są `choices`) |
-| `scenes.<id>.question` | Pytanie zadane w klipie; nagłówek okna wyboru i kontekst dla modelu |
-| `scenes.<id>.reprompt` | Kwestia postaci, gdy czas minie bez wyboru |
-| `scenes.<id>.fallback` | Opcjonalnie: wstęp, gdy postać sama wybiera (domyślnie „Dobrze, to ja wybiorę!”) |
-| `scenes.<id>.default` | Wybór, gdy po dopytaniach nadal brak decyzji albo model zawiedzie |
-| `scenes.<id>.timeout` | Opcjonalnie: ile sekund trwa okno wyboru (3–60; domyślnie `BAJKA_CHOICE_SECONDS`, 12 s) |
-| `scenes.<id>.next` | Scena bez pytania (np. gałąź zagadki) przechodzi sama do tej sceny |
-| `scenes.<id>.place` | Miejsce akcji dla montażysty, np. „Szumiący Las”: zmiana miejsca to inne przejście niż ciąg dalszy |
-| `scenes.<id>.transition` | Opcjonalnie: podpowiedź autora, jakim przejściem scena wchodzi (`ciecie`, `przenikanie`, `przetarcie`, `zaciemnienie`, `rozjasnienie`) |
-| `scenes.<id>.layers` | Miejsca na warstwy (`slot`), które ta scena pokazuje nad swoim klipem i pętlą |
-| `choices.<id>.label` | Krótka nazwa opcji w oknie wyboru i na telefonie (domyślnie identyfikator) |
-| `choices.<id>.icon` | Obrazek opcji dla dzieci, które nie czytają (w prototypie emoji) |
-| `choices.<id>.description` | Znaczenie wyboru dla modelu, np. „pójść do mrocznego lasu” |
-| `choices.<id>.next` | Scena, która nastąpi po tym wyborze |
-| `choices.<id>.reply` | Kwestia postaci po wyborze (gdy nie ma klipu reakcji) |
-| `choices.<id>.reaction` | Opcjonalnie: nagrany klip reakcji postaci na ten wybór (ma pierwszeństwo przed `reply`) |
-| `choices.<id>.keywords` | Opcjonalnie: słowa, po których odpowiedź głosem rozpozna się bez modelu |
-| `choices.<id>.layer` | Opcjonalnie: przezroczysty klip (WebM VP9 z alfą albo MOV) nakładany na kolejne sceny po tym wyborze |
-| `choices.<id>.slot` | Miejsce na warstwę (domyślnie identyfikator sceny); nowy wybór w tym miejscu zastępuje poprzedni |
-
-## Wskazówki do klipów
-
-- Pętla oczekiwania z bardzo cichym podkładem i bez dialogów; dolna jedna trzecia kadru wolna (tam jest okno wyboru).
-- Ostatnia klatka klipu z pytaniem = pierwsza klatka pętli, wtedy przejście jest niewidoczne.
-- Format: MP4, H.264 + AAC z indeksem na początku pliku (`-movflags +faststart`) — szybki start w przeglądarce.
-- Warstwy: pełna klatka z przezroczystym tłem, WebM VP9 z kanałem alfa (Edge, Chrome, Firefox; na Safari MOV HEVC
-  z alfą), bez dźwięku, zapętlane. Animujcie je na tym samym torze ruchu co postać w scenach, na które je nakładamy.
-- Gałęzie (sceny z `next`) są krótkie (15–25 s) i kończą się kadrem, z którego da się płynnie przejść do wspólnej
-  sceny — przejście robi odtwarzacz według decyzji montażysty, bez domontowywania.
-- Klipy nie są w repozytorium (`scenarios/clips/` jest w `.gitignore`), trzymajcie je na dysku współdzielonym.
-
-## Architektura
-
-| Moduł | Rola |
-|---|---|
-| `bajka/scenario.py` | Wczytanie i walidacja scenariusza YAML (`media_files`, `missing_media`) |
-| `bajka/config.py` | Wspólne narzędzia ustawień: `load_env`, `require`, `get_int`, `get_float` |
-| `bajka/ports.py` | Kontrakty: `Player`, `Compositor` (ujęcia `Shot` z warstwami i przejściem `Cut`), `Viewer` (okno wyboru → `Answer`), `Editor` (montażysta), `Listener`, `Voice`, `IntentResolver`, `Audience`, `AudiencePulse`, `ShowObserver` |
-| `bajka/engine.py` | `StoryEngine`: przebieg odcinka, okna wyboru, dopytywanie, reakcje, wersje scen, ścieżki awaryjne |
-| `bajka/web_player.py` | Odtwarzacz w przeglądarce: serwer HTTP, klipy z zakresami bajtów, ujęcia z warstwami i przejściami, okna wyboru, głos z przeglądarki (`WebEpisode`, `WebPlayerServer`) |
-| `bajka/player_app/` | Strona odtwarzacza: dwa pokłady wideo nakładane przejściami, warstwy z alfą, okno wyboru z odliczaniem, pilot/dotyk/głos, napisy, ustawienia rodzica, ekran końcowy |
-| `bajka/linear.py` | Wersja liniowa odcinka (ffmpeg: warstwy `overlay`, przejścia `xfade`) i napisy `.srt` |
-| `bajka/manifest.py` | Manifest odcinka (JSON) dla odtwarzacza serwisu |
-| `bajka/foundry.py` | Foundry Local: modele lokalne na NPU/GPU/CPU, serwer zgodny z OpenAI |
-| `bajka/local_stt.py` | Whisper lokalnie + wykrywanie wypowiedzi (`LocalListener`, `FoundryTranscriber`) |
-| `bajka/local_intent.py` | Phi lokalnie: intencja + kwestia postaci (`LocalIntentResolver`) |
-| `bajka/local_tts.py` | Głos z syntezatora Windows dla `--player vlc` (`WindowsVoice`) |
-| `bajka/stt.py`, `bajka/tts.py`, `bajka/intent.py` | To samo na usługach Azure (`--backend azure`) |
-| `bajka/keywords.py` | Wybór po słowach kluczowych, offline (`KeywordIntentResolver`, `FallbackResolver`) |
-| `bajka/montage.py` | Montaż AI: decyzje o przejściach (`ModelEditor` z Phi albo Azure, `RuleEditor`, `Montage` z pracą w tle) |
-| `bajka/safety.py` | Filtr kwestii modelu językowego (`SafeReplyResolver`) |
-| `bajka/mobile.py`, `bajka/mobile_app/` | Drugi ekran: telefony jako pilot z mikrofonem (`MobileAudience`, `MobileServer`) |
-| `bajka/pulse.py` | Tętno widza: symulator (`SimulatedPulse`), stan widza (`hall_state`), wybór wersji (`pick_variant`) |
-| `bajka/panel.py`, `bajka/panel_app/` | Panel podglądu: drzewo scen, wybory, tętno, dziennik decyzji (`PanelState`, `PanelServer`) |
-| `bajka/player.py` | VLC osadzony w pełnoekranowym oknie tkinter (`--player vlc`) |
-| `bajka/console.py` | Tryb `--text`: odcinek w konsoli (`ConsolePlayer`, `ConsoleViewer`, `ConsoleVoice`) |
-| `bajka/placeholders.py` | Generator klipów-zaślepek (ffmpeg; MP4 albo WebM) |
-| `bajka/clips.py` | Klipy z generatora wideo → klipy odcinka (mapa `download/klipy.yaml`, płynny szew pętli) |
-| `bajka/app.py` | Złożenie całości i uruchomienie |
-
-Silnik zależy tylko od kontraktów z `ports.py`, a każdy moduł czyta własne ustawienia
-(`XxxSettings.from_env`). Testy działają na atrapach, bez Azure, mikrofonu, przeglądarki i VLC.
-
-## Testy
-
-```powershell
-python -m pytest
-```
-
-Test strony telefonu (`tests/test_mobile.py`) uruchamia jej skrypt w `node`; bez `node` jest pomijany.
-Test wersji liniowej buduje mały film przez ffmpeg; bez ffmpeg jest pomijany.
-
-## Problemy
-
-- Przeglądarka się nie otwiera: wejdź ręcznie na adres z konsoli (`http://127.0.0.1:8080/`).
-- `Nie udało się uruchomić serwera (port zajęty?)` (`WinError 10048`): port zajmuje inny proces, np. zapomniany
-  podgląd. Zamknij go (`netstat -ano | findstr 8080`) albo zmień `BAJKA_WEB_PORT` / `BAJKA_PANEL_PORT` / `BAJKA_MOBILE_PORT`.
-- Wideo nie gra albo jest czarne: przeglądarka bez kodeka H.264 (np. Chromium) — użyj Edge/Chrome albo klipów `.webm`.
-- Okno wyboru nie słucha głosu: w ustawieniach (⚙) włącz mikrofon i zezwól przeglądarce na mikrofon; strona musi być
-  otwarta pod `127.0.0.1` albo `localhost` (inaczej przeglądarka nie da mikrofonu bez HTTPS). Bez `--no-mic`.
-- Warstwa (np. kwiatek) ma czarne tło albo jej nie widać: plik musi być WebM VP9 z kanałem alfa
-  (`-pix_fmt yuva420p`, zob. `bajka/placeholders.py`), a na Safari — MOV HEVC z alfą.
-- Postać nie mówi, są tylko napisy: w odtwarzaczu w przeglądarce to zamierzone (lektor syntezatora wyłączony, głosy
-  postaci są w klipach); w `--player vlc` brakuje polskiego głosu syntezatora — Ustawienia → Czas i język → Mowa.
-- Dziecko jest ucinane albo nie zdąża: wydłuż `BAJKA_CHOICE_SECONDS` albo `timeout` sceny i `BAJKA_WEB_ANSWER_SECONDS`.
-- `Brak pakietu foundry-local-sdk` albo `Brak pakietów WinRT`: `pip install -e ".[local]"`.
-- `Foundry Local nie zna modelu …`: sprawdź aliasy przez `python -m bajka.foundry` i popraw `FOUNDRY_CHAT_MODEL` / `FOUNDRY_STT_MODEL`.
-- `Brak plików wideo`: `python -m bajka.placeholders scenarios/klub_ciekawskich.yaml` (albo `--text`, które działa bez wideo).
-- Krzaki zamiast polskich znaków w konsoli: `$env:PYTHONUTF8 = "1"`.
-- `--player vlc`: `FileNotFoundError: ... libvlc.dll` — brak VLC albo wersja 32-bit; postać nie słyszy dziecka —
-  Ustawienia Windows → Prywatność → Mikrofon → zezwól aplikacjom klasycznym; dostrój `BAJKA_VAD_THRESHOLD`.
-- Telefon (drugi ekran) nie pyta o mikrofon: otwórz adres `https://…` i zaakceptuj ostrzeżenie o certyfikacie;
-  ta sama sieć Wi-Fi co komputer, port `BAJKA_MOBILE_PORT` otwarty w zaporze; sieci gościnne blokują ruch między urządzeniami.
-- `rozpoznawanie anulowane: ... 401` (tryb azure): zły `AZURE_SPEECH_KEY` lub `AZURE_SPEECH_REGION`.
+| [docs/prezentacja/](docs/prezentacja/README.md) | Zgłoszenie, one-pager, slajdy, scenariusz wystąpienia, Kreator Rodzica, badania, eksperyment, makiety, nagrania |
+| [docs/URUCHOMIENIE.md](docs/URUCHOMIENIE.md) | Instalacja, uruchomienie, moduły, format scenariusza, wskazówki do klipów, architektura, testy, problemy |
+| [docs/DOKUMENTACJA_TECHNICZNA.md](docs/DOKUMENTACJA_TECHNICZNA.md) | Pełna dokumentacja inżynierska systemu |
+| [docs/ONBOARDING.md](docs/ONBOARDING.md) | Architektura i wprowadzenie do kodu |
+| [docs/LOKALNE_AI.md](docs/LOKALNE_AI.md) | AI na urządzeniu: Foundry Local, Whisper, Phi |
+| [docs/STREAMING.md](docs/STREAMING.md) | Dlaczego streaming, realia rynku, dystrybucja odcinka |
+| [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md) | Przebieg pokazu na żywo |
+| [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md) | Zgodność z regulaminem i wytycznymi zgłoszenia |
+| [scenarios/klub_ciekawskich.md](scenarios/klub_ciekawskich.md) | Scenariusz odcinka z ujęciami, dialogami i oknami wyboru |
