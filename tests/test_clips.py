@@ -28,6 +28,27 @@ def test_map_names_scene_files_and_marks_waiting_loops(tmp_path, scenario_dict):
     ]
 
 
+def test_map_can_end_a_clip_before_text_the_generator_added(tmp_path, scenario_dict):
+    mapping = write_map(tmp_path, scenario_dict, {"intro.mp4": {"klip": "Finale.mp4", "do": 7.5}})
+
+    assert read_map(mapping) == [Assignment(tmp_path / "Finale.mp4", tmp_path / "intro.mp4", loop=False, end=7.5)]
+
+
+def test_trimmed_clip_without_a_cut_point_is_refused(tmp_path, scenario_dict):
+    mapping = write_map(tmp_path, scenario_dict, {"intro.mp4": {"klip": "Finale.mp4"}})
+
+    with pytest.raises(ScenarioError, match="do: 7.5"):
+        read_map(mapping)
+
+
+def test_trimmed_clip_is_read_up_to_its_end_and_fades_out():
+    cmd = convert_command(Assignment(Path("gen.mp4"), Path("intro.mp4"), loop=False, end=7.5), 10.0, has_audio=True)
+
+    assert cmd[cmd.index("-i") - 2 : cmd.index("-i")] == ["-t", "7.500"]
+    graph = cmd[cmd.index("-filter_complex") + 1]
+    assert "fade=t=out:st=7.000:d=0.5" in graph and "afade=t=out:st=7.000:d=0.5" in graph
+
+
 def test_map_with_a_file_the_scenario_does_not_have_is_refused(tmp_path, scenario_dict):
     mapping = write_map(tmp_path, scenario_dict, {"intro_v2.mp4": "Girl_waves.mp4"})
 

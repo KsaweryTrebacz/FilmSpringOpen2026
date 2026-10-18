@@ -291,6 +291,11 @@ i oba finały. Styl nowych klipów to ilustracja książkowa, spójna z klipami 
 
 - **Bez zmian względem 17.10:** pętle `01_powitanie_idle`, `02_kuferek_idle` (mapa z zamkiem) i `03a_most_idle`
   (inny most) to klipy z pierwszej partii — uwagi i poprawione prompty wyżej nadal obowiązują.
-- **Wciąż brakuje:** `01_reakcja_hopsasa.mp4`, `03a1_most_przejscie.mp4`, `07_swieto_zywa.mp4` i trzech warstw
-  kwiatków (`warstwa_*.webm`, przezroczyste tło — do zrobienia z wyciętego kadru `06b_kwiatek`, nie z generatora
-  wideo, który nie daje kanału alfa). Do czasu nagrania odcinek gra w ich miejsce zaślepki.
+- **Wciąż brakuje:** `01_reakcja_hopsasa.mp4`, `03a1_most_przejscie.mp4` i `07_swieto_zywa.mp4` — do czasu
+  nagrania odcinek gra w ich miejsce zaślepki.
+- **Warstwy kwiatków** (`warstwa_*.webm`, przezroczyste tło): na razie tymczasowa naklejka kwiatka w rogu kadru;
+  docelowo wycięty kwiatek z kadru `06b_kwiatek` (generator wideo nie daje kanału alfa).
+- **Finały kończą się zmyślonym tekstem.** `08a_koniec_taniec` ma w ostatnich 2,5 s „napisy końcowe” z wymyślonymi
+  nazwiskami, a `08b_koniec_piosenka` napis „Lila Storything”. Generator dopisał je, bo prompt prosi o napisy
+  końcowe. Mapa klipów kończy oba finały wcześniej (`{klip: …, do: 7.5}` i `do: 8.1`, z krótkim wyciemnieniem);
+  przy ponownym generowaniu usuń z promptu „end credits” — prawdziwe napisy doda montaż.

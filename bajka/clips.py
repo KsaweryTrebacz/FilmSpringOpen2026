@@ -4,7 +4,9 @@ Klipy z generatora (np. folder `download/`) mają własne nazwy, długość 8–
 (`download/klipy.yaml`) mówi, który klip gra którą scenę. Narzędzie zapisuje je pod ścieżkami ze scenariusza:
 H.264/AAC z indeksem na początku pliku (szybki start w przeglądarce), 1280×720, 24 kl./s. Pętle oczekiwania dostają
 płynny szew (koniec klipu przenika w jego początek, więc zapętlenie nie skacze) i ściszony dźwięk (wtedy słucha
-mikrofon). Warstwy (`.webm` z przezroczystością) są kopiowane bez zmian. Brakujące sceny uzupełnia potem
+mikrofon). Klip, który generator kończy zmyślonym tekstem (np. napisy z wymyślonymi nazwiskami), mapa przycina:
+`plik: {klip: x.mp4, do: 7.5}` — klip kończy się w 7,5 s krótkim wyciemnieniem. Warstwy (`.webm` z przezroczystością)
+są kopiowane bez zmian. Brakujące sceny uzupełnia potem
 `python -m bajka.placeholders` (tworzy tylko pliki, których nie ma).
 
 Użycie: python -m bajka.clips download/klipy.yaml [--force] [--plan]   (wymaga ffmpeg i ffprobe)
@@ -27,6 +29,7 @@ from bajka.scenario import ScenarioError, load_scenario, media_files
 SIZE, FPS = (1280, 720), 24
 SEAM_SECONDS = 1.0  # tyle końca pętli przenika w jej początek
 LOOP_VOLUME = 0.25  # dźwięk pętli oczekiwania ok. 12 dB ciszej
+FADE_SECONDS = 0.5  # wyciemnienie obrazu i dźwięku na końcu przyciętego klipu
 
 
 @dataclass(frozen=True)
@@ -34,10 +37,12 @@ class Assignment:
     source: Path  # klip z generatora
     target: Path  # ścieżka ze scenariusza
     loop: bool  # pętla oczekiwania (`idle` sceny): płynny szew i cichy dźwięk
+    end: float | None = None  # klip kończy się w tej sekundzie (przed tekstem, który dopisał generator)
 
 
 def read_map(path: Path) -> list[Assignment]:
-    """Mapa klipów: `scenario` (ścieżka względem mapy) i `clips` — nazwa pliku sceny → klip z generatora."""
+    """Mapa klipów: `scenario` (ścieżka względem mapy) i `clips` — nazwa pliku sceny → klip z generatora
+    (nazwa pliku albo `{klip: nazwa, do: sekunda}`, gdy klip trzeba przyciąć)."""
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or not isinstance(data.get("clips"), dict) or not data.get("scenario"):
         raise ScenarioError(f"{path}: mapa potrzebuje pól 'scenario' i 'clips' (nazwa pliku sceny: klip)")
@@ -48,20 +53,29 @@ def read_map(path: Path) -> list[Assignment]:
     for name, source in data["clips"].items():
         if name not in by_name:
             raise ScenarioError(f"{path}: scenariusz nie ma pliku {name!r} (sprawdź nazwy klipów w YAML odcinka)")
-        assignments.append(Assignment(path.parent / str(source), by_name[name], name in loops))
+        end = None
+        if isinstance(source, dict):
+            if not source.get("klip") or not isinstance(source.get("do"), (int, float)) or source["do"] <= 0:
+                raise ScenarioError(f"{path}: {name}: przycięty klip zapisz jako {{klip: plik.mp4, do: 7.5}}")
+            source, end = source["klip"], float(source["do"])
+        assignments.append(Assignment(path.parent / str(source), by_name[name], name in loops, end))
     return assignments
 
 
 def convert_command(assignment: Assignment, seconds: float, has_audio: bool) -> list[str]:
     width, height = SIZE
     fit = f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,fps={FPS}"
+    trim = []
+    if assignment.end is not None and assignment.end < seconds:
+        seconds = assignment.end
+        trim = ["-t", f"{seconds:.3f}"]  # czytamy klip tylko do tej sekundy
     seamed = assignment.loop and seconds > 3 * SEAM_SECONDS
     length = seconds - SEAM_SECONDS if seamed else seconds  # szew zjada sekundę: koniec leży na początku
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(assignment.source)]
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", *trim, "-i", str(assignment.source)]
     if not has_audio:
         cmd += ["-f", "lavfi", "-t", f"{length:.3f}", "-i", "anullsrc=r=48000:cl=stereo"]
     elif seamed:  # drugi odczyt klipu: acrossfade nie dostaje dźwięku z dwóch gałęzi asplit jednego wejścia
-        cmd += ["-i", str(assignment.source)]
+        cmd += [*trim, "-i", str(assignment.source)]
     if seamed:
         seam, offset = SEAM_SECONDS, seconds - 2 * SEAM_SECONDS
         graph = [
@@ -79,7 +93,12 @@ def convert_command(assignment: Assignment, seconds: float, has_audio: bool) -> 
         else:
             graph.append("[1:a]anull[s]")
     else:
-        graph = [f"[0:v]{fit},format=yuv420p[v]", f"[{0 if has_audio else 1}:a]aresample=48000[s]"]
+        fade = vfade = ""
+        if trim:  # przycięty klip nie urywa się w pół ruchu
+            start = max(0.0, seconds - FADE_SECONDS)
+            vfade = f",fade=t=out:st={start:.3f}:d={FADE_SECONDS}"
+            fade = f",afade=t=out:st={start:.3f}:d={FADE_SECONDS}"
+        graph = [f"[0:v]{fit}{vfade},format=yuv420p[v]", f"[{0 if has_audio else 1}:a]aresample=48000{fade}[s]"]
     cmd += ["-filter_complex", ";".join(graph), "-map", "[v]", "-map", "[s]"]
     cmd += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-c:a", "aac", "-b:a", "128k"]
     return cmd + ["-movflags", "+faststart", str(assignment.target)]
@@ -102,7 +121,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.plan:
         for a in assignments:
-            print(f"{a.target.name:28} <- {a.source.name}{'  (pętla: płynny szew, cichszy dźwięk)' if a.loop else ''}")
+            note = "  (pętla: płynny szew, cichszy dźwięk)" if a.loop else ""
+            if a.end is not None:
+                note += f"  (do {a.end:g} s)"
+            print(f"{a.target.name:28} <- {a.source.name}{note}")
         return 0
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
         print("Nie znaleziono ffmpeg i ffprobe w PATH (Windows: winget install Gyan.FFmpeg)", file=sys.stderr)
