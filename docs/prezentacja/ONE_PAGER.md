@@ -12,7 +12,7 @@
 
 ## Rozwiązanie
 - **Rozmowa:** w oknie wyboru dziecko odpowiada pilotem, dotykiem albo głosem, swoimi słowami; postać reaguje.
-- **Wybór zmienia historię:** każda odpowiedź ma swoją scenę, a wybory widza są nakładane na klipy jako warstwy.
+- **Wybór zmienia historię:** każda odpowiedź ma swoją scenę, a montaż dopasowuje się do stanu widza.
   Montażysta AI łączy klipy płynnymi przejściami.
 - **Rodzic ma ster:** Kreator Rodzica — cele nauki, liczba zagadek, czas na odpowiedź, głos lub pilot, limit ekranu;
   po odcinku raport i pomysły na rozmowę bez ekranu ([KREATOR_RODZICA.md](KREATOR_RODZICA.md)).

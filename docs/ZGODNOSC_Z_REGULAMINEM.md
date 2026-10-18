@@ -136,7 +136,7 @@ Propozycja pierwszego testu po hackathonie:
 ## Lista kontrolna dla zespołu przed 18.10, 19:00
 
 - [ ] **Zgłoszenie wysłane przed 19:00**: [ZGLOSZENIE.pdf](prezentacja/ZGLOSZENIE.pdf), slajdy w PDF (eksport z Claude),
-  `media/demo_z_napisami.mp4` i `media/zwiastun.mp4` albo link do nich, link do repozytorium. Sposób wysyłki potwierdzony z Borysem.
+  `media/odcinek_przejscie.mp4`, `media/zwiastun.mp4` i `media/tetno_montaz.mp4` albo link do nich, link do repozytorium. Sposób wysyłki potwierdzony z Borysem.
 - [ ] W zgłoszeniu: nazwiska i role członków zespołu, lider, kontakt (dziś w ZGLOSZENIE.md są pola do wpisania).
 - [ ] Slajdy udostępnione (menu Share), jeśli wysyłacie link, a nie tylko PDF.
 - [ ] Udział w hackathonie zgłoszony przez formularz; nikt z zespołu nie podlega wykluczeniu z §3 ust. 7.

@@ -12,7 +12,7 @@ wybieramy to, co wskaże większość — pilotem albo głosem. Druga osoba ster
   nie cały ekran — panel podglądu zostaje u nas albo pokazujemy go osobno przy slajdzie o gałęziach.
 - **Słuchawki**: mikrofon laptopa słyszy wtedy tylko nas, a nie głosy z rozmowy; Whisper rozpoznaje odpowiedź mówioną
   do mikrofonu, którego używamy też w rozmowie.
-- **Plan B**: nagranie `docs/prezentacja/media/demo_z_napisami.mp4` (60 s), gdy transmisja tnie obraz albo dźwięk.
+- **Plan B**: nagranie `docs/prezentacja/media/odcinek_przejscie.mp4` (cały odcinek, ok. 3 min) albo jego fragment, gdy transmisja tnie obraz albo dźwięk.
 - **Wszystko jest publiczne** (§3 ust. 10 regulaminu): bez dzieci w kadrze bez zgody opiekunów, bez cudzych utworów.
 
 ## Przygotowanie (przed sesją)
@@ -20,7 +20,7 @@ wybieramy to, co wskaże większość — pilotem albo głosem. Druga osoba ster
 1. Klipy na miejscu: prawdziwe albo zastępcze z nazwą pliku na planszy
    (`python -m bajka.placeholders scenarios/klub_ciekawskich.yaml`). Polecenie tworzy tylko brakujące pliki,
    więc uzupełnia też klipy reakcji (`01_reakcja_*.mp4`), gałęzie zagadek, wersje scen (`*_spokojna.mp4`,
-   `*_zywa.mp4`) i przezroczyste warstwy kwiatków (`warstwa_*.webm`).
+   `*_zywa.mp4`). Klipy z generatora: `python -m bajka.clips download/klipy.yaml`.
    Bez nich bajka się nie uruchomi („Brak plików wideo”).
 2. Przeglądarka Edge albo Chrome (Chromium bez kodeka H.264 nie odtworzy MP4). Kwestie postaci na żywo są w napisach
    (lektor syntezatora w przeglądarce jest wyłączony).
@@ -56,7 +56,7 @@ o mikrofon — zezwólcie. Panel podglądu: `http://127.0.0.1:8090/`.
 | 1:00–1:45 | SC. 2: okno „Tęczowy Mostek / Szumiący Las”. **Mówimy** do mikrofonu wybór czatu, np. „przez las!”. Pod oknem: „Słyszę: …”. Las wchodzi przejściem wybranym przez montażystę (zwykle **przetarciem**, przy pobudzeniu łagodniejszym przenikaniem), a w dzienniku panelu: „Montaż kuferek → las: … (model AI): …”. W trakcie tego okna klikamy na panelu **Pobudzenie** | „Głos rozpoznaje Whisper na tym laptopie. O przejściu decyduje montażysta AI: wie, że ruszamy w nowe miejsce i że dziecko jest pobudzone.” |
 | 1:45–2:30 | W lesie celowo wybieramy **Żabę**: gra osobna scena z żabką Kumką (gałąź), która wraca na wspólną drogę. Las i Wiaterek grają **wersję spokojną** | „Każda odpowiedź ma swoją scenę, a pomyłka jest częścią przygody. Dziecko jest pobudzone, więc odcinek zwalnia — tętno dziś symulujemy, docelowo z zegarka, za zgodą rodzica.” |
 | 2:30–3:15 | Przy oknie „Mapa, latarka czy lornetka?” nikt nic nie robi: postać dopytuje, a po czasie wybiera sama. Klikamy **Znużenie** | „Cisza nie zatrzymuje bajki. A gdy dziecko się nudzi, kolejna scena będzie żywsza.” |
-| 3:15–4:00 | Czat wybiera kwiatek dla mamy Bzyczki — Bzyczka trzyma go w Święcie (**wersja żywa**) i w finale: to **warstwa** nałożona na klip. Finał wchodzi rozjaśnieniem. Ekran końcowy: „Twoje wybory” i „Obejrzyj jeszcze raz” | „Wybory widza nakładamy na klipy jako warstwy, więc nie animujemy trzech finałów. Ten sam odcinek jest też zwykłym filmem dla serwisów bez interakcji” — pokazujemy plik `_liniowy.mp4` |
+| 3:15–4:00 | Czat wybiera kwiatek dla mamy Bzyczki, potem Święto gra w **wersji żywej** (plakietka „Montaż dynamiczny”, tempo 1,08×). Finał wchodzi rozjaśnieniem. Ekran końcowy: „Twoje wybory” i „Obejrzyj jeszcze raz” | „Zamiast trzech odcinków mamy trzy krótkie wersje sceny. Ten sam odcinek jest też zwykłym filmem dla serwisów bez interakcji” — pokazujemy plik `_liniowy.mp4` |
 
 Wiaterek jest zawsze na ścieżce, więc to najpewniejsze miejsce na wersję spokojną. Wersję żywą mają Las i Święto.
 
