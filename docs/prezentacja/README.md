@@ -1,6 +1,5 @@
 # Prezentacja produktu
 
-Materiały do zgłoszenia (18.10, 19:00), pokazu online (29.10) i rozmów z serwisem albo wydawcą.
 
 | Plik | Do czego |
 |---|---|
