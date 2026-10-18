@@ -33,3 +33,8 @@ clips:
   07_swieto_spokojna.mp4: 07_swieto_spokojna__przyjaciele_przed_ulem_spokojna.mp4
   08a_koniec_taniec.mp4: 08a_koniec_taniec__final_pszczolkowy_taniec.mp4
   08b_koniec_piosenka.mp4: 08b_koniec_piosenka__final_piosenka_o_kwiatkach.mp4
+  # Warstwy kwiatków (WebM VP9 z przezroczystością, kopiowane bez zmian): tymczasowa naklejka kwiatka w rogu kadru,
+  # do zastąpienia wyciętym kwiatkiem z ilustracji. Nakłada je odtwarzacz na święto i finał.
+  warstwa_slonecznik.webm: warstwa_slonecznik__kwiatek_w_rogu_kadru.webm
+  warstwa_koniczyna.webm: warstwa_koniczyna__kwiatek_w_rogu_kadru.webm
+  warstwa_stokrotka.webm: warstwa_stokrotka__kwiatek_w_rogu_kadru.webm

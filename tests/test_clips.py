@@ -75,3 +75,15 @@ def test_imported_loop_is_one_seam_shorter(tmp_path, scenario_dict):
 
     assert probe(tmp_path / "intro.mp4") == pytest.approx((5.0, True), abs=0.1)
     assert probe(tmp_path / "intro_idle.mp4") == pytest.approx((5.0 - SEAM_SECONDS, True), abs=0.1)
+
+
+def test_layer_with_transparency_is_copied_without_reencoding(tmp_path, scenario_dict, capsys):
+    scenario_dict["scenes"]["intro"]["choices"]["las"].update(layer="warstwa.webm", slot="pomocnik")
+    scenario_dict["scenes"]["las"]["layers"] = ["pomocnik"]
+    (tmp_path / "kwiatek.webm").write_bytes(b"\x1aE\xdf\xa3 warstwa z alfa")
+    mapping = write_map(tmp_path, scenario_dict, {"warstwa.webm": "kwiatek.webm"})
+
+    assert main([str(mapping)]) == 0
+
+    assert (tmp_path / "warstwa.webm").read_bytes() == (tmp_path / "kwiatek.webm").read_bytes()
+    assert "(warstwa)" in capsys.readouterr().out

@@ -4,7 +4,8 @@ Klipy z generatora (np. folder `download/`) mają własne nazwy, długość 8–
 (`download/klipy.yaml`) mówi, który klip gra którą scenę. Narzędzie zapisuje je pod ścieżkami ze scenariusza:
 H.264/AAC z indeksem na początku pliku (szybki start w przeglądarce), 1280×720, 24 kl./s. Pętle oczekiwania dostają
 płynny szew (koniec klipu przenika w jego początek, więc zapętlenie nie skacze) i ściszony dźwięk (wtedy słucha
-mikrofon). Brakujące sceny uzupełnia potem `python -m bajka.placeholders` (tworzy tylko pliki, których nie ma).
+mikrofon). Warstwy (`.webm` z przezroczystością) są kopiowane bez zmian. Brakujące sceny uzupełnia potem
+`python -m bajka.placeholders` (tworzy tylko pliki, których nie ma).
 
 Użycie: python -m bajka.clips download/klipy.yaml [--force] [--plan]   (wymaga ffmpeg i ffprobe)
 """
@@ -110,8 +111,12 @@ def main(argv: list[str] | None = None) -> int:
         if a.target.exists() and not args.force:
             print(f"pomijam, plik istnieje: {a.target} (--force nadpisze)")
             continue
-        seconds, has_audio = probe(a.source)
         a.target.parent.mkdir(parents=True, exist_ok=True)
+        if a.target.suffix.lower() == ".webm":  # warstwa z przezroczystością: kopia, bo przekodowanie zgubiłoby alfę
+            shutil.copyfile(a.source, a.target)
+            print(f"{a.target.name} ← {a.source.name} (warstwa)")
+            continue
+        seconds, has_audio = probe(a.source)
         subprocess.run(convert_command(a, seconds, has_audio), check=True)
         print(f"{a.target.name} ← {a.source.name}")
     print("Brakujące sceny uzupełnisz zaślepkami: python -m bajka.placeholders SCENARIUSZ")

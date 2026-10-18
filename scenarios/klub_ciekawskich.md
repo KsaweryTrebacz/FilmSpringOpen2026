@@ -7,7 +7,7 @@
 | **Forma** | Odcinek interaktywny do oglądania w domu: w kluczowych momentach na ekranie pojawia się okno wyboru, a widz decyduje pilotem, dotykiem albo głosem. Postacie reagują na jego wybory |
 | **Widz** | Dzieci 4–7 lat, w domu, zwykle jedno dziecko (czasem z rodzeństwem albo rodzicem). Telewizor, tablet, komputer |
 | **Czas** | ok. 12 minut: ok. 9 min animacji i ok. 3 min okien wyboru (zależy od widza) |
-| **Styl** | Ilustrowana książka 2D: miękka akwarela, ciepłe pastele (zgodnie z [projektem flow filmu](../docs/superpowers/specs/2026-10-16-flow-filmu-design.md)) |
+| **Styl** | Ilustrowana książka 2D: miękka akwarela, ciepłe pastele (zgodnie z [biblią wizualną](../docs/SCENARIUSZ_WIZUALNY_PROMPTY_AI.md)) |
 | **Obraz** | 16:9, 1920×1080, 24 kl./s; dolna jedna trzecia kadru w pętlach oczekiwania wolna od ważnych elementów (tam jest okno wyboru) |
 | **Dźwięk** | Stereo; dialogi i muzyka w klipach, w pętlach oczekiwania cichy podkład (wtedy może słuchać mikrofon) |
 | **Język** | Polski; napisy dla niesłyszących w odtwarzaczu (kwestie mówione na żywo zawsze mają napisy) |
