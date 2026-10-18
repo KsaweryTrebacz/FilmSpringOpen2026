@@ -1,0 +1,15 @@
+# Klipy z generatora wideo (18.10.2026) → sceny odcinka „Bzyczka szuka domu”.
+# Montaż do odcinka: python -m bajka.clips download/klipy.yaml --force
+# Pętle oczekiwania (`idle`) dostają płynny szew i cichszy dźwięk.
+scenario: ../scenarios/klub_ciekawskich.yaml
+clips:
+  01_powitanie.mp4: 01_powitanie__lila_i_fiku_w_dziupli.mp4
+  01_powitanie_idle.mp4: 01_powitanie_idle__nasluchiwanie_widza.mp4
+  01_reakcja_pukanie.mp4: 01_reakcja_pukanie__kuferek_ziewa.mp4
+  02_kuferek.mp4: 02_kuferek__otwarcie_i_mapa.mp4
+  02_kuferek_idle.mp4: 02_kuferek_idle__wybor_drogi_mapa.mp4
+  03a_most.mp4: 03a_most__teczowy_mostek_brak_deski.mp4
+  03a_most_idle.mp4: 03a_most_idle__unoszace_sie_deski.mp4
+  07_swieto.mp4: 07_swieto__przyjaciele_przed_ulem.mp4
+  08a_koniec_taniec.mp4: 08a_koniec_taniec__final_pszczolkowy_taniec.mp4
+  08b_koniec_piosenka.mp4: 08b_koniec_piosenka__final_piosenka_o_kwiatkach.mp4

@@ -101,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.plan:
         for a in assignments:
-            print(f"{a.target.name:28} ← {a.source.name}{'  (pętla: płynny szew, cichszy dźwięk)' if a.loop else ''}")
+            print(f"{a.target.name:28} <- {a.source.name}{'  (pętla: płynny szew, cichszy dźwięk)' if a.loop else ''}")
         return 0
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
         print("Nie znaleziono ffmpeg i ffprobe w PATH (Windows: winget install Gyan.FFmpeg)", file=sys.stderr)
