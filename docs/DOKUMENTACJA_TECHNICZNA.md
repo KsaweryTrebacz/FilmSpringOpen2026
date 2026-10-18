@@ -13,6 +13,9 @@
    - [3.1. Odtwarzacz Streamingowy Web Player](#31-odtwarzacz-streamingowy-web-player-port-8080)
    - [3.2. Panel Realizatora i Telemetria Biofeedbacku](#32-panel-realizatora-i-telemetria-biofeedbacku-port-8090)
    - [3.3. Drugi Ekran i Seans Grupowy na Smartfonach](#33-drugi-ekran-i-seans-grupowy-na-smartfonach-port-8443-https)
+   - [3.4. Panel i Ustawienia Rodzica w Odtwarzaczu (Parent Controls & Privacy)](#34-panel-i-ustawienia-rodzica-w-odtwarzaczu-parent-controls--privacy)
+   - [3.5. Kreator Rodzica (Parent Studio & Personalizator Odcinka)](#35-kreator-rodzica-parent-studio--personalizator-odcinka)
+   - [3.6. Raport Po Odcinku i Rekomendacje Rozmowy Offline](#36-raport-po-odcinku-i-rekomendacje-rozmowy-offline)
 4. [Instrukcja Uruchomienia Krok po Kroku (Runbook)](#4-instrukcja-uruchomienia-krok-po-kroku-runbook)
    - [4.1. Wymagania wstępne](#41-wymagania-wstępne)
    - [4.2. Konfiguracja środowiska wirtualnego](#42-konfiguracja-środowiska-wirtualnego)
@@ -247,6 +250,95 @@ Podczas okna wyboru opcje pojawiają się na ekranach wszystkich połączonych u
 ![Runda Głosowania na Telefonie](prezentacja/media/telefon-round-1.jpg)
 
 ![Potwierdzenie Głosu na Smartfonie](prezentacja/media/telefon-voted-1.jpg)
+
+---
+
+### 3.4. Panel i Ustawienia Rodzica w Odtwarzaczu (Parent Controls & Privacy)
+
+Bezpośrednio w interfejsie odtwarzacza ([`bajka/player_app/index.html`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/player_app/index.html)) rodzic ma dostęp do dedykowanego panelu konfiguracyjnego (przycisk zębatki `⚙` na górnym pasku sterowania lub sekcja na ekranie startowym).
+
+#### Funkcjonalności techniczne panelu rodzica w odtwarzaczu:
+1. **Przełącznik mikrofonu i prywatność (RODO / COPPA Compliance):**
+   - Rodzic decyduje, czy w oknie wyboru dziecko może odpowiadać głosem (`micSetting`), czy wyłącznie pilotem / dotykiem.
+   - **Gwarancja prywatności:** Mikrofon jest aktywowany wyłącznie podczas odliczania w oknie wyboru (12 s). Próbki audio trafiają do bufora pamięci RAM w formacie 16 kHz mono WAV, są przetwarzane lokalnie przez model Whisper i **natychmiast usuwane z pamięci**. Żadne nagrania głosu dziecka nie są zapisywane na dysku ani wysyłane do chmury.
+2. **Narzędzie testowania mikrofonu na żywo (`testMicBox`):**
+   - Zanim rozpocznie się bajka, rodzic może sprawdzić czułość mikrofonu (`testMeterFill`). Wskaźnik decybeli reaguje w czasie rzeczywistym na mowę dziecka (np. próba zawołania *„Hop-sa-sa!”* lub *„Puk, puk”*), potwierdzając gotowość sprzętową.
+3. **Napisy dla dzieci (Wczesna Nauka Czytania & Dostępność):**
+   - Opcja włączenia napisów synchronicznych (`captionsSetting`). Każde pytanie i kwestia postaci pojawia się na ekranie, wspierając dzieci w wieku przedszkolnym i wczesnoszkolnym w nauce czytania oraz zapewniając dostępność dla dzieci z wadami słuchu.
+4. **Zabezpieczenie seansu i skróty klawiszowe:**
+   - Klawisz `F` — przełączenie w tryb pełnoekranowy (True Fullscreen).
+   - Klawisz `Esc` / Przycisk `✕` (`stopButton`) — bezpieczne zakończenie odcinka i zwolnienie zasobów silnika.
+   - Minimalizacja okna lub przełączenie karty automatycznie wstrzymuje odtwarzanie (ochrona przed utratą wątku przez dziecko).
+
+---
+
+### 3.5. Kreator Rodzica (Parent Studio & Personalizator Odcinka)
+
+**Kreator Rodzica** ([`docs/prezentacja/KREATOR_RODZICA.md`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/docs/prezentacja/KREATOR_RODZICA.md)) to moduł pozwalający rodzicowi na zdefiniowanie celów edukacyjnych, trudności i czasu trwania bajki, zanim dziecko usiądzie przed ekranem.
+
+![Kreator Rodzica — Makieta Interfejsu](prezentacja/media/kreator.png)
+
+#### Architektura generowania spersonalizowanego odcinka:
+```text
+┌────────────────────────────────────────────────────────┐
+│                    KREATOR RODZICA                     │
+│  - Wybór celów (liczenie, wzory, emocje, przyroda)     │
+│  - Liczba zagadek (np. 3 z 6) i trudność               │
+│  - Czas na odpowiedź (10-20 s) i liczba dopytań        │
+│  - Limit czasu ekranowego (zgodny z wytycznymi WHO)    │
+└───────────────────────────┬────────────────────────────┘
+                            │ Parametry JSON
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│                   PLANISTA ODCINKA                     │
+│   Dobiera certyfikowane moduły scen z biblioteki       │
+│   i kompiluje spójny graf logiczny w formacie YAML     │
+└───────────────────────────┬────────────────────────────┘
+                            │ Graf YAML
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│              WALIDACJA SILNIKA (Scenario)              │
+│   Weryfikacja: brak martwych krawędzi, kompletność     │
+│   plików MP4/WebM, poprawność wyborów domyślnych       │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│             StoryEngine & Compositor AI                │
+│             Emisja spersonalizowanego seansu           │
+└────────────────────────────────────────────────────────┘
+```
+
+#### Dostępne parametry konfiguracyjne:
+- **Cele dydaktyczne (Modular Curriculum):**
+  - *Liczenie do trzech:* aktywacja modułu ula [`06_laka.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/06_laka.mp4).
+  - *Rytm i myślenie logiczne:* aktywacja modułu naprzemiennego wzoru desek [`03a_most.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/03a_most.mp4).
+  - *Samoregulacja emocji (Oddech relaksacyjny):* moduł uspokojenia Wiaterka Fiufiu [`04_wiaterek.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/04_wiaterek.mp4) z cyklem oddechowym 4s wdech / 4s wydech.
+  - *Zrozumienie funkcji narzędzi:* dobór lornetki w module [`05_pomocnik.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/05_pomocnik.mp4).
+- **Liczba zagadek i czas:** Możliwość skrócenia seansu do np. 7 minut przed obiadem (zagadki nieaktywne postać rozwiązuje samodzielnie w locie).
+- **Poziom trudności:** Wybór pomiędzy 2 a 3 opcjami w oknie decyzyjnym.
+- **Bezpieczeństwo treści (Zero-Hallucination):** Odcinek składa się wyłącznie ze sprawdzonych w studiu i zweryfikowanych przez człowieka (human-in-the-loop) modułów wideo. Sztuczna inteligencja nie generuje obrazu ani fabuły na żywo w sposób niekontrolowany.
+
+---
+
+### 3.6. Raport Po Odcinku i Rekomendacje Rozmowy Offline
+
+Zamiast mechanizmu autoplay (*„następny odcinek za 5 sekund”*), aplikacja po zakończeniu bajki wyświetla lub przesyła na telefon rodzica **Raport z Seansu**:
+
+![Raport Po Odcinku — Podsumowanie](prezentacja/media/raport.png)
+
+#### Struktura danych telemetrycznych raportu:
+Silnik [`StoryEngine`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/engine.py) w trakcie całego seansu zbiera metryki w strukturze `self.decisions`:
+1. **Ścieżka fabularna:** Dokładny przebieg węzłów (np. *Dziupla -> Tęczowy Mostek -> Skraj Łąki -> Ul pod Lipą -> Pszczółkowy Taniec*).
+2. **Profil interakcji dziecka:**
+   - Udział odpowiedzi głosowych (np. 65%),
+   - Udział wyboru pilotem / dotykiem (np. 35%),
+   - Czy wystąpiła konieczność dopytania (`reprompt`),
+   - Szybkość podejmowania decyzji w oknie wyboru.
+3. **Kompetencje poznawcze:** Zestawienie pojęć, z którymi dziecko weszło w interakcję (np. układ naprzemienny ABAB, synchronizacja oddechowa, liczenie obiektów w ruchu).
+4. **Most do świata offline (Wytyczne WHO i AAP):**
+   - Raport generuje **3 konkretne tematy do rozmowy** rodzica z dzieckiem nawiązujące do bajki (np. *„Bzyczka zgubiła drogę, ale poprosiła o pomoc. A Ty do kogo podchodzisz, gdy czegoś nie wiesz?”*).
+   - Propozycje zabaw ruchowych bez użycia ekranu (np. wspólne układanie klocków w kolorowy wzór mostka lub liczenie zabawek).
 
 ---
 
