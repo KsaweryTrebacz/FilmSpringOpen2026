@@ -1,37 +1,67 @@
 # Dokumentacja Techniczna: Interaktywna Bajka Streamingowa (Silnik Emisji i Dynamicznego Montażu)
 
-Niniejszy dokument stanowi pełną dokumentację inżynierską i techniczną systemu interaktywnego wideo opracowanego na hackathon FilmSpring Open 2026. Dokument pomija aspekty czysto biznesowe i marketingowe, skupiając się na architekturze oprogramowania, protokołach komunikacyjnych, przetwarzaniu multimediów, silniku dynamicznego montażu AI, biometrii oraz procedurach wdrożeniowych i operacyjnych.
+> **Dokumentacja inżynierska i deweloperska systemu.**  
+> Ostatnia aktualizacja: Październik 2026 | FilmSpring Open 2026  
+> Repozytorium: [`FilmSpringOpen2026`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026)
+
+---
+
+## 📑 Spis Treści
+1. [Architektura Systemu (Hexagonal Architecture / Ports & Adapters)](#1-architektura-systemu)
+2. [Gdzie co jest (Struktura Repozytorium i Moduły)](#2-gdzie-co-jest-struktura-repozytorium-i-moduły)
+3. [Zrzuty Ekranu i Interfejsy Produktu](#3-zrzuty-ekranu-i-interfejsy-produktu)
+   - [3.1. Odtwarzacz Streamingowy Web Player](#31-odtwarzacz-streamingowy-web-player-port-8080)
+   - [3.2. Panel Realizatora i Telemetria Biofeedbacku](#32-panel-realizatora-i-telemetria-biofeedbacku-port-8090)
+   - [3.3. Drugi Ekran i Seans Grupowy na Smartfonach](#33-drugi-ekran-i-seans-grupowy-na-smartfonach-port-8443-https)
+4. [Instrukcja Uruchomienia Krok po Kroku (Runbook)](#4-instrukcja-uruchomienia-krok-po-kroku-runbook)
+   - [4.1. Wymagania wstępne](#41-wymagania-wstępne)
+   - [4.2. Konfiguracja środowiska wirtualnego](#42-konfiguracja-środowiska-wirtualnego)
+   - [4.3. Konfiguracja zmiennych środowiskowych (.env)](#43-konfiguracja-zmiennych-środowiskowych-env)
+   - [4.4. Przygotowanie mediów (placeholdery vs klipy wideo)](#44-przygotowanie-mediów-placeholdery-vs-klipy-wideo)
+   - [4.5. Zestawienie wszystkich trybów uruchomienia (CLI)](#45-zestawienie-wszystkich-trybów-uruchomienia-cli)
+   - [4.6. Rozwiązywanie typowych problemów (Troubleshooting)](#46-rozwiązywanie-typowych-problemów-troubleshooting)
+5. [Dynamiczny Montaż AI i Silnik Biofeedbacku](#5-dynamiczny-montaż-ai-i-silnik-biofeedbacku)
+   - [5.1. Analiza biometryczna i klasyfikacja tętna](#51-analiza-biometryczna-i-klasyfikacja-tętna)
+   - [5.2. Adaptacja tempa (playbackRate)](#52-adaptacja-tempa-playbackrate)
+   - [5.3. Efekt Punch Cut (Mikro-Zoom)](#53-efekt-punch-cut-mikro-zoom)
+   - [5.4. Przejścia montażowe i silnik regułowo-modelowy](#54-przejścia-montażowe-i-silnik-regułowo-modelowy)
+6. [Specyfikacja Grafu Scenariusza (YAML Reference)](#6-specyfikacja-grafu-scenariusza-yaml-reference)
+   - [6.1. Schemat węzła sceny](#61-schemat-węzła-sceny)
+   - [6.2. Akumulacja przezroczystych warstw WebM (kanał alfa)](#62-akumulacja-przezroczystych-warstw-webm-kanał-alfa)
+7. [Silnik Przetwarzania Mowy i Bezpieczeństwo AI](#7-silnik-przetwarzania-mowy-i-bezpieczeństwo-ai)
+8. [Architektura Sieciowa, Porty i API REST / SSE](#8-architektura-sieciowa-porty-i-api-rest--sse)
+9. [Testowanie i Weryfikacja Jakości (Pytest)](#9-testowanie-i-weryfikacja-jakości-pytest)
 
 ---
 
 ## 1. Architektura Systemu
 
-System zaprojektowano w oparciu o **architekturę heksagonalną (Ports & Adapters)**. Rdzeń logiki biznesowej (`StoryEngine`) jest całkowicie odseparowany od mechanizmów wejścia/wyjścia (odtwarzacze wideo, silniki rozpoznawania mowy, modele językowe, sensory tętna czy serwery HTTP). Wszystkie interakcje z otoczeniem definiują abstrakcyjne protokoły w module [`bajka/ports.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/ports.py).
+System zaprojektowano zgodnie z wzorcem **architektury heksagonalnej (Ports & Adapters)**. Rdzeń logiki biznesowej ([`bajka/engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/engine.py)) jest całkowicie odizolowany od warstwy wejścia/wyjścia. Wszystkie kontrakty zdefiniowane są jako protokoły w pliku [`bajka/ports.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/ports.py).
 
 ```mermaid
 flowchart TD
-    subgraph Core ["Rdzeń Logiki (bajka/engine.py)"]
-        SE[StoryEngine<br/>Maszyna Stanów Grafu Scen]
-        SC[Scenario Parser<br/>bajka/scenario.py]
+    subgraph Core ["Rdzeń Logiki Biznesowej (Core Domain)"]
+        SE[StoryEngine<br/>Orkiestrator Maszyny Stanów]
+        SC[Scenario Graph Parser<br/>bajka/scenario.py]
         MO[Montage Coordinator<br/>bajka/montage.py]
     end
 
-    subgraph Ports ["Kontrakty (bajka/ports.py)"]
-        P_Player["Player / Compositor"]
+    subgraph Ports ["Kontrakty Heksagonalne (bajka/ports.py)"]
+        P_Player["Compositor / Player"]
         P_Viewer["Viewer (Okna Wyboru)"]
-        P_Voice["Voice (Synteza / Dialog)"]
+        P_Voice["Voice (Synteza / Lektor)"]
         P_Intent["IntentResolver"]
-        P_Pulse["AudiencePulse (Sensor)"]
+        P_Pulse["AudiencePulse (Sensor Tętna)"]
         P_Audience["Audience (Drugi Ekran)"]
         P_Observer["ShowObserver"]
     end
 
-    subgraph Adapters ["Adaptery Wejścia / Wyjścia"]
+    subgraph Adapters ["Adaptery Wejścia / Wyjścia (I/O)"]
         A_Web["WebCompositor (Dual-Deck HTML5)<br/>bajka/web_player.py (:8080)"]
         A_VLC["VlcPlayer (libVLC)<br/>bajka/player.py"]
         A_STT["Local STT (Whisper ONNX) / Azure<br/>bajka/local_stt.py"]
         A_LLM["Phi-3 / DirectML / GPT-4o-mini<br/>bajka/local_intent.py"]
-        A_KW["KeywordsFirstResolver<br/>bajka/keywords.py"]
+        A_KW["KeywordIntentResolver<br/>bajka/keywords.py"]
         A_Pulse["SimulatedPulse (Symulator/BLE)<br/>bajka/pulse.py"]
         A_Mobile["MobileServer (HTTPS TLS QR)<br/>bajka/mobile.py (:8443)"]
         A_Panel["PanelServer (SSE Dashboard)<br/>bajka/panel.py (:8090)"]
@@ -52,77 +82,32 @@ flowchart TD
     P_Observer -.-> A_Panel
 ```
 
-### 1.1. Cykl życia węzła sceny (Scene State Flow)
-1. **Pobranie ujęcia i wariantu:** `StoryEngine` sprawdza stan biometryczny widza (`AudiencePulse`). Jeśli zdefiniowano warianty sceny (np. wersja relaksująca lub dynamiczna), wybierany jest właściwy klip MP4.
+### Cykl Przetwarzania Węzła Sceny (Execution Flow)
+1. **Analiza stanu biometrycznego:** `StoryEngine` pobiera bieżący odczyt tętna z portu `AudiencePulse`. Jeśli tętno odbiega od wartości bazowej (`baseline`), wybierany jest alternatywny wariant klipu (`variants: spokojna / zywa`).
 2. **Kalkulacja parametrów odtwarzania:**
-   - Wybór przejścia montażowego (`Cut`: typ `ciecie`, `przenikanie`, `przetarcie`, `zaciemnienie`, `rozjasnienie` oraz czas trwania w sekundach).
-   - Zastosowanie mnożnika tempa: `playbackRate = 1.08` dla znużenia, `0.92` dla pobudzenia, `1.0` w normie.
-   - Flaga efektu **Punch Cut** (mikro-zoom kadru `scale(1.06) -> scale(1.0)`).
-   - Akumulacja warstw przezroczystych (`layers` WebM VP8/VP9 z kanałem alfa), pochodzących z wcześniejszych decyzji widza.
-3. **Emisja do Compositora:** Wywołanie `play_shot(Shot)` blokuje wątek silnika do momentu, gdy klip zbliża się do końca.
-4. **Pętla oczekiwania (Idle Loop):** Po zakończeniu klipu narracyjnego odtwarzacz płynnie wchodzi w zapętlone tło (`loop_shot`) i wyświetla interfejs okna wyboru (`ask`).
-5. **Obsługa wejścia (Input Arbitration):**
-   - Równoległe nasłuchiwanie zdarzeń UI (klawisze strzałek, Enter, pilot CEC/SmartTV, kliknięcie myszą/dotyk).
-   - Nagrywanie audio z mikrofonu (Web Speech API w przeglądarce lub strumień PCM 16 kHz przesyłany do lokalnego modelu Whisper).
-   - Jeśli aktywny jest drugi ekran (`--mobile`), zbieranie głosów z telefonów przez HTTPS.
-6. **Rozpoznanie intencji i fallback:**
-   - Próba ekstrakcji wyboru przez model językowy (Phi/DirectML lub GPT-4o-mini).
-   - Równoległy, niezawodny fallback na deterministyczny silnik słów kluczowych (`KeywordIntentResolver`).
-   - W przypadku braku decyzji lub upływu czasu (timeout grace period) uruchamiane jest ponowienie pytania (`reprompt`), a ostatecznie wybór domyślny (`default`).
-7. **Przejście do krawędzi grafu:** Silnik zleca montażyście (`Montage.request()`) wyliczenie przejścia w tle, odtwarzając ewentualny klip reakcji postaci, po czym ładuje docelowy węzeł.
+   - Wybór przejścia montażowego (`Cut`: `ciecie`, `przenikanie`, `przetarcie`, `zaciemnienie`, `rozjasnienie`).
+   - Ustalenie tempa odtwarzania (`playbackRate`: `1.08x` dla znużenia, `0.92x` dla pobudzenia, `1.0x` w normie).
+   - Włączenie mikro-najazdu kadru (**Punch Cut** `scale(1.06) -> scale(1.0)`).
+   - Agregacja przezroczystych warstw WebM (`layers`) zebranych z wcześniejszych wyborów widza.
+3. **Emisja ujęcia (Shot):** Silnik przekazuje obiekt `Shot` do `Compositora`, który uruchamia wideo w wolnym decku odtwarzacza i dokonuje płynnego przejścia.
+4. **Pętla oczekiwania (Idle Loop):** Po dojściu do końca klipu głównego odtwarzacz wchodzi w zapętlone tło (`idle_clip`) i wysuwa okno wyboru (`Viewer.ask`).
+5. **Arbitraż wejścia (Input Arbitration):**
+   - Klawisze strzałek / Enter / mysz / dotyk.
+   - Analiza mowy z mikrofonu (Whisper ONNX lub Web Speech API).
+   - Odbiór głosów z telefonów komórkowych przez serwer HTTPS (`Audience`).
+6. **Rozpoznanie intencji i fallback:** Ekstrakcja intencji przez lokalny model Phi z natychmiastowym deterministycznym zapasem na słowa kluczowe (`KeywordIntentResolver`).
+7. **Przejście do krawędzi:** Zlecenie montażyście w tle wyliczenia kolejnego cięcia, opcjonalne odtworzenie klipu reakcji postaci (`reaction_clip`) i przejście do kolejnego węzła grafu.
 
 ---
 
-## 2. Stos Technologiczny i Zależności
+## 2. Gdzie co jest (Struktura Repozytorium i Moduły)
 
-### 2.1. Warstwa Backendowa (Python 3.11+)
-- **Język:** Python 3.11+ (64-bit).
-- **Struktury danych & concurrency:** `dataclasses`, `threading.Condition`, `concurrent.futures.ThreadPoolExecutor`, `pathlib.Path`.
-- **Serwery HTTP:** Standardowa biblioteka `http.server.ThreadingHTTPServer` z implementacją `SimpleHTTPRequestHandler` obsługującą zakresy bajtowe (HTTP 206 Partial Content dla streamingu wideo), Server-Sent Events (SSE) dla panelu oraz REST endpoints (`/api/state`, `/api/event`, `/api/voice`, `/api/pulse`).
-- **Parsowanie scenariusza:** `PyYAML>=6.0`.
-- **Konfiguracja środowiska:** `python-dotenv>=1.0`.
-
-### 2.2. Lokalne Modele AI i Przetwarzanie Brzegowe (Edge / Copilot+ PC)
-- **Local STT (Mowa na tekst):**
-  - Whisper (Small / Base INT8) uruchamiany przez **Foundry Local SDK** (`foundry-local-sdk>=2.1`) i DirectML/Windows ML.
-  - Wykorzystuje NPU (Snapdragon X Elite / Intel Core Ultra / AMD Ryzen AI) lub GPU (DirectX 12).
-  - Wejście: 16 kHz, 16-bit mono PCM WAV.
-- **Local LLM (Intencje i Montażysta):**
-  - Rodzina Phi-3 / Phi-3.5 / Phi-4 Mini (ONNX Runtime / DirectML).
-  - Posiada wbudowany filtr bezpieczeństwa `bajka/safety.py` weryfikujący zgodność z treściami dla dzieci.
-- **Alternatywny backend chmurowy:**
-  - `azure-cognitiveservices-speech>=1.52` (Azure Speech STT & TTS).
-  - `openai>=3.31` (Azure OpenAI API dla `gpt-4o-mini`).
-
-### 2.3. Frontend Odtwarzacza i Paneli (Web Player & Dashboard)
-- **Zero-Build Stack:** Czysty Vanilla JavaScript (ES6+), HTML5, CSS3. Brak ciężkich frameworków (React/Vue/Webpack/Vite), zerowy czas kompilacji.
-- **Architektura Compositora (Dual-Deck Video Engine):**
-  - Dwa niezależne elementy `<video>` (Deck A i Deck B) przełączane w relacji front/back.
-  - Podczas gdy Deck A odtwarza bieżącą scenę, Deck B w tle buforuje kolejne ujęcie.
-  - Przejścia realizowane sprzętowo w GPU za pomocą CSS transitions (`opacity`, `clip-path: polygon(...)`, CSS animations).
-- **Obsługa kanału alfa (Wideo Przezroczyste):**
-  - Kontenery nakładek z elementami `<video>` odtwarzającymi format WebM (kodek VP8/VP9 z przezroczystością alfa) w pełnej synchronizacji czasowej z klipem bazowym.
-- **Punch Cut i Dynamika Obrazu:**
-  - Dynamiczna transformacja CSS Matrix (`scale(1.06) -> scale(1.0)`) z krzywą `cubic-bezier(0.12, 0.82, 0.3, 1.15)` trwającą 320–450 ms, wykonywana bez przycinania wideo.
-  - Płynna regulacja `HTMLMediaElement.playbackRate` (`1.08x` / `0.92x`) w czasie rzeczywistym.
-- **Typografia i UI:**
-  - Lokalnie serwowany krój pisma Google Font **Nunito** (`bajka/fonts/nunito-variable.woff2`).
-- **Mikrofon i Dźwięk w Przeglądarce:**
-  - Web Audio API (`AudioContext`, `ScriptProcessorNode` / `AudioWorklet`) do rejestracji strumienia 16 kHz.
-  - Web Speech API (`webkitSpeechRecognition`) jako bezopóźnieniowy fallback w przeglądarkach Chromium.
-
-### 2.4. Drugi Ekran i Bezpieczeństwo Sieciowe
-- **TLS / HTTPS:** Moduł `cryptography>=42` generujący w locie certyfikat X.509 RSA/ECDSA i klucz prywatny dla lokalnego serwera HTTPS (`:8443`), co umożliwia dostęp do API `navigator.mediaDevices.getUserMedia` na urządzeniach mobilnych w sieci LAN.
-- **Kody QR:** Biblioteka `segno>=1.6` generująca kody QR w terminalu konsoli oraz w oknie przeglądarki.
-
----
-
-## 3. Struktura Katalogów i Moduły
+Układ katalogów i plików w repozytorium:
 
 ```text
 FilmSpringOpen2026/
-├── bajka/                     # Pakiet źródłowy silnika w Pythonie
-│   ├── app.py                 # Punkt wejścia CLI, routing flag i orkiestracja
+├── bajka/                     # Główny pakiet źródłowy silnika w Pythonie
+│   ├── app.py                 # Punkt wejścia CLI (argparse, konfiguracja, orkiestracja)
 │   ├── engine.py              # StoryEngine - silnik maszyny stanów grafu i pętli emisji
 │   ├── ports.py               # Definicje protokołów (Hexagonal Architecture)
 │   ├── scenario.py            # Parser, walidator i struktury grafu scen YAML
@@ -135,324 +120,416 @@ FilmSpringOpen2026/
 │   ├── local_stt.py           # Transkrypcja mowy Whisper ONNX przez Foundry Local
 │   ├── local_intent.py        # Ekstrakcja intencji przez lokalny model Phi
 │   ├── safety.py              # Filtr bezpieczeństwa treści dla dzieci
-│   ├── clips.py               # Narzędzie transkodowania i normalizacji klipów (ffmpeg)
+│   ├── clips.py               # Narzędzie transkodowania i bezszwowego zapętlania klipów
 │   ├── placeholders.py        # Generator technicznych plansz wideo dla brakujących scen
-│   ├── linear.py              # Generator filmu liniowego (eksport MP4 przez ffmpeg)
-│   ├── player_app/            # Aplikacja frontendowa Web Playera (index.html, JS, CSS)
-│   ├── panel_app/             # Aplikacja frontendowa Panelu Realizatora (SVG graf, SSE)
-│   ├── mobile_app/            # PWA drugiego ekranu dla smartfonów
-│   └── fonts/                 # Wbudowane fonty (Nunito WOFF2)
-├── scenarios/                 # Pliki scenariuszy i metadanych
-│   ├── klub_ciekawskich.yaml  # Główny graf odcinka demonstracyjnego
+│   ├── linear.py              # Generator filmu liniowego (eksport MP4 przez FFmpeg)
+│   ├── player_app/            # Frontend Web Playera (index.html, Vanilla JS, CSS)
+│   ├── panel_app/             # Frontend Panelu Realizatora (index.html, SVG graf, SSE)
+│   ├── mobile_app/            # PWA drugiego ekranu dla smartfonów (index.html, HTTPS)
+│   └── fonts/                 # Wbudowane fonty (Nunito Variable WOFF2)
+├── scenarios/                 # Pliki scenariuszy i mediów
+│   ├── klub_ciekawskich.yaml  # Główny graf odcinka demonstracyjnego (węzły, pytania)
 │   ├── klub_ciekawskich.md    # Scenariusz literacki odcinka
-│   └── clips/                 # Wygenerowane pliki wideo (.mp4, .webm)
+│   └── clips/                 # Pliki wideo MP4 oraz przezroczyste nakładki WebM
+├── download/                  # Pobrane klipy z zewnętrznych generatorów wideo AI
+├── docs/                      # Dokumentacja techniczna, wizualna i prezentacyjna
+│   ├── DOKUMENTACJA_TECHNICZNA.md  # Niniejszy dokument
+│   ├── SCENARIUSZ_WIZUALNY_PROMPTY_AI.md # Scenopis i prompty wideo AI
+│   └── prezentacja/media/     # Zrzuty ekranu produktu i plansze wizualne
 ├── tests/                     # Zestaw 168 testów jednostkowych i integracyjnych (pytest)
-├── docs/                      # Dokumentacja techniczna i architektoniczna
 └── pyproject.toml             # Konfiguracja pakietu, zależności i narzędzi
 ```
 
-### Szczegółowy opis kluczowych modułów
+### Szczegółowa mapa modułów technicznych
 
-| Plik | Rola techniczna |
+| Moduł / Plik | Odpowiedzialność techniczna |
 |---|---|
-| [`bajka/engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/engine.py) | **Maszyna stanów.** Iteruje po scenach, zarządza wątkiem pętli oczekiwania, wywołuje montażystę AI, rozstrzyga głosy i emituje zdarzenia do obserwatora (`ShowObserver`). |
-| [`bajka/web_player.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/web_player.py) | **Compositor Server.** Zapewnia wątkowo-bezpieczną komunikację między silnikiem a przeglądarką za pomocą `threading.Condition` i kolejki komend JSON (`play`, `loop`, `ask`, `say`, `end`). |
-| [`bajka/montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/montage.py) | **Koordynator montażu.** Oblicza parametry przejścia na podstawie kontekstu (`CutContext`). Wdraża asynchroniczne odpytywanie LLM z limitem czasu oraz deterministyczny fallback w klasie `RuleEditor`. |
-| [`bajka/pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/pulse.py) | **Moduł biometryczny.** Oblicza stan emocjonalny widza w oparciu o tętno spoczynkowe (`baseline`). Klasyfikuje stany: `znużenie` (spadek tętna poniżej bazowego), `pobudzenie` (wzrost tętna powyżej progu), `norma`. |
-| [`bajka/scenario.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/scenario.py) | **Model danych grafu.** Reprezentuje węzły (`Scene`), krawędzie, opcje wyboru (`Choice`), warianty biometryczne oraz przezroczyste nakładki (`LayerSlot`). |
-| [`bajka/keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/keywords.py) | **Lekki klasyfikator intencji.** Działa bez LLM; wykonuje normalizację tekstu (usunięcie znaków diakrytycznych, stemming prefiksowy, dopasowanie leksykalne wg wag słów). |
-| [`bajka/panel.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/panel.py) | **Telemetry Dashboard Server.** Zapewnia wizualizację topologii grafu w SVG, strumieniowanie SSE zdarzeń montażowych oraz interaktywny suwak symulatora tętna. |
+| [`bajka/engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/engine.py) | **Maszyna stanów:** Zarządza cyklem życia ujęć, akumuluje warstwy przezroczyste, odpytuje montażystę asynchronicznie, rozstrzyga timeouty oraz emituje telemetrię do obserwatora. |
+| [`bajka/web_player.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/web_player.py) | **Compositor Server:** Wielowątkowy most między silnikiem Pythona a odtwarzaczem w przeglądarce (`threading.Condition`, numeracja sekwencyjna `seq`, obsługa HTTP 206 Partial Content). |
+| [`bajka/player_app/index.html`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/player_app/index.html) | **Dual-Deck Engine:** Implementacja frontendu w czystym JS. Dwa elementy `<video>` A/B, obsługa przejść CSS, dynamiczny Punch Cut, skalowanie tempa `playbackRate`, Web Audio API. |
+| [`bajka/montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/montage.py) | **Silnik montażu:** Oblicza rodzaj cięcia (`Cut`) na podstawie kontekstu sceny i tętna widza. Zawiera asynchroniczny model LLM (`ModelEditor`) oraz deterministyczny fallback (`RuleEditor`). |
+| [`bajka/pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/pulse.py) | **Biofeedback:** Algorytmy filtrowania odczytów tętna, wyznaczanie odchylenia od normy (`baseline`), wykrywanie znużenia (<68-72 BPM) i pobudzenia (>88-92 BPM), symulator z natychmiastową reakcją. |
+| [`bajka/panel.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/panel.py) | **Telemetry Server:** Serwuje panel realizatora (`:8090`). Przesyła zdarzenia SSE (`scena`, `montaz`, `wersja`, `glosy`), generuje topologię grafu w SVG i obsługuje suwak tętna. |
+| [`bajka/mobile.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/mobile.py) | **Drugi ekran:** Serwer HTTPS (`:8443`) z certyfikatem TLS generowanym w locie (umożliwia dostęp do mikrofonu w mobilnym Safari/Chrome). Generuje kody QR w konsoli. |
+| [`bajka/keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/keywords.py) | **Lekki klasyfikator intencji:** Odporny na brak połączenia i błędy LLM silnik dopasowywania mowy w języku polskim (usuwanie znaków diakrytycznych, stemming prefiksowy, wagi słów). |
+| [`bajka/local_stt.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/local_stt.py) | **Lokalny Speech-to-Text:** Integracja z modelem Whisper ONNX przez Foundry Local SDK i DirectML/NPU. |
+| [`bajka/local_intent.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/local_intent.py) | **Lokalny LLM:** Integracja z modelem Phi-3/4 przez DirectML na Windows 11. |
+| [`bajka/safety.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/safety.py) | **Filtr bezpieczeństwa:** Walidacja wyjścia modeli AI pod kątem słownictwa odpowiedniego dla dzieci 4–7 lat. |
+| [`bajka/clips.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/clips.py) | **Transkoder FFmpeg:** Przygotowuje klipy z generatorów wideo AI, tworząc bezszwowe zapętlenie pętli `idle` (płynny crossfade ostatniej sekundy z pierwszą). |
 
 ---
 
-## 4. Specyfikacja Grafu Scenariusza (YAML)
+## 3. Zrzuty Ekranu i Interfejsy Produktu
 
-Plik scenariusza (np. [`scenarios/klub_ciekawskich.yaml`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/klub_ciekawskich.yaml)) definiuje skierowany graf scen, warunki brzegowe oraz parametry audiowizualne.
+System składa się z trzech zsynchronizowanych w czasie rzeczywistym interfejsów użytkownika:
 
-### Struktura węzła sceny:
-```yaml
-id: "zagadka_mostek"              # Unikalny identyfikator węzła
-place: "polana"                   # Lokalizacja diegetyczna (do wykrywania zmiany miejsca)
-clip: "01_polana_pytanie.mp4"     # Klip główny (pytanie narracyjne)
-idle_clip: "01_polana_idle.mp4"   # Pętla tła pod okno wyboru (odtwarzana bezszwowo)
-question: "Którą drogą idziemy?"   # Pytanie wyświetlane w UI i czytane przez TTS
-reprompt: "Powiedz, który mostek wybierasz!" # Kwestia ponowienia przy braku reakcji
-default: "kolorowy"               # Identyfikator wyboru domyślnego po timeout
-layers: ["ozdoba"]                # Sloty przezroczystych warstw WebM aplikowane na ten klip
+### 3.1. Odtwarzacz Streamingowy Web Player (Port `:8080`)
 
-variants:                         # Warianty klipu według stanu biometrycznego
-  pobudzenie: "01_polana_spokojna.mp4" # Uspokajająca wersja kadru
-  znuzenie: "01_polana_dynamiczna.mp4" # Wersja o wysokiej dynamice ruchu
+Odtwarzacz zaprojektowano z myślą o telewizorach Smart TV oraz przeglądarkach w serwisach VOD. Obsługuje sterowanie pilotem (strzałki + Enter), dotykiem oraz głosem.
 
-choices:                          # Dostępne krawędzie decyzyjne
-  kolorowy:
-    label: "Kolorowy mostek"      # Etykieta w interfejsie
-    icon: "mostek.png"           # Ikona graficzna w oknie wyboru
-    target: "scena_mostek"        # Węzeł docelowy w grafie
-    reaction_clip: "reakcja_kolorowy.mp4" # Klip reakcji postaci przed sceną docelową
-    keywords: ["kolorowy", "mostek", "tęcza", "barwny"] # Słowa kluczowe dla STT
-    layer: "wianek_kolorowy.webm" # Przypisanie warstwy do slotu 'ozdoba' na kolejne sceny
-```
+#### Ekran startowy i odblokowanie uprawnień multimedialnych
+Przeglądarki wymagają interakcji użytkownika przed odtworzeniem dźwięku i uruchomieniem mikrofonu. Przycisk **▶ Oglądaj** inicjalizuje `AudioContext` i odblokowuje odtwarzanie.
 
----
+![Ekran Startowy Odtwarzacza](prezentacja/media/start.jpg)
 
-## 5. Dynamiczny Montaż AI i Silnik Biofeedbacku
+#### Płynne odtwarzanie sceny narracyjnej (Deck A/B)
+Podczas gdy postacie prowadzą dialog, kolejny klip wideo jest wstępnie buforowany w niewidocznym decku.
 
-### 5.1. Klasyfikacja Biometryczna (`bajka/pulse.py`)
-Silnik monitoruje parametr BPM (Beats Per Minute). Wartość odniesienia (`baseline`) ustalana jest w pierwszej scenie (domyślnie 78–80 BPM dla dziecka w spoczynku).
+![Scena Narracyjna](prezentacja/media/scena-powitanie.jpg)
 
-- **Znużenie (`BORED`):** `BPM < baseline - delta` (np. spadek poniżej 68–72 BPM). Oznacza spadek zaangażowania i apatię widza.
-- **Pobudzenie (`EXCITED`):** `BPM > baseline + delta` (np. wzrost powyżej 88–92 BPM). Oznacza przestymulowanie lub nadmierny stres.
-- **Norma (`NORMAL`):** Przedział optymalny.
+#### Okno wyboru z odliczaniem i detekcją mowy
+Po zakończeniu klipu sceny odtwarzacz przechodzi w cichą pętlę oczekiwania (`idle_clip`), a od dołu wysuwa się panel decyzyjny z paskiem upływu czasu.
 
-### 5.2. Mechanizmy Adaptacji Montażowej
-Montaż reaguje na stan widza na trzech poziomach:
+![Okno Wyboru - Budzenie Kuferka](prezentacja/media/okno-kuferek.jpg)
 
-```mermaid
-flowchart LR
-    Pulse[Odczyt Tętna / Panel] --> State{Stan Widza}
-    State -->|Znużenie| Fast[Montaż Dynamiczny]
-    State -->|Norma| Std[Montaż Standardowy]
-    State -->|Pobudzenie| Calm[Montaż Relaksujący]
+#### Wybór ścieżki i nasłuchiwanie głosu widza
+Gdy mikrofon jest aktywny, widz może po prostu powiedzieć: *„Przez ten kolorowy mostek!”*. Transkrypcja na żywo natychmiast podświetla właściwą opcję.
 
-    Fast --> D1["Przejście: cięcie (0s) lub szybkie przetarcie (0.4s)"]
-    Fast --> D2["Tempo: playbackRate = 1.08x"]
-    Fast --> D3["Punch Cut: scale(1.06) -> scale(1.0)"]
+![Okno Wyboru Drogi z Mikrofonem](prezentacja/media/okno-droga-glos.jpg)
 
-    Std --> S1["Przejście: standardowe (przenikanie 0.6s)"]
-    Std --> S2["Tempo: playbackRate = 1.0x"]
-    Std --> S3["Punch Cut: brak"]
+#### Zagadka edukacyjna (dopasowanie wzoru)
+Dziecko rozwiązuje zagadkę rytmiczną desek na mostku. Wybór błędny prowadzi do gałęzi pomocniczej, a prawidłowy naprawia mostek.
 
-    Calm --> C1["Przejście: długie przenikanie (1.2s - 2.0s)"]
-    Calm --> C2["Tempo: playbackRate = 0.92x"]
-    Calm --> C3["Punch Cut: brak"]
-```
+![Wybór Deski na Mostku](prezentacja/media/okno-deski.jpg)
 
-1. **Typ i Długość Przejścia (`Cut`):**
-   - Przy **znużeniu:** Montażysta forsuje natychmiastowe ostre cięcie (`ciecie`, `0.0s`) lub agresywne, krótkie przetarcie (`przetarcie`, `0.4s`), aby nadać rytm narracji.
-   - Przy **pobudzeniu:** Montażysta wybiera miękkie, wydłużone przenikanie (`przenikanie`, `1.2–2.0s`) lub łagodne zaciemnienie (`zaciemnienie`, `1.5s`), stabilizując percepcję sensoryczną.
-2. **Skalowanie Tempa (`playbackRate`):**
-   - Elementy wideo odtwarzacza mają natychmiast dostosowywaną prędkość:
-     - `1.08x` w stanie znużenia (subtelne przyspieszenie dialogów i akcji bez zniekształceń wysokości dźwięku dzięki algorytmom time-stretching w przeglądarkach).
-     - `0.92x` w stanie pobudzenia (spowolnienie kadru, uspokajający flow).
-3. **Efekt Punch Cut (Mikro-Zoom):**
-   - W momencie cięcia lub nagłej zmiany stanu na znużenie, warstwa wideo wykonuje dynamiczny mikronajazd:
-     ```javascript
-     animate(videoElement, [
-       { transform: "scale(1.06)" },
-       { transform: "scale(1.0)" }
-     ], 420, "cubic-bezier(0.12, 0.82, 0.3, 1.15)");
-     ```
-   - Skutkuje to natychmiastowym skupieniem wzroku widza na środku kadru bez utraty ostrości.
+#### Dynamiczna reakcja postaci i montażowe przejście
+Po zatwierdzeniu wyboru odtwarzany jest klip reakcji postaci, a montażysta AI płynnie łączy ujęcia.
+
+![Reakcja Kuferka](prezentacja/media/reakcja-hopsasa.jpg)
+
+![Przejście Montażowe do Kolejnej Sceny](prezentacja/media/przejscie-most.jpg)
+
+#### Ekran podsumowania odcinka
+Na koniec seansu widz widzi podsumowanie swoich unikalnych wyborów oraz przycisk ponownego uruchomienia z inną ścieżką fabularną.
+
+![Podsumowanie Odcinka](prezentacja/media/koniec.jpg)
 
 ---
 
-## 6. Przetwarzanie Głosu i Rozpoznawanie Mowy
+### 3.2. Panel Realizatora i Telemetria Biofeedbacku (Port `:8090`)
 
-System obsługuje pełną redundancję ścieżki audio:
+Dedykowany kokpit dla reżysera, technika lub rodzica. Pozwala śledzić postęp w grafie scen, monitorować decyzje montażysty AI oraz w czasie rzeczywistym symulować tętno widza.
 
-```text
-               ┌───────────────────────────────┐
-               │    Mikrofon (Audio Stream)    │
-               └──────────────┬────────────────┘
-                              │
-               ┌──────────────▼────────────────┐
-               │ Buforowanie 16 kHz Mono PCM   │
-               └──────────────┬────────────────┘
-                              │
-             ┌────────────────┴────────────────┐
-             ▼                                 ▼
-   [Foundry Local Whisper]            [Web Speech API]
-   Lokalny model NPU/GPU/CPU         Chromium STT Fallback
-             │                                 │
-             └────────────────┬────────────────┘
-                              ▼
-                      Ztranskrybowany Tekst
-                              │
-             ┌────────────────┴────────────────┐
-             ▼                                 ▼
-   [Local LLM / Azure LLM]          [KeywordIntentResolver]
-   Ekstrakcja semantyczna           Dopasowanie leksykalne regex
-   i generowanie wypowiedzi         ze scenariusza (100% determinizm)
-             │                                 │
-             └────────────────┬────────────────┘
-                              ▼
-                      Bezpieczna Decyzja
-                      (SafeReplyResolver)
-```
+#### Główny pulpit telemetrii
+Zawiera interaktywne drzewo scen SVG, log zdarzeń Server-Sent Events oraz suwak biometrii.
 
-1. **Foundry Local Whisper:** Rejestruje nagranie przez Web Audio API, przesyła do endpointu `/api/voice`, gdzie model Whisper zamienia mowę na tekst.
-2. **KeywordIntentResolver:** Jeśli model językowy jest wyłączony (`--no-llm`), działa wolno lub nie zwróci jednoznacznej odpowiedzi, silnik bada słowa kluczowe przypisane do opcji w pliku YAML.
-3. **SafeReplyResolver:** Każda kwestia generowana dynamicznie przez model podlega weryfikacji leksykalnej pod kątem bezpieczeństwa i braku wulgaryzmów czy pojęć niestosownych dla dzieci.
+![Główny Widok Panelu Realizatora](prezentacja/media/panel.jpg)
+
+#### Wizualizacja grafu scen na żywo
+Aktywny węzeł podświetla się na złoto, a przebyta ścieżka rysuje się w czasie rzeczywistym.
+
+![Drzewo Grafu Scen SVG](prezentacja/media/panel-drzewo.jpg)
+
+#### Dziennik decyzji montażowych AI
+Pokazuje dokładny rodzaj przejścia (`ciecie`, `przenikanie`, `przetarcie`), czas w sekundach, źródło decyzji (`model` vs `reguly`) oraz uzasadnienie montażysty w odniesieniu do tętna widza.
+
+![Dziennik Zdarzeń Montażowych](prezentacja/media/panel-dziennik.jpg)
 
 ---
 
-## 7. Instrukcja Instalacji i Uruchomienia (Runbook)
+### 3.3. Drugi Ekran i Seans Grupowy na Smartfonach (Port `:8443` HTTPS)
 
-### 7.1. Wymagania Środowiskowe
-- **System operacyjny:** Windows 10/11 (rekomendowany ze względu na DirectML/Foundry), Linux, macOS.
-- **Python:** 3.11 lub nowszy (wersja 64-bitowa).
-- **FFmpeg:** Niezbędny do transkodowania klipów i generowania placeholderów (`winget install --id Gyan.FFmpeg -e` na Windows).
-- **Przeglądarka internetowa:** Google Chrome lub Microsoft Edge (dla wsparcia Web Audio, Web Speech API oraz kodeków WebM VP9).
+Umożliwia wspólne oglądanie bajki przez całą rodzinę lub grupę dzieci w przedszkolu. Smartfony działają jako bezprzewodowe piloty z mikrofonem.
 
-### 7.2. Przygotowanie Środowiska Wirtualnego
-W konsoli PowerShell:
+#### Parowanie przez kod QR w terminalu lub przeglądarce
+Uruchomienie serwera generuje kod QR, który otwiera aplikację na telefonach w tej samej sieci Wi-Fi.
+
+![Kod QR do Połączenia](prezentacja/media/telefon-qr.jpg)
+
+#### Ekran oczekiwania na smartfonie
+Telefon synchronizuje się ze stanem odcinka na dużym ekranie.
+
+![Ekran Oczekiwania Smartfona](prezentacja/media/telefon-join.jpg)
+
+#### Runda głosowania grupowego
+Podczas okna wyboru opcje pojawiają się na ekranach wszystkich połączonych urządzeń. Głosy są agregowane większościowo.
+
+![Runda Głosowania na Telefonie](prezentacja/media/telefon-round-1.jpg)
+
+![Potwierdzenie Głosu na Smartfonie](prezentacja/media/telefon-voted-1.jpg)
+
+---
+
+## 4. Instrukcja Uruchomienia Krok po Kroku (Runbook)
+
+### 4.1. Wymagania wstępne
+- **System:** Windows 10/11 (optymalny dla Foundry Local i DirectML), Linux lub macOS.
+- **Python:** Wersja **3.11 lub nowsza** (64-bit).
+- **FFmpeg:** Niezbędny do transkodowania i generowania wideo:
+  ```powershell
+  # Windows (winget):
+  winget install --id Gyan.FFmpeg -e
+  ```
+- **Przeglądarka:** Google Chrome lub Microsoft Edge (obsługa Web Audio, Web Speech API oraz kodeków WebM VP9).
+
+---
+
+### 4.2. Konfiguracja środowiska wirtualnego
+
+Otwórz terminal PowerShell w głównym katalogu projektu:
+
 ```powershell
-# 1. Klonowanie repozytorium (jeśli jeszcze nie sklonowano)
-git clone <URL_REPOZYTORIUM> FilmSpringOpen2026
-cd FilmSpringOpen2026
-
-# 2. Utworzenie i aktywacja środowiska wirtualnego
+# 1. Utworzenie środowiska wirtualnego Python
 python -m venv .venv
+
+# 2. Aktywacja środowiska w PowerShell
 .venv\Scripts\Activate.ps1
 
-# 3. Instalacja projektu z zależnościami deweloperskimi i lokalnymi
+# 3. Instalacja projektu w trybie edytowalnym ze wszystkimi zależnościami
 pip install -e ".[dev,local,mobile]"
+```
 
-# 4. Inicjalizacja pliku konfiguracyjnego
+---
+
+### 4.3. Konfiguracja zmiennych środowiskowych (`.env`)
+
+Skopiuj domyślny plik konfiguracyjny:
+```powershell
 Copy-Item .env.example .env
 ```
 
-### 7.3. Przygotowanie Mediów
-Przed pierwszym uruchomieniem należy upewnić się, że wideo dla scen istnieje. Jeśli nie wygenerowano jeszcze animacji produkcyjnych AI, należy utworzyć plansze techniczne (placeholdery):
+Najważniejsze parametry w pliku `.env`:
+| Zmienna | Domyślnie | Opis |
+|---|---|---|
+| `BAJKA_BACKEND` | `local` | `local` (Foundry Local Whisper/Phi bez chmury) lub `azure` (Azure Cognitive Services). |
+| `BAJKA_PLAYER` | `web` | `web` (odtwarzacz w przeglądarce) lub `vlc` (okno natywne libVLC). |
+| `BAJKA_CHOICE_SECONDS` | `12` | Domyślny czas okna wyboru w sekundach (3–60 s). |
+| `BAJKA_PORT` | `8080` | Port serwera Web Playera. |
+| `BAJKA_PANEL_PORT` | `8090` | Port serwera Panelu Realizatora. |
+| `BAJKA_MOBILE_PORT` | `8443` | Port serwera drugiego ekranu HTTPS dla telefonów. |
+| `BAJKA_MONTAGE` | `auto` | `auto` (model AI decyduje, reguły w zapasie) lub `reguly` (tylko reguły deterministyczne). |
+
+---
+
+### 4.4. Przygotowanie mediów (placeholdery vs klipy wideo)
+
+Przed pierwszym uruchomieniem należy upewnić się, że pliki wideo istnieją. Jeśli nie pobrano jeszcze wszystkich animacji produkcyjnych, wygeneruj plansze testowe (placeholdery):
+
 ```powershell
-# Generowanie kolorowych klipów testowych MP4 dla wszystkich scen z pliku YAML
+# Utworzenie kolorowych klipów zastępczych MP4 dla wszystkich brakujących scen
 python -m bajka.placeholders scenarios/klub_ciekawskich.yaml
 ```
 
-W przypadku posiadania gotowych klipów z generatorów AI:
+Gdy posiadasz wygenerowane pliki wideo z generatora (np. w folderze `download/`):
 ```powershell
-# Normalizacja i transkodowanie klipów do wspólnego formatu
+# Transkodowanie, normalizacja i utworzenie płynnych szwów w pętlach idle:
 python -m bajka.clips download/klipy.yaml
 ```
 
 ---
 
-## 8. Tryby Uruchomienia (CLI Reference)
+### 4.5. Zestawienie wszystkich trybów uruchomienia (CLI)
 
-Głównym punktem wejścia aplikacji jest moduł `bajka` (`python -m bajka`).
+Głównym punktem wejścia do aplikacji jest moduł `bajka`:
 
-### 8.1. Zestawienie Flag CLI
-
-| Flaga | Domyślnie | Opis |
-|---|---|---|
-| `scenario` | *(wymagany)* | Ścieżka do pliku YAML ze scenariuszem (np. `scenarios/klub_ciekawskich.yaml`). |
-| `--player` | `web` | Wybór odtwarzacza: `web` (odtwarzacz w przeglądarce) lub `vlc` (okno libVLC). |
-| `--panel` | `false` | Uruchamia serwer panelu telemetrycznego realizatora na porcie `8090`. |
-| `--no-llm` | `false` | Wyłącza model językowy; sterowanie montażem z reguł, a intencjami ze słów kluczowych. |
-| `--no-mic` | `false` | Wyłącza nasłuchiwanie mikrofonu (wybór wyłącznie pilotem, klawiaturą lub dotykiem). |
-| `--no-browser` | `false` | Nie otwiera automatycznie karty przeglądarki po starcie serwera. |
-| `--mobile` | `false` | Aktywuje serwer drugiego ekranu HTTPS dla smartfonów widowni. |
-| `--backend` | `local` | `local` (Foundry Local Whisper + Phi na NPU/GPU) lub `azure` (Azure Cognitive Services). |
-| `--text` | `false` | Tryb próbny w konsoli (tekstowy), bez wideo, mikrofonu i AI. |
-| `--windowed` | `false` | Uruchamia odtwarzacz VLC w oknie zamiast pełnego ekranu (tylko z `--player vlc`). |
-
----
-
-### 8.2. Rekomendowane Przykłady Uruchomienia
-
-#### Tryb 1: Pełny Seans Demonstracyjny (Web Player + Panel Telemetrii + Biofeedback)
-Rekomendowany tryb pokazowy na hackathonie. Odtwarzacz w przeglądarce z pełnym podglądem na żywo i symulatorem tętna:
+#### Tryb 1: Rekomendowany pokaz demonstracyjny (Web Player + Panel + Symulator Tętna)
+Najlepszy tryb na prezentację i testy. Odtwarzacz w przeglądarce z pełnym sterowaniem pilota i podglądem telemetrii:
 ```powershell
 python -m bajka scenarios/klub_ciekawskich.yaml --player web --no-llm --panel
 ```
-- **Odtwarzacz widza:** `http://127.0.0.1:8080/`
-- **Panel realizatora / biofeedback:** `http://127.0.0.1:8090/`
+- **Odtwarzacz dla widza:** `http://127.0.0.1:8080/`
+- **Panel realizatora / suwak tętna:** `http://127.0.0.1:8090/`
 
-#### Tryb 2: Pełne Lokalne AI (Whisper + Phi na Copilot+ PC)
-Wymaga zainstalowanych modeli w Foundry Local:
+#### Tryb 2: Pełne lokalne AI (Whisper STT + model Phi na Copilot+ PC)
+Wymaga zainstalowanych modeli w Foundry Local SDK:
 ```powershell
 python -m bajka scenarios/klub_ciekawskich.yaml --player web --panel
 ```
 
-#### Tryb 3: Szybki Test Konsolowy (Headless / Dev)
-Brak wymagań co do przeglądarki, wideo czy mikrofonu. Cała logika grafu testowana w terminalu (wybór cyframi 1–3):
+#### Tryb 3: Szybki test logiki w konsoli (Headless Dev Mode)
+Brak wymagań odnośnie wideo, audio i przeglądarki. Cały graf przechodzi w terminalu tekstowym (wybór cyframi 1–3):
 ```powershell
 python -m bajka scenarios/klub_ciekawskich.yaml --text --no-llm
 ```
 
-#### Tryb 4: Seans Grupowy z Telefonami (Drugi Ekran)
-Uruchamia bezpieczny serwer HTTPS i generuje w konsoli kod QR do zeskanowania smartfonem:
+#### Tryb 4: Seans grupowy ze smartfonami (Drugi Ekran HTTPS)
+Generuje kod QR w terminalu i uruchamia szyfrowany serwer HTTPS dla telefonów:
 ```powershell
 python -m bajka scenarios/klub_ciekawskich.yaml --player web --mobile --panel
 ```
-Smartfony w tej samej sieci Wi-Fi łączą się pod adres wskazany w kodzie QR (np. `https://192.168.1.X:8443/`).
+
+#### Tryb 5: Eksport całego odcinka do pojedynczego filmu liniowego MP4
+Generuje zmontowany plik MP4 z wybraną ścieżką fabularną za pomocą FFmpeg:
+```powershell
+python -m bajka.linear scenarios/klub_ciekawskich.yaml --choices most,czerwona,spokojnie,lornetka,trzy,slonecznik,taniec -o film.mp4
+```
 
 ---
 
-## 9. Architektura Portów Sieciowych i API
+### 4.6. Rozwiązywanie typowych problemów (Troubleshooting)
 
-Aplikacja uruchamia do trzech równoległych serwerów HTTP/HTTPS:
+1. **Brak dźwięku po uruchomieniu przeglądarki:**
+   - *Przyczyna:* Polityka bezpieczeństwa przeglądarek blokuje automatyczne odtwarzanie audio bez gestu użytkownika.
+   - *Rozwiązanie:* Kliknij duży przycisk **▶ Oglądaj** na ekranie startowym.
+2. **Telefon nie może połączyć się z mikrofonem na drugim ekranie:**
+   - *Przyczyna:* Przeglądarki mobilne (iOS Safari, Android Chrome) blokują `getUserMedia` na niezabezpieczonych połączeniach HTTP.
+   - *Rozwiązanie:* Uruchom aplikację z flagą `--mobile`. Moduł [`bajka/mobile.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/mobile.py) automatycznie wygeneruje certyfikat TLS i uruchomi połączenie HTTPS (`https://<IP>:8443/`). Na telefonie zaakceptuj certyfikat lokalny.
+3. **Błąd: Port `8080` lub `8090` zajęty:**
+   - *Rozwiązanie:* Zmień port w pliku `.env` (`BAJKA_PORT=8085`, `BAJKA_PANEL_PORT=8095`).
+4. **Zamknięcie karty przeglądarki wstrzymuje odcinek:**
+   - *Zachowanie zamierzone:* Odtwarzacz pauzuje silnik w przypadku utraty połączenia (`stale`). Po ponownym otwarciu adresu `http://127.0.0.1:8080/` odcinek wznawia bieżący klip od początku.
+
+---
+
+## 5. Dynamiczny Montaż AI i Silnik Biofeedbacku
+
+Montaż nie jest statyczną listą cięć – adaptuje się na bieżąco do zaangażowania i stanu psychofizjologicznego widza.
+
+### 5.1. Analiza biometryczna i klasyfikacja tętna
+Moduł [`bajka/pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/pulse.py) monitoruje parametr BPM (Beats Per Minute). W pierwszej scenie ustala się wartość referencyjną widza w spoczynku (`baseline`, zazwyczaj 78–82 BPM dla dziecka).
 
 ```text
-+-------------------------------------------------------------------------+
-|                               HOST MACHINE                              |
-|                                                                         |
-|   +--------------------------+             +------------------------+   |
-|   |  Web Player HTTP Server  |             |  Panel Realizatora SSE |   |
-|   |       Port :8080         |             |       Port :8090       |   |
-|   +-------------▲------------+             +------------▲-----------+   |
-|                 │                                       │               |
-|                 │ GET /api/state                        │ GET /stream   |
-|                 │ POST /api/event                       │ POST /pulse   |
-|                 │ POST /api/voice                       │               |
-|                 │                                       │               |
-|   +-------------▼------------+             +------------▼-----------+   |
-|   |  Przeglądarka Odtwarzacz |             |  Przeglądarka Panel    |   |
-|   |  (Duży Ekran / TV)       |             |  (Laptop Realizatora)  |   |
-|   +--------------------------+             +------------------------+   |
-|                                                                         |
-|   +-----------------------------------------------------------------+   |
-|   |               Mobile HTTPS Server (Port :8443)                  |   |
-|   |          Szyfrowany certyfikatem TLS (Web Audio Access)         |   |
-|   +---------------------------------▲-------------------------------+   |
-|                                     │                                   |
-+-------------------------------------┼-----------------------------------+
-                                      │ Wi-Fi LAN
-                           +----------▼----------+
-                           | Smartfony Widzów    |
-                           | (Głosowanie / PWA)  |
-                           +---------------------+
+       Spadek tętna (< 68 BPM)                 Norma (68 - 88 BPM)                 Wzrost tętna (> 88 BPM)
+┌───────────────────────────────────┐  ┌───────────────────────────────────┐  ┌───────────────────────────────────┐
+│        STAN: ZNUŻENIE             │  │          STAN: NORMA              │  │        STAN: POBUDZENIE           │
+│  - Montaż: dynamiczny             │  │  - Montaż: zrównoważony           │  │  - Montaż: relaksujący, kojący    │
+│  - Cięcie: ostre / przetarcie 0.4s│  │  - Cięcie: przenikanie 0.6s       │  │  - Cięcie: miękkie przenikanie 1.5s│
+│  - Tempo: 1.08x                   │  │  - Tempo: 1.00x                   │  │  - Tempo: 0.92x                   │
+│  - Efekt Punch Cut: AKTYWNY       │  │  - Efekt Punch Cut: wyłączony     │  │  - Efekt Punch Cut: wyłączony     │
+└───────────────────────────────────┘  └───────────────────────────────────┘  └───────────────────────────────────┘
 ```
 
-### 9.1. Web Player Server (`:8080`)
-- `GET /` — Serwowanie aplikacji SPA odtwarzacza ([`bajka/player_app/index.html`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/player_app/index.html)).
-- `GET /media/<id>/<filename>` — Strumieniowanie plików wideo i przezroczystych nakładek WebM z obsługą nagłówków `Range: bytes=...`.
-- `GET /api/state` — Odpytywanie przez odtwarzacz o aktualne polecenie silnika (`play`, `loop`, `ask`, `say`, `end`).
-- `POST /api/event` — Przesyłanie zdarzeń z odtwarzacza (`done`, `choice`, `speech`, `restart`, `stop`).
-- `POST /api/voice` — Odbiór binarnego strumienia audio WAV z przeglądarki do transkrypcji przez model Whisper.
+### 5.2. Adaptacja tempa (`playbackRate`)
+Silnik modyfikuje właściwość `HTMLMediaElement.playbackRate` na elementach `<video>`:
+- **`1.08x` (Znużenie):** Subtelne przyspieszenie akcji i dialogów. Dzięki przeglądarkowemu algorytmowi time-stretching wysokość głosu (pitch) bohaterów nie ulega zniekształceniu.
+- **`0.92x` (Pobudzenie):** Spowolnienie narracji pozwalające dziecku uspokoić oddech i zredukować przestymulowanie sensoryczne.
 
-### 9.2. Panel Server (`:8090`)
-- `GET /` — Panel podglądu telemetrycznego ([`bajka/panel_app/index.html`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/panel_app/index.html)).
-- `GET /stream` — Strumień Server-Sent Events (SSE) wysyłający w czasie rzeczywistym zdarzenia z silnika:
-  - `scena`: zmiana aktywnej sceny i odtwarzanego klipu,
-  - `montaz`: decyzja montażysty (rodzaj przejścia, czas trwania, uzasadnienie),
-  - `wersja`: wybór alternatywnego klipu na podstawie tętna,
-  - `pulse`: aktualny stan biometryczny widza.
-- `POST /api/pulse` — Ustawienie parametrów symulatora tętna (`bpm`, `preset`: `znuzenie`, `norma`, `pobudzenie`).
+### 5.3. Efekt Punch Cut (Mikro-Zoom)
+W stanie znużenia lub przy dynamicznym cięciu, nowy kadr wchodzi z dynamicznym mikronajazdem realizowanym w CSS GPU:
+```javascript
+// Implementacja w bajka/player_app/index.html
+if (punch) {
+  videoElement.style.transformOrigin = "center center";
+  videoElement.animate([
+    { transform: "scale(1.06)" },
+    { transform: "scale(1.0)" }
+  ], {
+    duration: 420,
+    easing: "cubic-bezier(0.12, 0.82, 0.3, 1.15)",
+    fill: "forwards"
+  });
+}
+```
+Zabieg ten natychmiast przyciąga uwagę widza do środka ekranu, imitując profesjonalny montaż teledyskowy/kinowy bez strat jakości wideo.
 
-### 9.3. Mobile Server (`:8443`, HTTPS)
-- `GET /` — Aplikacja drugiego ekranu ([`bajka/mobile_app/index.html`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/mobile_app/index.html)).
-- `GET /api/state` — Pobranie aktualnego pytania i opcji wyboru.
-- `POST /api/vote` — Oddanie głosu dotykowego lub przesłanie nagrania mowy ze smartfona.
+### 5.4. Przejścia montażowe i silnik regułowo-modelowy
+W module [`bajka/montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/montage.py) zaimplementowano dwa uzupełniające się silniki:
+- **`ModelEditor`:** Wysyła do lokalnego modelu Phi lub Azure OpenAI strukturę JSON z informacjami o scenie źródłowej, docelowej, wyborze widza i tętnie. Model zwraca decyzję montażową w czasie trwania reakcji postaci.
+- **`RuleEditor`:** Niezawodny silnik regułowy działający w czasie < 1 ms. Używany jako fallback, gdy model nie zdąży przed końcem klipu reakcji.
+
+Dozwolone rodzaje przejść:
+| Typ przejścia | Zakres czasu | Zastosowanie |
+|---|---|---|
+| `ciecie` | `0.0 s` | Ostre cięcie w tym samym miejscu lub przy ożywianiu znużonego widza. |
+| `przenikanie` | `0.3 – 2.0 s` | Domyślne łagodne nałożenie kadrów (cross-dissolve). |
+| `przetarcie` | `0.4 – 1.5 s` | Wsuwanie nowego obrazu (wipe) przy zmianie lokacji sceny. |
+| `zaciemnienie` | `0.6 – 2.5 s` | Ściemnienie do czerni (fade-to-black) na finał lub uspokojenie. |
+| `rozjasnienie` | `0.8 – 2.5 s` | Rozbłysk do bieli (fade-to-white) przy radosnym odkryciu. |
 
 ---
 
-## 10. Weryfikacja i Testy Jednostkowe
+## 6. Specyfikacja Grafu Scenariusza (YAML Reference)
 
-Pakiet zawiera zestaw testów automatycznych opartych o framework `pytest`. Testy weryfikują kontrakty architektoniczne, parser scenariuszy, symulację biometryczną, silnik montażu oraz serwery HTTP.
+Graf scen zdefiniowany jest w formacie YAML (np. [`scenarios/klub_ciekawskich.yaml`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/klub_ciekawskich.yaml)).
 
-### 10.1. Uruchomienie Testów
+### 6.1. Schemat węzła sceny
+
+```yaml
+id: "nazwa_sceny"                 # Unikalny identyfikator węzła
+place: "Nazwa Miejsca"            # Lokacja diegetyczna (dla reguł montażu zmiany miejsca)
+clip: "clips/.../scena.mp4"       # Główny klip narracyjny
+idle: "clips/.../scena_idle.mp4"  # Pętla tła pod okno wyboru
+question: "Pytanie do widza?"     # Treść pytania w UI i dla syntezatora mowy
+reprompt: "Kwestia dopytania"     # Tekst odtwarzany po upływie czasu bez odpowiedzi
+default: "opcja_a"                # Identyfikator wyboru domyślnego
+timeout: 15                       # Czas okna wyboru w sekundach
+layers: ["slot_warstwy"]          # Sloty przezroczystych nakładek aplikowanych na ten klip
+
+variants:                         # Alternatywne warianty klipu według stanu biometrycznego
+  spokojna: "clips/.../spokojna.mp4" # Uspokajająca wersja ujęcia
+  zywa: "clips/.../zywa.mp4"         # Dynamiczna wersja ujęcia
+
+choices:                          # Dostępne krawędzie decyzyjne
+  opcja_a:
+    label: "Napis na kafelku"     # Etykieta widoczna w oknie wyboru
+    icon: "🎨"                    # Ikona emoji lub plik graficzny
+    next: "węzeł_docelowy"        # Identyfikator następnej sceny w grafie
+    reaction: "clips/.../reakcja.mp4" # Opcjonalny klip reakcji postaci
+    reply: "Kwestia mówiona"      # Kwestia wypowiadana przy braku klipu reakcji
+    layer: "clips/.../warstwa.webm" # Przypisanie przezroczystego wideo do slotu
+    slot: "slot_warstwy"          # Nazwa slotu
+    keywords: ["słowo1", "słowo2"]# Słowa kluczowe dla bezmodelowego rozpoznawania mowy
+```
+
+### 6.2. Akumulacja przezroczystych warstw WebM (kanał alfa)
+Gdy dziecko dokonuje wyboru (np. wybiera słonecznik, koniczynę lub stokrotkę), silnik zapisuje przypisany plik wideo `.webm` w słowniku `StoryEngine._layers`. W kolejnych scenach posiadających wpis `layers: [kwiatek]`, odtwarzacz pobiera odpowiednią przezroczystą nakładkę WebM (kodek VP8/VP9 z przezroczystością alfa) i nakłada ją w synchronizacji klatkowej na odtwarzany klip. Dzięki temu bohater trzyma wybrany kwiatek aż do samego finału bez konieczności renderowania dziesiątek osobnych wersji całych scen.
+
+---
+
+## 7. Silnik Przetwarzania Mowy i Bezpieczeństwo AI
+
+1. **Rejestracja dźwięku:** Przeglądarka nagrywa strumień 16 kHz mono PCM za pomocą Web Audio API.
+2. **Lokalny Speech-to-Text (Whisper):**
+   - Transkrypcja wykonywana lokalnie na urządzeniu za pomocą zoptymalizowanego modelu ONNX INT8 w środowisku Foundry Local.
+   - W przypadku braku Foundry Local, Chromium korzysta z wbudowanego Web Speech API.
+3. **Ekstrakcja intencji i zapas słów kluczowych:**
+   - Model językowy Phi analizuje transkrypcję i przypisuje ją do identyfikatora wyboru.
+   - Jeśli model nie jest pewny lub upłynął limit czasu, moduł [`bajka/keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/keywords.py) wykonuje natychmiastowe dopasowanie scoringowe na słowach kluczowych ze scenariusza.
+4. **Filtr bezpieczeństwa (`bajka/safety.py`):**
+   - Wszystkie kwestie generowane dynamicznie przez model podlegają rygorystycznemu filtrowaniu leksykalnemu, gwarantując brak jakichkolwiek nieodpowiednich treści w bajce dla dzieci.
+
+---
+
+## 8. Architektura Sieciowa, Porty i API REST / SSE
+
+Aplikacja zarządza trzema niezależnymi serwerami HTTP/HTTPS:
+
+```text
+               ┌─────────────────────────────────────────────────────┐
+               │             Aplikacja Bajka (Host Machine)          │
+               └──────────┬─────────────────┬───────────────────┬─────┘
+                          │                 │                   │
+                Port :8080│       Port :8090│         Port :8443│ (TLS HTTPS)
+                          ▼                 ▼                   ▼
+                  ┌──────────────┐  ┌──────────────┐    ┌──────────────┐
+                  │  Web Player  │  │    Panel     │    │ Mobile Server│
+                  │  Compositor  │  │  Realizatora │    │ Drugi Ekran  │
+                  └──────────────┘  └──────────────┘    └──────────────┘
+```
+
+### Endpointy Web Playera (`:8080`)
+- `GET /` — Aplikacja SPA odtwarzacza wideo.
+- `GET /media/<id>/<plik>` — Strumieniowanie wideo (obsługa nagłówków HTTP `Range: bytes=X-Y`).
+- `GET /api/state` — Odpytywanie przez odtwarzacz o nowe polecenie silnika (`play`, `loop`, `ask`, `say`, `end`).
+- `POST /api/event` — Przesyłanie zdarzeń z UI do silnika (`done`, `choice`, `speech`, `restart`, `stop`).
+- `POST /api/voice` — Odbiór binarnego bufora WAV do lokalnej transkrypcji Whisper.
+
+### Endpointy Panelu Realizatora (`:8090`)
+- `GET /` — Kokpit podglądu telemetrycznego.
+- `GET /stream` — Strumień Server-Sent Events (SSE) wysyłający w czasie rzeczywistym zdarzenia `scena`, `montaz`, `wersja`, `glosy` i `pulse`.
+- `POST /api/pulse` — Ustawienie wartości BPM lub presetu symulatora (`znuzenie`, `norma`, `pobudzenie`).
+
+### Endpointy Drugiego Ekranu (`:8443` HTTPS)
+- `GET /` — PWA dla smartfonów.
+- `GET /api/state` — Pobranie aktywnego pytania i kafelków decyzyjnych.
+- `POST /api/vote` — Przesłanie głosu lub wypowiedzi ze smartfona.
+
+---
+
+## 9. Testowanie i Weryfikacja Jakości (Pytest)
+
+Pakiet posiada zestaw testów automatycznych pokrywających silnik maszyny stanów, algorytmy montażowe, biometrię oraz serwery HTTP.
+
+### Uruchomienie testów
 W aktywnym środowisku wirtualnym:
 ```powershell
-# Uruchomienie pełnego zestawu testów jednostkowych (168 testów)
 python -m pytest tests --ignore=tests/test_stt.py --ignore=tests/test_tts.py
 ```
-*(Uwaga: flagi `--ignore` pomijają opcjonalne testy integracyjne wymagające aktywnych kluczy do chmury Azure Speech).*
+*(Flagi `--ignore` pomijają opcjonalne testy chmurowe wymagające zewnętrznych kluczy API Azure).*
 
-### 10.2. Kluczowe Obszary Testowe
-- [`tests/test_engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_engine.py): Weryfikacja maszyny stanów, przejść między węzłami i odporności na przerwanie seansu.
-- [`tests/test_montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_montage.py): Testy widełek czasowych przejść, reguł montażowych oraz formatowania promptów i JSON dla modeli AI.
-- [`tests/test_pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_pulse.py): Weryfikacja progów tętna, klasyfikacji emocjonalnej widza i algorytmu wygładzania.
-- [`tests/test_web_player.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_web_player.py): Testy serwera HTTP, synchronizacji wątkowej komend i transmisji wideo.
-- [`tests/test_keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_keywords.py): Poprawność dopasowywania wypowiedzi w języku polskim do opcji wyboru.
+### Zakres pokrycia testowego
+- [`tests/test_engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_engine.py) — Spójność maszyny stanów, przechodzenie po krawędziach grafu, obsługa timeoutów.
+- [`tests/test_montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_montage.py) — Poprawność wyboru cięć, czasy trwania przejść, działanie reguł `RuleEditor`.
+- [`tests/test_pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_pulse.py) — Progi klasyfikacji tętna, filtrowanie odczytów i wygładzanie szumu.
+- [`tests/test_web_player.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_web_player.py) — Synchronizacja wątkowa komend, serwowanie plików i obsługa zdarzeń przeglądarki.
+- [`tests/test_keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_keywords.py) — Poprawność dopasowywania wypowiedzi w języku polskim do opcji wyboru.
