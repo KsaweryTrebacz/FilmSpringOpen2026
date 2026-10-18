@@ -1,4 +1,4 @@
-# Klub Ciekawskich — bajka, która słucha
+# Klub Ciekawskich - bajka, która słucha
 
 **Interaktywny serial animowany dla dzieci 4–7 lat do serwisów streamingowych.** Postać zadaje pytanie, dziecko
 odpowiada pilotem, dotykiem albo **własnymi słowami**, a historia idzie w wybraną stronę. Rozpoznawanie mowy
