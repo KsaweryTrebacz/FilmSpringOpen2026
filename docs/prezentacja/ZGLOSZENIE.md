@@ -145,19 +145,6 @@ i raportu, eksperyment z rozpoznawaniem odpowiedzi.
 Phi (zrozumienie odpowiedzi i decyzje montażysty), ffmpeg (wideo), generator wideo (klipy według naszych promptów),
 biblioteki Pythona. Badania z sekcji 5 to prace innych zespołów.
 
-## 7. Co dalej
-
-| Kiedy | Co |
-|---|---|
-| do 25.10 (aktualizacja zgłoszenia) | Test z kilkoma rodzinami, 2 brakujące klipy i warstwy kwiatków, uzupełnione badania zespołu |
-| 29.10 | Pokaz na żywo na sesji online: widzowie transmisji wybierają drogę na czacie |
-| 1–3 miesiące | Pilotaż z 5–10 rodzinami, pełny odcinek z nagranymi głosami postaci, Kreator v0 |
-| 3–6 miesięcy | Biblioteka modułów z oznaczonymi umiejętnościami, planista Kreatora, raport dla rodzica, trzy odcinki |
-| 6–12 miesięcy | Pierwszy partner (serwis albo platforma edukacyjna); tętno w becie, tylko za zgodą rodzica |
-
-Model biznesowy (hipotezy do sprawdzenia): subskrypcja dla rodzin, licencja dla serwisów i placówek edukacyjnych,
-licencja narzędzi dla studiów. Ceny ustalimy po pilotażu ([ONE_PAGER.md](ONE_PAGER.md)).
-
 ## Załączniki i dalsza lektura
 
 [ONE_PAGER.md](ONE_PAGER.md) (jedna strona) · [PITCH.md](PITCH.md) (scenariusz wystąpienia) ·
