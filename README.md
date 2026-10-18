@@ -146,16 +146,6 @@ Model biznesowy (hipotezy do sprawdzenia w pilotażu): subskrypcja dla rodzin, l
 edukacyjnych, licencja narzędzi dla studiów. Realia rynku i drogi do serwisów:
 [docs/STREAMING.md](docs/STREAMING.md), skrót: [ONE_PAGER.md](docs/prezentacja/ONE_PAGER.md).
 
-| Kiedy | Co |
-|---|---|
-| do 25.10 | Aktualizacja zgłoszenia: test z kilkoma rodzinami i brakujące klipy |
-| 29.10 | Pokaz na żywo na sesji online: widzowie transmisji wybierają drogę odcinka |
-| 1–3 miesiące | Pilotaż z 5–10 rodzinami, nagrane głosy postaci, pierwsza wersja Kreatora |
-| 3–6 miesięcy | Biblioteka modułów z oznaczonymi umiejętnościami, raport dla rodzica, trzy odcinki |
-| 6–12 miesięcy | Pierwszy partner (serwis albo platforma edukacyjna); tętno w wersji testowej, tylko za zgodą rodzica |
-
-**Czego szukamy:** rodzin z dziećmi 4–7 lat do pilotażu, studia animacji albo wydawcy z postaciami dla dzieci oraz
-serwisu albo platformy edukacyjnej na pierwsze wdrożenie.
 
 ## Jak uruchomić prototyp
 
