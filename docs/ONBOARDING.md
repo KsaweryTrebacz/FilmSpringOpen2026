@@ -158,10 +158,10 @@ przeglądarki i VLC.
 | Dokument | Po co |
 |---|---|
 | [README](../README.md) | Instalacja, uruchamianie, wszystkie tryby, rozwiązywanie problemów |
-| [STREAMING.md](STREAMING.md) | Dlaczego streaming, realia rynku, drogi do serwisów, tętno i prywatność, propozycje |
-| [PODZIAL_PRACY.md](PODZIAL_PRACY.md) | Kto rozwija który moduł, zasady modułów i pracy w Git |
-| [LOKALNE_AI.md](LOKALNE_AI.md) | Foundry Local, Whisper, Phi, NPU, głos |
-| [Projekt flow filmu](superpowers/specs/2026-10-16-flow-filmu-design.md) | Produkcja klipów i dobór modeli (rysowanie na żywo wycofane) |
-| [Odcinek, który czuje widza](superpowers/specs/2026-10-16-film-czuje-sale-design.md) | Tętno, wersje scen, panel (projekt z czasów seansu kinowego) |
+| [DOKUMENTACJA_TECHNICZNA.md](DOKUMENTACJA_TECHNICZNA.md) | Pełna architektura techniczna, komponenty, API, testy i wdrożenie |
+| [prezentacja/](prezentacja/README.md) | Prezentacja produktu, materiały pitchowe i badania |
 | [DEMO_DLA_JURY.md](DEMO_DLA_JURY.md) | Przebieg pokazu przed jury |
-| [DO_ZROBIENIA.md](DO_ZROBIENIA.md) | Co zostało do zrobienia |
+| [STREAMING.md](STREAMING.md) | Dlaczego streaming, realia rynku, drogi do serwisów, tętno i prywatność |
+| [LOKALNE_AI.md](LOKALNE_AI.md) | Foundry Local, Whisper, Phi, NPU, głos |
+| [SCENARIUSZ_WIZUALNY_PROMPTY_AI.md](SCENARIUSZ_WIZUALNY_PROMPTY_AI.md) | Prompty AI i specyfikacja wizualna scen |
+| [ZGODNOSC_Z_REGULAMINEM.md](ZGODNOSC_Z_REGULAMINEM.md) | Aspekty prawne, autorskie i zgodność z regulaminem |

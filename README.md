@@ -16,8 +16,7 @@ odcinek trafia do serwisów: [docs/STREAMING.md](docs/STREAMING.md). Zgodność 
 [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
 **Pełna dokumentacja inżynierska i techniczna systemu: [docs/DOKUMENTACJA_TECHNICZNA.md](docs/DOKUMENTACJA_TECHNICZNA.md).**
 **Prezentacja produktu, pitch, Kreator Rodzica i badania: [docs/prezentacja/](docs/prezentacja/README.md).**
-**Nowa osoba w zespole? Zacznij od [docs/ONBOARDING.md](docs/ONBOARDING.md).** Podział pracy:
-[docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md). Co zostało do zrobienia: [docs/DO_ZROBIENIA.md](docs/DO_ZROBIENIA.md).
+**Architektura i wprowadzenie do kodu: [docs/ONBOARDING.md](docs/ONBOARDING.md).** Przebieg pokazu konkursowego: [docs/DEMO_DLA_JURY.md](docs/DEMO_DLA_JURY.md).
 
 ## Jak to działa
 
@@ -144,7 +143,7 @@ Scenariusz mówi, jakiej dynamiki chcemy (`mood: spokojny`, `zywy` albo `zrownow
 inne wersje montażu (`variants: spokojna / zywa`). Gdy tętno widza odbiega od punktu odniesienia z początku odcinka,
 scena gra wersję, która przywraca uwagę albo spokój: przy pobudzeniu — spokojną (dłuższe ujęcia, cichszy dźwięk),
 przy znużeniu — żywą (szybszy montaż, zabawny gag). Odcinek „Bzyczka” jest zrównoważony i ma obie wersje
-w trzech scenach ([projekt](docs/superpowers/specs/2026-10-16-film-czuje-sale-design.md)).
+w trzech scenach ([szczegóły w dokumentacji technicznej](docs/DOKUMENTACJA_TECHNICZNA.md#5-dynamiczny-montaż-ai-i-silnik-biofeedbacku)).
 
 **Tętno jest dziś symulowane** (`bajka/pulse.py`), a **panel podglądu** (`--panel`, `http://127.0.0.1:8090/`)
 pokazuje drzewo scen z przebytą ścieżką, wybory widza, wykres tętna z pasmem normy i dziennik decyzji odcinka;
