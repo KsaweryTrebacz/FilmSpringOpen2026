@@ -140,7 +140,7 @@ SYNONYMS: dict[str, list[str]] = {
     ],
     "trzy": [
         "trzy", "3", "trzech", "trzem", "trzema", "trzecia", "trzeci", "trojka",
-        "jeden dwa trzy", "raz dwa trzy", "jedna dwie trzy", "raz dwa", "dwie trzy",
+        "jeden dwa trzy", "raz dwa trzy", "jedna dwie trzy", "dwie trzy",
         "czy", "drzy", "tszy", "tzy", "trzi", "trzy pszczoly", "trzy pszczolki", "sa trzy", "widze trzy"
     ],
     "slonecznik": ["slonecznik", "slonecznika", "sloneczniki", "slonecznikiem", "slonce", "zolty", "duzy", "kwiat", "kwiatek", "pierwszy", "pierwsza", "1"],
@@ -177,6 +177,8 @@ def score_choice(transcript: str, choice: Choice, index: int, scene_id: str) -> 
 
     # Scena liczenia pszczółek: priorytet dla fraz liczenia i liczby 3
     if scene_id == "laka":
+        if clean_spoken in ("jednadwie", "razdwa", "jednadwa"):
+            return 0
         # Bez samego „pszczółki”: to nie liczba, tylko powtórzenie pytania — postać ma dopytać.
         counting_phrases = ["jedendwatrzy", "razdwatrzy", "jednadwietrzy", "dwietrzy", "trzy", "czy", "trojka", "trzech", "3"]
         if choice.id == "trzy":
@@ -193,10 +195,18 @@ def score_choice(transcript: str, choice: Choice, index: int, scene_id: str) -> 
     clean_label = compact(choice.display_label)
 
     # 1. Pełna etykieta i identyfikator
-    if clean_label and clean_label in clean_spoken:
-        score += 25
-    elif clean_id and len(clean_id) >= 4 and clean_id in clean_spoken:
-        score += 15
+    if clean_label:
+        if len(clean_label) >= 4:
+            if clean_label in clean_spoken:
+                score += 25
+        elif clean_label in spoken_words:
+            score += 25
+    elif clean_id:
+        if len(clean_id) >= 4:
+            if clean_id in clean_spoken:
+                score += 15
+        elif clean_id in spoken_words:
+            score += 15
 
     # 2. Ordinals (pozycja przycisku: 1, 2, 3)
     if index < len(ORDINALS):
@@ -205,23 +215,29 @@ def score_choice(transcript: str, choice: Choice, index: int, scene_id: str) -> 
                 score += 8
                 break
 
-    # 3. Synonimy i słowa kluczowe
-    kws = [*choice_keywords(choice), *SYNONYMS.get(choice.id, [])]
+    # 3. Synonimy i słowa kluczowe (unikalne)
+    kws = list(dict.fromkeys([*choice_keywords(choice), *SYNONYMS.get(choice.id, [])]))
     for syn in kws:
         clean_syn = compact(syn)
         if not clean_syn:
             continue
-        if " " in syn:  # fraza: wyraz po wyrazie, z odmianą („dziury w górze” ~ „dziura w górze”)
+        if " " in syn:
             parts = words(syn)
-            if any(all(same_word(spoken_words[i + k], part) for k, part in enumerate(parts))
-                   for i in range(len(spoken_words) - len(parts) + 1)):
+            if len(parts) > 1:
+                for start in range(len(spoken_words) - len(parts) + 1):
+                    if all(same_word(w, p) for w, p in zip(spoken_words[start:], parts)):
+                        score += 25
+                        break
+            elif clean_syn in clean_spoken:
                 score += 20
             continue
         for w in spoken_words:
             if w == clean_syn:
                 score += 12
-            # Krótkie słowo dziecka („do”, „nie”) to nie początek dłuższego synonimu („do lasu”, „niebieska”).
-            elif len(clean_syn) >= 4 and (w.startswith(clean_syn) or (len(w) >= 4 and clean_syn.startswith(w))):
+            elif len(clean_syn) < 4:
+                # Krótkie słowa (< 4 litery, np. "nie", "las", "hu") tylko jako całe wyrazy
+                continue
+            elif min(len(clean_syn), len(w)) >= 4 and (w.startswith(clean_syn) or clean_syn.startswith(w)):
                 score += 9
             elif len(w) >= 5 and len(clean_syn) >= 5 and edit_distance(w, clean_syn) <= 1:
                 score += 8
@@ -250,8 +266,12 @@ class KeywordIntentResolver:
         top_id, top_score = ranked[0]
         second_score = ranked[1][1] if len(ranked) > 1 else 0
 
-        # Drugi wybór z mocnym dopasowaniem (całe słowo albo fraza) to dwie odpowiedzi naraz — dopytanie.
-        if top_score > 0 and top_score > second_score and second_score < 12:
+        # Jeśli więcej niż jeden wybór ma dopasowanie (oba padły w wypowiedzi dziecka), dopytujemy
+        if top_score > 0 and second_score >= 8:
+            log.info("Niejednoznaczna wypowiedź %r (wiele wyborów z punktami: %d vs %d), dopytuję", transcript, top_score, second_score)
+            return Interpretation(choice_id=None, reply="")
+
+        if top_score > 0 and (top_score > second_score or second_score == 0):
             log.info("Rozpoznano wybór '%s' (punkty: %d vs %d) z mowy: %r", top_id, top_score, second_score, transcript)
             return Interpretation(choice_id=top_id, reply="")
 

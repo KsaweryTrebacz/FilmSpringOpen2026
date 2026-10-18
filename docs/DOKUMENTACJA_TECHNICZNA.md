@@ -1,45 +1,45 @@
-# Dokumentacja Techniczna: Interaktywna Bajka Streamingowa (Silnik Emisji i Dynamicznego Montażu)
+# Dokumentacja techniczna: interaktywny odcinek i silnik montażu
 
-> **Dokumentacja inżynierska i deweloperska systemu.**  
-> Ostatnia aktualizacja: Październik 2026 | FilmSpring Open 2026  
-> Repozytorium: [`FilmSpringOpen2026`](https://github.com/KsaweryTrebacz/FilmSpringOpen2026)
+Dokumentacja techniczna i opis architektury systemu.  
+Ostatnia aktualizacja: październik 2026 | FilmSpring Open 2026  
+Repozytorium: [`FilmSpringOpen2026`](https://github.com/KsaweryTrebacz/FilmSpringOpen2026)
 
 ---
 
-## 📑 Spis Treści
-1. [Architektura Systemu (Hexagonal Architecture / Ports & Adapters)](#1-architektura-systemu)
-2. [Gdzie co jest (Struktura Repozytorium i Moduły)](#2-gdzie-co-jest-struktura-repozytorium-i-moduły)
-3. [Zrzuty Ekranu i Interfejsy Produktu](#3-zrzuty-ekranu-i-interfejsy-produktu)
-   - [3.1. Odtwarzacz Streamingowy Web Player](#31-odtwarzacz-streamingowy-web-player-port-8080)
-   - [3.2. Panel Realizatora i Telemetria Biofeedbacku](#32-panel-realizatora-i-telemetria-biofeedbacku-port-8090)
-   - [3.3. Drugi Ekran i Seans Grupowy na Smartfonach](#33-drugi-ekran-i-seans-grupowy-na-smartfonach-port-8443-https)
-   - [3.4. Panel i Ustawienia Rodzica w Odtwarzaczu (Parent Controls & Privacy)](#34-panel-i-ustawienia-rodzica-w-odtwarzaczu-parent-controls--privacy)
-   - [3.5. Kreator Rodzica (Parent Studio & Personalizator Odcinka)](#35-kreator-rodzica-parent-studio--personalizator-odcinka)
-   - [3.6. Raport Po Odcinku i Rekomendacje Rozmowy Offline](#36-raport-po-odcinku-i-rekomendacje-rozmowy-offline)
-4. [Instrukcja Uruchomienia Krok po Kroku (Runbook)](#4-instrukcja-uruchomienia-krok-po-kroku-runbook)
+## Spis treści
+1. [Architektura systemu (Ports and Adapters)](#1-architektura-systemu)
+2. [Układ plików i modułów w repozytorium](#2-układ-plików-i-modułów-w-repozytorium)
+3. [Zrzuty ekranu i interfejsy produktu](#3-zrzuty-ekranu-i-interfejsy-produktu)
+   - [3.1. Odtwarzacz webowy (:8080)](#31-odtwarzacz-webowy-8080)
+   - [3.2. Panel realizatora i telemetria (:8090)](#32-panel-realizatora-i-telemetria-8090)
+   - [3.3. Obsługa smartfonów i głosowanie grupowe (:8443)](#33-obsługa-smartfonów-i-głosowanie-grupowe-8443)
+   - [3.4. Ustawienia rodzica w odtwarzaczu](#34-ustawienia-rodzica-w-odtwarzaczu)
+   - [3.5. Kreator rodzica (koncepcja konfiguracji)](#35-kreator-rodzica-koncepcja-konfiguracji)
+   - [3.6. Raport z seansu](#36-raport-z-seansu)
+4. [Instrukcja uruchomienia](#4-instrukcja-uruchomienia)
    - [4.1. Wymagania wstępne](#41-wymagania-wstępne)
    - [4.2. Konfiguracja środowiska wirtualnego](#42-konfiguracja-środowiska-wirtualnego)
    - [4.3. Konfiguracja zmiennych środowiskowych (.env)](#43-konfiguracja-zmiennych-środowiskowych-env)
    - [4.4. Przygotowanie mediów (placeholdery vs klipy wideo)](#44-przygotowanie-mediów-placeholdery-vs-klipy-wideo)
    - [4.5. Zestawienie wszystkich trybów uruchomienia (CLI)](#45-zestawienie-wszystkich-trybów-uruchomienia-cli)
-   - [4.6. Rozwiązywanie typowych problemów (Troubleshooting)](#46-rozwiązywanie-typowych-problemów-troubleshooting)
-5. [Dynamiczny Montaż AI i Silnik Biofeedbacku](#5-dynamiczny-montaż-ai-i-silnik-biofeedbacku)
-   - [5.1. Analiza biometryczna i klasyfikacja tętna](#51-analiza-biometryczna-i-klasyfikacja-tętna)
-   - [5.2. Adaptacja tempa (playbackRate)](#52-adaptacja-tempa-playbackrate)
-   - [5.3. Efekt Punch Cut (Mikro-Zoom)](#53-efekt-punch-cut-mikro-zoom)
-   - [5.4. Przejścia montażowe i silnik regułowo-modelowy](#54-przejścia-montażowe-i-silnik-regułowo-modelowy)
-6. [Specyfikacja Grafu Scenariusza (YAML Reference)](#6-specyfikacja-grafu-scenariusza-yaml-reference)
+   - [4.6. Rozwiązywanie typowych problemów](#46-rozwiązywanie-typowych-problemów-troubleshooting)
+5. [Adaptacyjny montaż i obsługa tętna](#5-adaptacyjny-montaż-i-obsługa-tętna)
+   - [5.1. Analiza tętna i klasyfikacja stanu widza](#51-analiza-tętna-i-klasyfikacja-stanu-widza)
+   - [5.2. Regulacja tempa (playbackRate)](#52-regulacja-tempa-playbackrate)
+   - [5.3. Efekt najazdu kadru (Punch Cut)](#53-efekt-najazdu-kadru-punch-cut)
+   - [5.4. Przejścia montażowe i dobór cięć](#54-przejścia-montażowe-i-dobór-cięć)
+6. [Format scenariusza (YAML)](#6-format-scenariusza-yaml)
    - [6.1. Schemat węzła sceny](#61-schemat-węzła-sceny)
    - [6.2. Akumulacja przezroczystych warstw WebM (kanał alfa)](#62-akumulacja-przezroczystych-warstw-webm-kanał-alfa)
-7. [Silnik Przetwarzania Mowy i Bezpieczeństwo AI](#7-silnik-przetwarzania-mowy-i-bezpieczeństwo-ai)
-8. [Architektura Sieciowa, Porty i API REST / SSE](#8-architektura-sieciowa-porty-i-api-rest--sse)
-9. [Testowanie i Weryfikacja Jakości (Pytest)](#9-testowanie-i-weryfikacja-jakości-pytest)
+7. [Przetwarzanie mowy i filtr bezpieczeństwa](#7-przetwarzanie-mowy-i-filtr-bezpieczeństwa)
+8. [Architektura sieciowa, porty i API](#8-architektura-sieciowa-porty-i-api)
+9. [Testy automatyczne](#9-testy-automatyczne)
 
 ---
 
-## 1. Architektura Systemu
+## 1. Architektura systemu
 
-System zaprojektowano zgodnie z wzorcem **architektury heksagonalnej (Ports & Adapters)**. Rdzeń logiki biznesowej ([`bajka/engine.py`](../bajka/engine.py)) jest całkowicie odizolowany od warstwy wejścia/wyjścia. Wszystkie kontrakty zdefiniowane są jako protokoły w pliku [`bajka/ports.py`](../bajka/ports.py).
+System korzysta ze wzorca **architektury heksagonalnej (Ports and Adapters)**. Rdzeń logiki biznesowej ([`bajka/engine.py`](../bajka/engine.py)) jest odizolowany od warstwy wejścia i wyjścia. Wszystkie kontrakty zdefiniowano jako protokoły w pliku [`bajka/ports.py`](../bajka/ports.py).
 
 ```mermaid
 flowchart TD
@@ -162,13 +162,13 @@ FilmSpringOpen2026/
 
 ---
 
-## 3. Zrzuty Ekranu i Interfejsy Produktu
+## 3. Zrzuty ekranu i interfejsy produktu
 
-System składa się z trzech zsynchronizowanych w czasie rzeczywistym interfejsów użytkownika:
+System ma trzy zsynchronizowane interfejsy:
 
-### 3.1. Odtwarzacz Streamingowy Web Player (Port `:8080`)
+### 3.1. Odtwarzacz webowy (:8080)
 
-Odtwarzacz zaprojektowano z myślą o telewizorach Smart TV oraz przeglądarkach w serwisach VOD. Obsługuje sterowanie pilotem (strzałki + Enter), dotykiem oraz głosem.
+Odtwarzacz działa w przeglądarkach na komputerach i telewizorach Smart TV. Obsługuje sterowanie pilotem (strzałki i Enter), ekranem dotykowym oraz głosem.
 
 #### Ekran startowy i odblokowanie uprawnień multimedialnych
 Przeglądarki wymagają interakcji użytkownika przed odtworzeniem dźwięku i uruchomieniem mikrofonu. Przycisk **▶ Oglądaj** inicjalizuje `AudioContext` i odblokowuje odtwarzanie.
@@ -209,30 +209,30 @@ Na koniec seansu widz widzi podsumowanie swoich unikalnych wyborów oraz przycis
 
 ---
 
-### 3.2. Panel Realizatora i Telemetria Biofeedbacku (Port `:8090`)
+### 3.2. Panel realizatora i telemetria (:8090)
 
-Dedykowany kokpit dla reżysera, technika lub rodzica. Pozwala śledzić postęp w grafie scen, monitorować decyzje montażysty AI oraz w czasie rzeczywistym symulować tętno widza.
+Ekran do podglądu stanu odtwarzania. Pozwala śledzić pozycję w grafie scen, sprawdzać cięcia montażowe oraz symulować odczyty tętna.
 
-#### Główny pulpit telemetrii
-Zawiera interaktywne drzewo scen SVG, log zdarzeń Server-Sent Events oraz suwak biometrii.
+#### Pulpit telemetrii
+Zawiera drzewo scen w SVG, log zdarzeń Server-Sent Events i suwak tętna.
 
 ![Główny Widok Panelu Realizatora](prezentacja/media/panel.jpg)
 
-#### Wizualizacja grafu scen na żywo
-Aktywny węzeł podświetla się na złoto, a przebyta ścieżka rysuje się w czasie rzeczywistym.
+#### Wizualizacja grafu scen
+Aktywny węzeł podświetla się na złoto, a przebyta ścieżka zaznaczana jest na bieżąco.
 
 ![Drzewo Grafu Scen SVG](prezentacja/media/panel-drzewo.jpg)
 
-#### Dziennik decyzji montażowych AI
-Pokazuje dokładny rodzaj przejścia (`ciecie`, `przenikanie`, `przetarcie`), czas w sekundach, źródło decyzji (`model` vs `reguly`) oraz uzasadnienie montażysty w odniesieniu do tętna widza.
+#### Dziennik decyzji montażowych
+Pokazuje rodzaj cięcia (`ciecie`, `przenikanie`, `przetarcie`), czas trwania, źródło decyzji (`model` vs `reguly`) oraz powód wybrania danego przejścia w odniesieniu do tętna widza.
 
 ![Dziennik Zdarzeń Montażowych](prezentacja/media/panel-dziennik.jpg)
 
 ---
 
-### 3.3. Drugi Ekran i Seans Grupowy na Smartfonach (Port `:8443` HTTPS)
+### 3.3. Obsługa smartfonów i głosowanie grupowe (:8443)
 
-Umożliwia wspólne oglądanie bajki przez całą rodzinę lub grupę dzieci w przedszkolu. Smartfony działają jako bezprzewodowe piloty z mikrofonem.
+Umożliwia wspólne oglądanie bajki przez grupę dzieci lub rodzinę. Smartfony działają jako bezprzewodowe kontrolery z mikrofonem.
 
 #### Parowanie przez kod QR w terminalu lub przeglądarce
 Uruchomienie serwera generuje kod QR, który otwiera aplikację na telefonach w tej samej sieci Wi-Fi.
@@ -253,96 +253,80 @@ Podczas okna wyboru opcje pojawiają się na ekranach wszystkich połączonych u
 
 ---
 
-### 3.4. Panel i Ustawienia Rodzica w Odtwarzaczu (Parent Controls & Privacy)
+### 3.4. Ustawienia rodzica w odtwarzaczu
 
-Bezpośrednio w interfejsie odtwarzacza ([`bajka/player_app/index.html`](../bajka/player_app/index.html)) rodzic ma dostęp do dedykowanego panelu konfiguracyjnego (przycisk zębatki `⚙` na górnym pasku sterowania lub sekcja na ekranie startowym).
+W odtwarzaczu ([`bajka/player_app/index.html`](../bajka/player_app/index.html)) rodzic ma dostęp do opcji konfiguracyjnych na ekranie startowym oraz pod ikoną zębatki na pasku sterowania.
 
-#### Funkcjonalności techniczne panelu rodzica w odtwarzaczu:
-1. **Przełącznik mikrofonu i prywatność (RODO / COPPA Compliance):**
-   - Rodzic decyduje, czy w oknie wyboru dziecko może odpowiadać głosem (`micSetting`), czy wyłącznie pilotem / dotykiem.
-   - **Gwarancja prywatności:** Mikrofon jest aktywowany wyłącznie podczas odliczania w oknie wyboru (12 s). Próbki audio trafiają do bufora pamięci RAM w formacie 16 kHz mono WAV, są przetwarzane lokalnie przez model Whisper i **natychmiast usuwane z pamięci**. Żadne nagrania głosu dziecka nie są zapisywane na dysku ani wysyłane do chmury.
-2. **Narzędzie testowania mikrofonu na żywo (`testMicBox`):**
-   - Zanim rozpocznie się bajka, rodzic może sprawdzić czułość mikrofonu (`testMeterFill`). Wskaźnik decybeli reaguje w czasie rzeczywistym na mowę dziecka (np. próba zawołania *„Hop-sa-sa!”* lub *„Puk, puk”*), potwierdzając gotowość sprzętową.
-3. **Napisy dla dzieci (Wczesna Nauka Czytania & Dostępność):**
-   - Opcja włączenia napisów synchronicznych (`captionsSetting`). Każde pytanie i kwestia postaci pojawia się na ekranie, wspierając dzieci w wieku przedszkolnym i wczesnoszkolnym w nauce czytania oraz zapewniając dostępność dla dzieci z wadami słuchu.
-4. **Zabezpieczenie seansu i skróty klawiszowe:**
-   - Klawisz `F` — przełączenie w tryb pełnoekranowy (True Fullscreen).
-   - Klawisz `Esc` / Przycisk `✕` (`stopButton`) — bezpieczne zakończenie odcinka i zwolnienie zasobów silnika.
-   - Minimalizacja okna lub przełączenie karty automatycznie wstrzymuje odtwarzanie (ochrona przed utratą wątku przez dziecko).
+Dostępne ustawienia:
+- **Zarządzanie mikrofonem i prywatność:** Rodzic decyduje, czy w oknie wyboru dziecko może odpowiadać głosem, czy wyłącznie pilotem lub dotykiem. Mikrofon włącza się tylko na czas odliczania w oknie wyboru (12 s). Dźwięk trafia do bufora w pamięci RAM (16 kHz mono WAV), jest lokalnie przetwarzany przez Whisper i od razu usuwany. Żadne nagrania nie są zapisywane na dysku ani wysyłane do sieci.
+- **Test mikrofonu:** Przed rozpoczęciem bajki można sprawdzić czułość mikrofonu na pasku poziomu głosu (np. mówiąc *„Hop-sa-sa”* lub *„Puk puk”*).
+- **Napisy:** Opcja włączenia napisów dialogowych i pytań na ekranie dla dzieci uczących się czytać lub z wadami słuchu.
+- **Skróty klawiszowe:** Klawisz `F` przełącza pełny ekran, a `Esc` lub przycisk `✕` kończy odcinek i zwalnia zasoby silnika. Zminimalizowanie okna automatycznie wstrzymuje odtwarzanie.
 
 ---
 
-### 3.5. Kreator Rodzica (Parent Studio & Personalizator Odcinka)
+### 3.5. Kreator rodzica (koncepcja konfiguracji)
 
-**Kreator Rodzica** ([`docs/prezentacja/KREATOR_RODZICA.md`](prezentacja/KREATOR_RODZICA.md)) to moduł pozwalający rodzicowi na zdefiniowanie celów edukacyjnych, trudności i czasu trwania bajki, zanim dziecko usiądzie przed ekranem.
+Koncepcja Kreatora ([`docs/prezentacja/KREATOR_RODZICA.md`](prezentacja/KREATOR_RODZICA.md)) zakłada, że rodzic może określić cele edukacyjne, liczbę zagadek i czas trwania bajki przed rozpoczęciem seansu.
 
 ![Kreator Rodzica — Makieta Interfejsu](prezentacja/media/kreator.png)
 
-#### Architektura generowania spersonalizowanego odcinka:
+Schemat składania odcinka z gotowych modułów:
+
 ```text
 ┌────────────────────────────────────────────────────────┐
 │                    KREATOR RODZICA                     │
-│  - Wybór celów (liczenie, wzory, emocje, przyroda)     │
+│  - Wybór tematów (liczenie, wzory, emocje, przyroda)   │
 │  - Liczba zagadek (np. 3 z 6) i trudność               │
 │  - Czas na odpowiedź (10-20 s) i liczba dopytań        │
-│  - Limit czasu ekranowego (zgodny z wytycznymi WHO)    │
+│  - Limit czasu ekranowego                              │
 └───────────────────────────┬────────────────────────────┘
-                            │ Parametry JSON
+                            │ Parametry
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │                   PLANISTA ODCINKA                     │
-│   Dobiera certyfikowane moduły scen z biblioteki       │
-│   i kompiluje spójny graf logiczny w formacie YAML     │
+│   Dobiera moduły scen z biblioteki i generuje YAML     │
 └───────────────────────────┬────────────────────────────┘
-                            │ Graf YAML
+                            │ Scenariusz YAML
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │              WALIDACJA SILNIKA (Scenario)              │
-│   Weryfikacja: brak martwych krawędzi, kompletność     │
-│   plików MP4/WebM, poprawność wyborów domyślnych       │
+│   Sprawdzenie spójności grafu, plików wideo i wyborów  │
 └───────────────────────────┬────────────────────────────┘
                             │
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│             StoryEngine & Compositor AI                │
-│             Emisja spersonalizowanego seansu           │
+│             StoryEngine & Compositor                   │
+│             Odtwarzanie seansu                         │
 └────────────────────────────────────────────────────────┘
 ```
 
-#### Dostępne parametry konfiguracyjne:
-- **Cele dydaktyczne (Modular Curriculum):**
-  - *Liczenie do trzech:* aktywacja modułu ula [`06_laka.mp4`](../scenarios/clips/klub_ciekawskich/06_laka.mp4).
-  - *Rytm i myślenie logiczne:* aktywacja modułu naprzemiennego wzoru desek [`03a_most.mp4`](../scenarios/clips/klub_ciekawskich/03a_most.mp4).
-  - *Samoregulacja emocji (Oddech relaksacyjny):* moduł uspokojenia Wiaterka Fiufiu [`04_wiaterek.mp4`](../scenarios/clips/klub_ciekawskich/04_wiaterek.mp4) z cyklem oddechowym 4s wdech / 4s wydech.
-  - *Zrozumienie funkcji narzędzi:* dobór lornetki w module [`05_pomocnik.mp4`](../scenarios/clips/klub_ciekawskich/05_pomocnik.mp4).
-- **Liczba zagadek i czas:** Możliwość skrócenia seansu do np. 7 minut przed obiadem (zagadki nieaktywne postać rozwiązuje samodzielnie w locie).
-- **Poziom trudności:** Wybór pomiędzy 2 a 3 opcjami w oknie decyzyjnym.
-- **Bezpieczeństwo treści (Zero-Hallucination):** Odcinek składa się wyłącznie ze sprawdzonych w studiu i zweryfikowanych przez człowieka (human-in-the-loop) modułów wideo. Sztuczna inteligencja nie generuje obrazu ani fabuły na żywo w sposób niekontrolowany.
+Parametry konfiguracji:
+- **Tematyka zagadek:**
+  - *Liczenie do trzech:* moduł ula [`06_laka.mp4`](../scenarios/clips/klub_ciekawskich/06_laka.mp4).
+  - *Wzory logiczne:* moduł desek na mostku [`03a_most.mp4`](../scenarios/clips/klub_ciekawskich/03a_most.mp4).
+  - *Ćwiczenie oddechowe:* uspokojenie Wiaterka Fiufiu [`04_wiaterek.mp4`](../scenarios/clips/klub_ciekawskich/04_wiaterek.mp4) z cyklem wdechu i wydechu.
+  - *Funkcje przedmiotów:* wybór narzędzia w module [`05_pomocnik.mp4`](../scenarios/clips/klub_ciekawskich/05_pomocnik.mp4).
+- **Długość odcinka:** Możliwość skrócenia seansu (niewybrane zagadki postać rozwiązuje sama bez zatrzymywania akcji).
+- **Trudność:** Wybór między 2 a 3 opcjami w oknie odpowiedzi.
+- **Bezpieczeństwo materiałów:** Odcinek składa się wyłącznie z gotowych klipów wideo przygotowanych wcześniej i sprawdzonych przez człowieka. Model nie generuje obrazu ani fabuły na żywo.
 
 ---
 
-### 3.6. Raport Po Odcinku i Rekomendacje Rozmowy Offline
+### 3.6. Raport z seansu
 
-Zamiast mechanizmu autoplay (*„następny odcinek za 5 sekund”*), aplikacja po zakończeniu bajki wyświetla lub przesyła na telefon rodzica **Raport z Seansu**:
+Po zakończeniu odcinka aplikacja wyświetla podsumowanie i propozycje rozmowy, zamiast automatycznie włączać kolejną bajkę:
 
 ![Raport Po Odcinku — Podsumowanie](prezentacja/media/raport.png)
 
-#### Struktura danych telemetrycznych raportu:
-Silnik [`StoryEngine`](../bajka/engine.py) w trakcie całego seansu zbiera metryki w strukturze `self.decisions`:
-1. **Ścieżka fabularna:** Dokładny przebieg węzłów (np. *Dziupla -> Tęczowy Mostek -> Skraj Łąki -> Ul pod Lipą -> Pszczółkowy Taniec*).
-2. **Profil interakcji dziecka:**
-   - Udział odpowiedzi głosowych (np. 65%),
-   - Udział wyboru pilotem / dotykiem (np. 35%),
-   - Czy wystąpiła konieczność dopytania (`reprompt`),
-   - Szybkość podejmowania decyzji w oknie wyboru.
-3. **Kompetencje poznawcze:** Zestawienie pojęć, z którymi dziecko weszło w interakcję (np. układ naprzemienny ABAB, synchronizacja oddechowa, liczenie obiektów w ruchu).
-4. **Most do świata offline (Wytyczne WHO i AAP):**
-   - Raport generuje **3 konkretne tematy do rozmowy** rodzica z dzieckiem nawiązujące do bajki (np. *„Bzyczka zgubiła drogę, ale poprosiła o pomoc. A Ty do kogo podchodzisz, gdy czegoś nie wiesz?”*).
-   - Propozycje zabaw ruchowych bez użycia ekranu (np. wspólne układanie klocków w kolorowy wzór mostka lub liczenie zabawek).
+Dane zbierane przez silnik w trakcie seansu (`StoryEngine.decisions`):
+- **Wybrana ścieżka:** Przebieg scen (np. Dziupla -> Tęczowy Mostek -> Skraj Łąki -> Ul pod Lipą -> Pszczółkowy Taniec).
+- **Forma odpowiedzi:** Udział odpowiedzi głosowych oraz wyboru pilotem lub dotykiem, liczba dopytań i czas reakcji.
+- **Tematy do rozmowy poza ekranem:** Pytania nawiązujące do fabuły (np. *„Bzyczka zgubiła drogę, ale poprosiła o pomoc. A Ty do kogo podchodzisz, gdy czegoś nie wiesz?”*) oraz propozycje zabaw manualnych lub ruchowych.
 
 ---
 
-## 4. Instrukcja Uruchomienia Krok po Kroku (Runbook)
+## 4. Instrukcja uruchomienia
 
 ### 4.1. Wymagania wstępne
 - **System:** Windows 10/11 (optymalny dla Foundry Local i DirectML), Linux lub macOS.
@@ -463,31 +447,31 @@ python -m bajka.linear scenarios/klub_ciekawskich.yaml --choices most,czerwona,s
 
 ---
 
-## 5. Dynamiczny Montaż AI i Silnik Biofeedbacku
+## 5. Adaptacyjny montaż i obsługa tętna
 
-Montaż nie jest statyczną listą cięć – adaptuje się na bieżąco do zaangażowania i stanu psychofizjologicznego widza.
+Montaż dostosowuje się na bieżąco do zaangażowania widza i tempa sceny.
 
-### 5.1. Analiza biometryczna i klasyfikacja tętna
-Moduł [`bajka/pulse.py`](../bajka/pulse.py) monitoruje parametr BPM (Beats Per Minute). W pierwszej scenie ustala się wartość referencyjną widza w spoczynku (`baseline`, zazwyczaj 78–82 BPM dla dziecka).
+### 5.1. Analiza tętna i klasyfikacja stanu widza
+Moduł [`bajka/pulse.py`](../bajka/pulse.py) odczytuje wartość BPM. W pierwszej scenie ustala poziom odniesienia (`baseline`, zwykle 78–82 BPM):
 
 ```text
        Spadek tętna (< 68 BPM)                 Norma (68 - 88 BPM)                 Wzrost tętna (> 88 BPM)
 ┌───────────────────────────────────┐  ┌───────────────────────────────────┐  ┌───────────────────────────────────┐
 │        STAN: ZNUŻENIE             │  │          STAN: NORMA              │  │        STAN: POBUDZENIE           │
-│  - Montaż: dynamiczny             │  │  - Montaż: zrównoważony           │  │  - Montaż: relaksujący, kojący    │
+│  - Montaż: dynamiczny             │  │  - Montaż: zrównoważony           │  │  - Montaż: spokojny               │
 │  - Cięcie: ostre / przetarcie 0.4s│  │  - Cięcie: przenikanie 0.6s       │  │  - Cięcie: miękkie przenikanie 1.5s│
 │  - Tempo: 1.08x                   │  │  - Tempo: 1.00x                   │  │  - Tempo: 0.92x                   │
-│  - Efekt Punch Cut: AKTYWNY       │  │  - Efekt Punch Cut: wyłączony     │  │  - Efekt Punch Cut: wyłączony     │
+│  - Punch Cut: aktywny             │  │  - Punch Cut: wyłączony           │  │  - Punch Cut: wyłączony           │
 └───────────────────────────────────┘  └───────────────────────────────────┘  └───────────────────────────────────┘
 ```
 
-### 5.2. Adaptacja tempa (`playbackRate`)
-Silnik modyfikuje właściwość `HTMLMediaElement.playbackRate` na elementach `<video>`:
-- **`1.08x` (Znużenie):** Subtelne przyspieszenie akcji i dialogów. Dzięki przeglądarkowemu algorytmowi time-stretching wysokość głosu (pitch) bohaterów nie ulega zniekształceniu.
-- **`0.92x` (Pobudzenie):** Spowolnienie narracji pozwalające dziecku uspokoić oddech i zredukować przestymulowanie sensoryczne.
+### 5.2. Regulacja tempa (playbackRate)
+Silnik modyfikuje właściwość `HTMLMediaElement.playbackRate` na elementach wideo:
+- **1.08x (znużenie):** Delikatne przyspieszenie dialogów i akcji. Przeglądarkowy algorytm time-stretching zachowuje naturalną wysokość głosu.
+- **0.92x (pobudzenie):** Spowolnienie ujęcia pomagające wyciszyć emocje.
 
-### 5.3. Efekt Punch Cut (Mikro-Zoom)
-W stanie znużenia lub przy dynamicznym cięciu, nowy kadr wchodzi z dynamicznym mikronajazdem realizowanym w CSS GPU:
+### 5.3. Efekt najazdu kadru (Punch Cut)
+Przy stanie znużenia cięcie może być połączone z krótkim najazdem kadru:
 ```javascript
 // Implementacja w bajka/player_app/index.html
 if (punch) {
@@ -496,33 +480,33 @@ if (punch) {
     { transform: "scale(1.06)" },
     { transform: "scale(1.0)" }
   ], {
-    duration: 420,
+    duration: 340,
     easing: "cubic-bezier(0.12, 0.82, 0.3, 1.15)",
     fill: "forwards"
   });
 }
 ```
-Zabieg ten natychmiast przyciąga uwagę widza do środka ekranu, imitując profesjonalny montaż teledyskowy/kinowy bez strat jakości wideo.
+Zabieg ten ożywia ujęcie i skupia uwagę dziecka w centrum kadru.
 
-### 5.4. Przejścia montażowe i silnik regułowo-modelowy
-W module [`bajka/montage.py`](../bajka/montage.py) zaimplementowano dwa uzupełniające się silniki:
-- **`ModelEditor`:** Wysyła do lokalnego modelu Phi lub Azure OpenAI strukturę JSON z informacjami o scenie źródłowej, docelowej, wyborze widza i tętnie. Model zwraca decyzję montażową w czasie trwania reakcji postaci.
-- **`RuleEditor`:** Niezawodny silnik regułowy działający w czasie < 1 ms. Używany jako fallback, gdy model nie zdąży przed końcem klipu reakcji.
+### 5.4. Przejścia montażowe i dobór cięć
+Moduł [`bajka/montage.py`](../bajka/montage.py) zawiera dwa mechanizmy:
+- **`ModelEditor`:** Wysyła do lokalnego modelu Phi strukturę z opisem sceny, wyboru dziecka i tętna. Model zwraca rodzaj cięcia w czasie trwania reakcji postaci.
+- **`RuleEditor`:** Zestaw deterministycznych reguł montażowych (czas wykonania poniżej 1 ms), używany gdy model nie zdąży przed końcem klipu.
 
-Dozwolone rodzaje przejść:
-| Typ przejścia | Zakres czasu | Zastosowanie |
+Rodzaje przejść:
+| Typ przejścia | Czas trwania | Zastosowanie |
 |---|---|---|
-| `ciecie` | `0.0 s` | Ostre cięcie w tym samym miejscu lub przy ożywianiu znużonego widza. |
-| `przenikanie` | `0.3 – 2.0 s` | Domyślne łagodne nałożenie kadrów (cross-dissolve). |
-| `przetarcie` | `0.4 – 1.5 s` | Wsuwanie nowego obrazu (wipe) przy zmianie lokacji sceny. |
-| `zaciemnienie` | `0.6 – 2.5 s` | Ściemnienie do czerni (fade-to-black) na finał lub uspokojenie. |
-| `rozjasnienie` | `0.8 – 2.5 s` | Rozbłysk do bieli (fade-to-white) przy radosnym odkryciu. |
+| `ciecie` | 0.0 s | Cięcie w tym samym miejscu lub przy dynamicznym tempie. |
+| `przenikanie` | 0.3 – 2.0 s | Domyślne łagodne nałożenie kadrów (cross-dissolve). |
+| `przetarcie` | 0.4 – 1.5 s | Wsuwanie nowego obrazu (wipe) przy zmianie lokacji. |
+| `zaciemnienie` | 0.6 – 2.5 s | Ściemnienie do czerni na finał lub wyciszenie. |
+| `rozjasnienie` | 0.8 – 2.5 s | Rozbłysk do bieli przy jasnym odkryciu (np. finał). |
 
 ---
 
-## 6. Specyfikacja Grafu Scenariusza (YAML Reference)
+## 6. Format scenariusza (YAML)
 
-Graf scen zdefiniowany jest w formacie YAML (np. [`scenarios/klub_ciekawskich.yaml`](../scenarios/klub_ciekawskich.yaml)).
+Graf scen zapisany jest w formacie YAML ([`scenarios/klub_ciekawskich.yaml`](../scenarios/klub_ciekawskich.yaml)).
 
 ### 6.1. Schemat węzła sceny
 
@@ -558,21 +542,21 @@ Gdy dziecko dokonuje wyboru (np. wybiera słonecznik, koniczynę lub stokrotkę)
 
 ---
 
-## 7. Silnik Przetwarzania Mowy i Bezpieczeństwo AI
+## 7. Przetwarzanie mowy i filtr bezpieczeństwa
 
 1. **Rejestracja dźwięku:** Przeglądarka nagrywa strumień 16 kHz mono PCM za pomocą Web Audio API.
 2. **Lokalny Speech-to-Text (Whisper):**
-   - Transkrypcja wykonywana lokalnie na urządzeniu za pomocą zoptymalizowanego modelu ONNX INT8 w środowisku Foundry Local.
+   - Transkrypcja wykonywana lokalnie na urządzeniu za pomocą modelu ONNX INT8 w środowisku Foundry Local.
    - W przypadku braku Foundry Local, Chromium korzysta z wbudowanego Web Speech API.
 3. **Ekstrakcja intencji i zapas słów kluczowych:**
    - Model językowy Phi analizuje transkrypcję i przypisuje ją do identyfikatora wyboru.
-   - Jeśli model nie jest pewny lub upłynął limit czasu, moduł [`bajka/keywords.py`](../bajka/keywords.py) wykonuje natychmiastowe dopasowanie scoringowe na słowach kluczowych ze scenariusza.
+   - Jeśli model nie jest pewny lub upłynął limit czasu, moduł [`bajka/keywords.py`](../bajka/keywords.py) wykonuje dopasowanie na słowach kluczowych ze scenariusza.
 4. **Filtr bezpieczeństwa (`bajka/safety.py`):**
-   - Wszystkie kwestie generowane dynamicznie przez model podlegają rygorystycznemu filtrowaniu leksykalnemu, gwarantując brak jakichkolwiek nieodpowiednich treści w bajce dla dzieci.
+   - Kwestie tekstowe podlegają filtrowaniu pod kątem słownictwa odpowiedniego dla dzieci w wieku 4–7 lat.
 
 ---
 
-## 8. Architektura Sieciowa, Porty i API REST / SSE
+## 8. Architektura sieciowa, porty i API
 
 Aplikacja zarządza trzema niezależnymi serwerami HTTP/HTTPS:
 
@@ -608,9 +592,9 @@ Aplikacja zarządza trzema niezależnymi serwerami HTTP/HTTPS:
 
 ---
 
-## 9. Testowanie i Weryfikacja Jakości (Pytest)
+## 9. Testy automatyczne
 
-Pakiet posiada zestaw testów automatycznych pokrywających silnik maszyny stanów, algorytmy montażowe, biometrię oraz serwery HTTP.
+Pakiet zawiera testy jednostkowe i integracyjne silnika, montażu, modułu tętna oraz serwerów HTTP.
 
 ### Uruchomienie testów
 W aktywnym środowisku wirtualnym:

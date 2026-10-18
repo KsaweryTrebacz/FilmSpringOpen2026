@@ -20,21 +20,21 @@ i [mockupy/raport.html](mockupy/raport.html) (po odcinku); zrzuty w [media/](med
 
 ## Co ustawia rodzic
 
-Kolumna „Dziś” mówi, co działa w prototypie (✅), a co trzeba zbudować (🔜).
+Kolumna „Status” wskazuje, które elementy działają już w prototypie, a które są planowane na kolejnych etapach:
 
-| Ustawienie | Co robi w odcinku | Dziś |
+| Ustawienie | Działanie w odcinku | Status |
 |---|---|---|
-| **Czego się uczymy** (liczenie, kolory i wzory, emocje i oddech, przyroda, dzielenie się…) | Wybór modułów zagadek z biblioteki. Moduł = scena z oknem wyboru, gałęziami i reakcjami, oznaczona umiejętnością | 🔜 tagi umiejętności; odcinek Bzyczki ma już moduły: wzór (deski), oddech (Wiaterek), liczenie (łąka), wybór narzędzia (pomocnik) |
-| **Liczba zagadek** (np. 4 z 8) | Okna, których rodzic nie wybrał, rozstrzyga postać — tak jak w wersji liniowej; odcinek jest krótszy | 🔜 per okno; ✅ dla całego odcinka: `python -m bajka.linear` (0 zagadek) |
-| **Czas na odpowiedź** | Długość odliczania w oknie wyboru | ✅ `timeout` sceny, `BAJKA_CHOICE_SECONDS` |
-| **Podpowiedzi** | Ile razy postać dopytuje, zanim wybierze sama | ✅ `BAJKA_MAX_REPROMPTS` |
-| **Trudność** | 2 albo 3 opcje w oknie, zakres liczenia, dłuższe wzory | 🔜 warianty modułów (silnik obsługuje 2–3 opcje) |
-| **Odpowiedzi głosem** | Mikrofon w oknie wyboru; rozpoznawanie na urządzeniu, nagrania usuwane od razu | ✅ ustawienie odtwarzacza, `--no-mic` |
-| **Napisy** | Kwestie i pytania na ekranie | ✅ ustawienie odtwarzacza |
-| **Oglądamy razem** | Karta dla rodzica na telefonie: pytanie do zadania w trakcie, rozmowa po odcinku | 🔜 treść; ✅ telefon jako drugi ekran (`--mobile`) |
-| **Limit ekranu** | Licznik dnia w profilu; po limicie bajka proponuje zabawę bez ekranu, bez „następnego odcinka” | 🔜 |
-| **Tempo dopasowane do tętna** (beta) | Wersja spokojna albo żywa sceny według tętna z zegarka | ✅ silnik i symulator (`--panel`); 🔜 zegarek, tylko za zgodą rodzica |
-| **Raport po odcinku** | Droga dziecka, sposób odpowiedzi, ćwiczone umiejętności, pytania do rozmowy | ✅ wybory i sposób odpowiedzi (`StoryEngine.decisions`, zdarzenie `decyzja`); 🔜 umiejętności i pytania |
+| **Tematyka edukacyjna** (liczenie, kolory i wzory, ćwiczenia oddechowe, przyroda) | Wybór modułów z biblioteki scen. Scena zawiera okno wyboru, gałęzie i reakcje przypisane do danej umiejętności. | Planowane; w pilocie zrealizowano moduły: wzór (deski), oddech (Wiaterek), liczenie (łąka), narzędzia (pomocnik) |
+| **Liczba zagadek** (np. 3 lub 4 z 8) | W scenach niewybranych przez rodzica postać decyduje sama, skracając czas trwania odcinka. | Scenariusz z pominięciem zagadek działa w module liniowym (`python -m bajka.linear`) |
+| **Czas na odpowiedź** | Długość odliczania w oknie wyboru (10–20 s). | Działa w prototypie (`timeout` sceny, zmienna `BAJKA_CHOICE_SECONDS`) |
+| **Liczba podpowiedzi** | Ile razy postać dopytuje przed podjęciem samodzielnej decyzji. | Działa w prototypie (`BAJKA_MAX_REPROMPTS`) |
+| **Poziom trudności** | Wybór między 2 a 3 opcjami, zakres liczenia, stopień złożoności wzorów logicznych. | Planowane (silnik obsługuje 2 lub 3 opcje) |
+| **Tryb odpowiedzi (głos / pilot)** | Włączenie mikrofonu w oknie wyboru lub ograniczenie do pilota i dotyku. Dźwięk przetwarzany lokalnie, bufor czyszczony z pamięci RAM. | Działa w prototypie (opcja w odtwarzaczu lub flaga `--no-mic`) |
+| **Napisy dla dzieci** | Wyświetlanie kwestii dialogowych i pytań na ekranie. | Działa w prototypie |
+| **Tryb wspólnego oglądania** | Podgląd pytań na telefonie rodzica i propozycje rozmów w trakcie seansu. | Działa serwer mobilny (`--mobile`); dedykowana treść pytań w opracowaniu |
+| **Limit czasu ekranowego** | Licznik czasu w profilu; po seansie aplikacja proponuje zabawę manualną bez autoodtwarzania kolejnego odcinka. | Planowane |
+| **Adaptacja tempa do tętna** | Dobór wersji sceny (spokojna lub żywa) na podstawie odczytu tętna. | Silnik i symulator tętna działają (`--panel`); integracja z fizycznym smartwatchem w planach |
+| **Podsumowanie po seansie** | Raport z wyborami dziecka, czasem reakcji i propozycjami rozmowy poza ekranem. | Zbieranie danych działa (`StoryEngine.decisions`); generowanie pytań w planach |
 
 Kreator v0 to więc **ekran ustawień nad parametrami, które silnik już ma**; trudniejsza część to biblioteka modułów.
 

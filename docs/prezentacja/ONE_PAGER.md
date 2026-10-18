@@ -37,10 +37,8 @@ poprawnie na 63% pytań, wobec 56% po zwykłej wersji; dzieci z biedniejszej dzi
 | Przedszkola, biblioteki | Odcinki pod temat tygodnia, tryb sali | licencja placówki |
 | Studia i właściciele postaci | Narzędzia do odcinków interaktywnych z własnych postaci | licencja narzędzi |
 
-## Stan
-Działający prototyp: odcinek „Bzyczka szuka domu” (8 klipów z generatora + zaślepki), odtwarzacz w przeglądarce,
-odpowiedzi głosem na urządzeniu, montaż AI, gałęzie i warstwy, wersja liniowa i manifest, panel podglądu,
-ponad 400 testów automatycznych. Kreator Rodzica: makieta i koncepcja; większość parametrów działa w silniku.
+## Stan projektu
+Działający prototyp: odcinek „Bzyczka szuka domu” (31 klipów wideo + 2 plansze testowe), odtwarzacz webowy z płynnymi przejściami, obsługa mowy na urządzeniu, silnik montażu adaptacyjnego, wersja liniowa i manifest JSON, panel telemetryczny oraz 444 testy automatyczne. Kreator rodzica: makieta interfejsu i obsługa parametrów w silniku.
 
 ## Szukamy
 Rodzin do pilotażu · studia animacji lub wydawcy z postaciami dla dzieci · serwisu albo platformy edukacyjnej

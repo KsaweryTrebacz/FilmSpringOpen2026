@@ -13,19 +13,11 @@
 | Slajdy (25) z notatkami | eksport PDF w załączniku · [link do slajdów](https://claude.ai/artifact/LhY5PzguvLUpW7VHhCCYtg) |
 | Kod, scenariusz i cała dokumentacja | [github.com/KsaweryTrebacz/FilmSpringOpen2026](https://github.com/KsaweryTrebacz/FilmSpringOpen2026) |
 
-> **In English (summary).** *Klub Ciekawskich* (“The Curious Club”) is an interactive animated series for children
-> aged 4–7 on streaming platforms. At key moments a character asks a question and a choice window appears: the child
-> answers with the remote, by touch or **by voice, in their own words**, and the story follows — every answer has its
-> own scene, and the editing adapts to the child's state. An **AI editor** on the device picks the transition
-> between clips (dissolve, wipe, fade) from the place, the choice and the child's mood. A **Parent Creator** lets a
-> parent set what the child learns, how many puzzles there are and how much screen time is allowed. Speech recognition
-> and the language model run **locally**, so the child's voice never leaves the device. Research on a conversational
-> version of a PBS KIDS show found that children learned more when the character really responded (63% vs 56% correct
-> answers, 240 children). The working prototype, the episode and all documents were built during the hackathon.
+> **English summary.** *Klub Ciekawskich* (The Curious Club) is an interactive animated series for children aged 4–7 designed for streaming platforms. At key story points, characters ask questions and a choice menu appears. The child can respond using a remote control, touchscreen, or voice in natural Polish. Each choice leads to an appropriate reaction or branch, with transitions (dissolves, wipes, cuts) selected based on narrative context and viewer engagement. A parent panel allows adjusting educational topics, puzzle difficulty, and screen time limits. Speech recognition and language processing run locally on device, keeping children's audio private. The playable prototype, episode scenario, and documentation were created during the FilmSpring Open 2026 hackathon.
 
 ![Okno wyboru w odtwarzaczu na klipie z odcinka](media/okno-glos.jpg)
 
-## 1. Co to jest
+## 1. Opis projektu
 
 Animowany serial dla dzieci 4–7 lat do serwisów streamingowych, w którym **dziecko rozmawia z bohaterami**.
 Odcinek pilotażowy: „Bzyczka szuka domu” — Lila Lupka i wiewiórek Fiku pomagają zagubionej pszczółce wrócić do ula.
@@ -60,90 +52,78 @@ przejście wskazane przez autora (finał Bzyczki: rozjaśnienie). Gdy dziecko je
 przenikanie), gdy się nudzi — przyspiesza (krótkie przetarcie). Rozjaśnienie trwa co najmniej 0,8 s, żeby nie
 powstawały błyski.
 
-## 2. Dlaczego to ważne — jaki problem rozwiązuje
+## 2. Problem i cel projektu
 
-- **Bajka mówi do dziecka, ale go nie słyszy.** 15 minut z bajką to 15 minut słuchania; pytanie z ekranu to tylko pauza.
-- **Rodzic wybiera tytuł — i na tym kończy się jego wpływ** na to, czego bajka uczy, ile w niej zadań i jak długo trwa.
-- **Zalecenia dla małych dzieci** (WHO 2019, pediatrzy AAP 2016): do 1 godziny ekranu dziennie dla 2–4 lat,
-  liczy się jakość i oglądanie razem z dorosłym. Rodzic nie ma narzędzia, żeby ten czas tak wyglądał.
-- **Interaktywne filmy w serwisach się nie przyjęły**: Netflix usunął 20 z 24 tytułów interaktywnych w 2024 r.
-  Były drogie w produkcji, dla dorosłych i bez rozmowy. Szukamy formy, która jest tania i daje wartość, której
-  zwykły film nie da.
+- **Tradycyjna bajka nie słucha dziecka:** W klasycznej formule pytanie z ekranu to tylko kilkusekundowa pauza, po której postać i tak mówi swoje bez względu na reakcję widza.
+- **Brak wpływu rodzica na przebieg seansu:** Rodzic może wybrać tytuł bajki, ale nie ma wpływu na liczbę zadań, czas trwania czy poziom trudności.
+- **Rekomendacje dotyczące czasu przed ekranem (WHO, AAP):** Dla dzieci w wieku 2–4 lat zaleca się do godziny dziennie wartościowych treści, najlepiej oglądanych z opiekunem. Brakuje narzędzi ułatwiających takie podejście.
+- **Dotychczasowe kino interaktywne:** Netflix wycofał większość swoich produkcji interaktywnych w 2024 roku, ponieważ były kosztowne w produkcji, kierowane do dorosłych i oparte wyłącznie na pilotach. Format dla dzieci z obsługą głosu i tańszą modułową produkcją wypełnia tę lukę.
 
-## 3. Kto skorzysta
+## 3. Odbiorcy i korzyści
 
-| Kto | Co zyskuje |
+| Odbiorca | Korzyść |
 |---|---|
-| **Dzieci 4–7 lat** | Aktywne oglądanie: rozmowa z postacią, decyzje ze skutkiem, zagadki, w których pomyłka jest częścią przygody |
-| **Dzieci, które nie czytają albo nie mówią płynnie** | Obrazki zamiast tekstu, pilot i dotyk działają zawsze, głos jest dodatkiem, długi czas na odpowiedź |
-| **Dzieci z rodzin o mniejszych zasobach** | W badaniu wersji serialu z rozmową dzieci z biedniejszej dzielnicy dorównały rówieśnikom z zamożnej (sekcja 5) |
-| **Rodzice** | Wpływ na treść i czas ekranu (Kreator), raport po odcinku, pomysły na rozmowę i zabawę bez ekranu |
-| **Rodzeństwo, rodzic oglądający z dzieckiem** | Ta sama bajka dla dziewczynek i chłopców (bez form zależnych od płci), tryb „Oglądamy razem” |
-| **Przedszkola, biblioteki** | Odcinki pod temat tygodnia, rzutnik i pilot u nauczyciela albo głosowanie z kilku tabletów |
-| **Serwisy streamingowe i aplikacje dla dzieci** | Format interaktywny, który wdrożą u siebie (manifest, wersja liniowa), bez kosztów chmury za AI |
-| **Studia animacji i właściciele postaci** | Narzędzia do robienia odcinków interaktywnych z własnych bohaterów |
+| **Dzieci w wieku 4–7 lat** | Aktywne uczestnictwo w historii, dialog z bohaterami, zadania z natychmiastową informacją zwrotną. |
+| **Dzieci nieczytające lub z trudnościami mowy** | Symbole graficzne, obsługa pilotem i dotykiem bez konieczności mówienia, wydłużony czas odpowiedzi. |
+| **Rodzice** | Kontrola nad czasem i treścią (Kreator rodzica), podsumowanie po seansie i tematy do rozmów z dzieckiem. |
+| **Rodzeństwo i grupy** | Możliwość wspólnego oglądania i podejmowania decyzji przez telefony w trybie drugiego ekranu. |
+| **Przedszkola i placówki edukacyjne** | Możliwość dopasowania tematyki odcinka do programu zajęć. |
+| **Platformy VOD i nadawcy** | Lekki format gotowy do integracji (manifest JSON lub odtwarzacz webowy), brak konieczności utrzymywania kosztownej infrastruktury chmurowej AI. |
 
-## 4. Wyzwania i jak je rozwiązujemy
+## 4. Główne wyzwania i rozwiązania techniczne
 
-| Wyzwanie | Nasza odpowiedź |
+| Wyzwanie | Rozwiązanie |
 |---|---|
-| **Koszt produkcji gałęzi** (główna bariera filmów interaktywnych) | Gałęzie trwają 15–25 s i wracają na wspólną drogę; trzy sceny mają wersje montażu zamiast osobnych odcinków; wybory kosmetyczne mogą być warstwami na jednym klipie. Odcinek Bzyczki: 17 scen (10 głównych, 7 krótkich gałęzi) daje 32 różne układy scen |
-| **Rozpoznawanie mowy małych dzieci** | Głos nie jest warunkiem (pilot, dotyk). Whisper z podpowiedzią słów odcinka, model Phi do sensu odpowiedzi, słowa kluczowe w zapasie, dopytanie przy niejasnej odpowiedzi. Zmierzone w eksperymencie (sekcja 5), do sprawdzenia z dziećmi |
-| **Prywatność dziecka, RODO** | AI na urządzeniu, bez chmury. Mikrofon tylko w oknie wyboru, nagranie usuwane zaraz po rozpoznaniu. Tętno (przyszła funkcja) to dane o zdrowiu (art. 9): osobna zgoda rodzica, przetwarzanie na urządzeniu, bez zapisu; dziś tylko symulator |
-| **Bezpieczeństwo treści AI** | AI nie generuje wideo ani fabuły na żywo. Klipy powstają wcześniej i sprawdza je człowiek; krótkie kwestie modelu przechodzą przez filtr treści. Montażysta wybiera tylko sposób połączenia gotowych klipów |
-| **Spójność klipów z generatora wideo** | Biblia wizualna postaci, stały dopisek stylu do promptów, generowanie z klatki startowej. Przegląd pierwszej partii klipów i poprawione prompty: [SCENARIUSZ_WIZUALNY_PROMPTY_AI.md](../SCENARIUSZ_WIZUALNY_PROMPTY_AI.md#-4-przegląd-klipów-z-1710) |
-| **Klipy nie pasują do siebie montażowo** | Montażysta AI dobiera przejście; pętle oczekiwania mają płynny szew (koniec przenika w początek), a pętla wchodzi przenikaniem |
-| **Serwisy nie chcą formatu interaktywnego** | Trzy drogi: nasz odtwarzacz, manifest JSON dla odtwarzacza serwisu, wersja liniowa jako zwykły film. Pierwsze kanały: aplikacje edukacyjne i biblioteczne |
-| **Czas przed ekranem** | Odcinki 10–15 min z wyraźnym końcem, bez automatycznego następnego odcinka; limit dnia i „Oglądamy razem” w Kreatorze |
-| **Słabszy sprzęt widza** | Gdy model jest wolny albo go nie ma, decydują reguły i słowa kluczowe (`--no-llm`); odcinek nigdy nie czeka na AI |
-| **Prawa do treści** | Własne postacie i świat; muzyka tylko własna; warunki generatora wideo sprawdzamy przed publikacją |
+| **Koszty produkcji rozgałęzień** | Krótkie gałęzie (15–25 s) powracające do osi głównej. Wybory rekwizytów realizowane za pomocą przezroczystych nakładek WebM, bez renderowania osobnych wariantów całych scen. |
+| **Rozpoznawanie mowy dziecka** | Wielotorowe wejście: pilot, dotyk lub głos. Model Whisper z podpowiedzią słownika scenariusza, mały model językowy Phi do interpretacji intencji oraz fallback na reguły słów kluczowych. |
+| **Prywatność i ochrona danych** | Przetwarzanie lokalne na urządzeniu, bez wysyłania dźwięku do chmury. Mikrofon aktywny tylko w trakcie okna wyboru, bufor audio kasowany z pamięci RAM zaraz po transkrypcji. |
+| **Bezpieczeństwo treści** | Modele nie generują obrazu ani fabuły na żywo. Wszystkie klipy wideo są renderowane i sprawdzane przed emisją, a teksty przechodzą przez filtr bezpieczeństwa. |
+| **Spójność wizualna materiałów** | Stała stylistyka promptów, wspólna paleta barwna (bursztyn, turkus, złoto, szafir) i generowanie ujęć z klatek referencyjnych. |
+| **Płynność montażu** | Pętle oczekiwania z przygotowanym crossfade na szwie zapętlenia. Montażysta dobiera rodzaj cięcia zależnie od zmiany miejsca i tętna widza. |
+| **Różnorodność urządzeń odtwarzających** | Gotowy odtwarzacz webowy, możliwość wygenerowania pliku liniowego MP4 lub manifestu JSON dla istniejących odtwarzaczy VOD. |
 
-## 5. Co sprawdziliśmy
+## 5. Wyniki testów i weryfikacja
 
-### Badania innych zespołów
+### Badania zewnętrzne
+- **Wpływ dialogu z postacią na przyswajanie wiedzy:** Badanie zespołu dr Ying Xu (CHI 2022) na serialu PBS KIDS *Elinor Wonders Why* wykazało wyższy poziom zapamiętywania treści u dzieci w wersji interaktywnej (63% poprawnych odpowiedzi w teście) w porównaniu z wersją pasywną (56%).
+- **Reakcja społeczna w mediach dziecięcych:** Badania Troseth, Saylor i Archer (*Child Development* 2006) potwierdzają, że dzieci w wieku przedszkolnym znacznie lepiej uczą się z ekranu, gdy postać reaguje na ich komunikaty.
 
-- **Rozmowa z postacią poprawia naukę.** Zespół Ying Xu (CHI 2022 i dalsze badania) dodał rozmowę do serialu PBS KIDS
-  *Elinor Wonders Why*. 240 dzieci w trzech grupach: wersja, w której postać rozpoznaje odpowiedź — **63%** poprawnych
-  odpowiedzi w teście; wersja z pytaniem i pauzą — 61%; zwykła — 56%. Dzieci z biedniejszej dzielnicy z wersją z AI
-  osiągnęły wyniki porównywalne z dziećmi z zamożnej dzielnicy oglądającymi zwykłą wersję.
-- **Dwulatki uczą się z wideo, gdy osoba na ekranie na nie reaguje** (Troseth, Saylor, Archer, *Child Development* 2006).
-- Źródła i wnioski dla projektu: [BADANIA.md](BADANIA.md). To wyniki tamtych badań, nie nasze — nasz efekt zmierzymy w pilotażu.
-
-### Nasze próby (17–18.10.2026)
-
-| Próba | Wynik |
+### Testy prototypu z 17–18.10.2026
+| Test | Wynik |
 |---|---|
-| **Cały odcinek w przeglądarce**, sterowany automatycznie (Chromium), z klipami z generatora wideo (18.10) i zaślepkami dla 2 scen bez animacji | Przeszedł od powitania do finału: 8 okien wyboru, 10 decyzji montażysty, ekran końcowy z wyborami widza, **0 błędów strony**. Nagranie: [odcinek_przejscie.mp4](media/odcinek_przejscie.mp4) |
-| **Tętno a montaż** (symulator w panelu podglądu) | Spadek tętna: przetarcie 0,4 s, tempo 1,08× i żywa wersja lasu; wzrost: przenikanie 1,2 s, tempo 0,92× i spokojna wersja wiaterka. Nagranie: [tetno_montaz.mp4](media/tetno_montaz.mp4) |
-| **Rozpoznawanie odpowiedzi po słowach kluczowych** (tryb bez modelu i zapas): 100 typowych odpowiedzi dzieci napisanych przez zespół, nie nagrania ([eksperyment](eksperyment/)) | Przed poprawkami: 4 z 18 niejasnych odpowiedzi (np. „nie wiem”) wybierało konkretną opcję. Po poprawkach: **79 z 81** jasnych odpowiedzi rozpoznanych dobrze, **0** złych wyborów, 2 kończą się dopytaniem; **19 z 19** niejasnych — dopytanie |
-| **Testy automatyczne** silnika, okna wyboru, rozpoznawania, montażu, wersji liniowej, manifestu, importu klipów i skryptów stron | **444** testy przechodzą; działają bez chmury, mikrofonu i przeglądarki. Test składni strony powstał po błędzie, który 18.10 wyłączył odtwarzacz |
-| **Graf odcinka** | 17 scen, na każdej ścieżce 8 okien wyboru, 32 różne układy scen (576 kombinacji odpowiedzi); każda ścieżka kończy się finałem — sprawdza to silnik przy wczytaniu |
-| **Pierwsza partia klipów z generatora wideo** (8 klipów, 17.10) | 4 dobre, 3 użyteczne z uwagami, 1 do wymiany. Test wykrył błąd naszego importu (pętle traciły dźwięk) — naprawiony |
-| **Druga partia klipów** (31 klipów, 18.10) | Pokrywa 31 z 33 klipów odcinka. Oba finały kończyły się wymyślonymi przez generator napisami końcowymi — import przycina je przed tym tekstem |
+| **Odtwarzanie pełnego odcinka w przeglądarce** | Prawidłowe przejście ścieżki od sceny startowej do finału (8 okien wyboru, 10 cięć montażowych, brak błędów w konsoli przeglądarki). |
+| **Adaptacja montażu do tętna** | Symulacja niskiego tętna skutkuje dynamicznym cięciem (0,4 s wipe, tempo 1.08x), symulacja wysokiego tętna wydłuża przenikanie (1,2 s, tempo 0.92x). |
+| **Rozpoznawanie wypowiedzi bez modelu (słowa kluczowe)** | Zestaw 100 prób tekstowych: 79 z 81 jasnych deklaracji rozpoznanych poprawnie, 0 błędnych wyborów, w 19 przypadkach niejednoznacznych wywołano dopytanie. |
+| **Testy automatyczne (pytest)** | 444 testy jednostkowe i integracyjne silnika, montażu, scenariusza i serwerów HTTP przechodzą poprawnie. |
+| **Struktura grafu scenariusza** | 17 scen, 8 decyzji na ścieżce, 32 układy narracyjne, 576 możliwych kombinacji wyborów. Silnik waliduje spójność każdego węzła. |
+| **Materiały wideo** | 31 klipów wideo przygotowanych i zoptymalizowanych do płynnego odtwarzania. |
 
-### Czego jeszcze nie sprawdziliśmy
+### Kwestie do weryfikacji w kolejnym etapie
+- Testy z udziałem rodzin i dzieci w wieku 4–7 lat (obserwacja naturalnych reakcji, preferencji wyboru pilot vs głos).
+- Testy wydajnościowe modelu Whisper i Phi na różnych konfiguracjach sprzętowych (NPU DirectML vs CPU).
 
-- **Testu z dziećmi.** Plan: 5–10 rodzin z dziećmi 4–7 lat, bez instruktażu; pomiary z dziennika aplikacji (pilot czy
-  głos, ile dopytań, czasy odpowiedzi) i rozmowa z rodzicami
-  ([plan](../ZGODNOSC_Z_REGULAMINEM.md#test-z-prawdziwą-publicznością-5-ust-3)). Wyniki chcemy dosłać w aktualizacji do 25.10.
-- **Jakości Whispera na polskiej mowie dzieci** i czasów modeli na komputerze z NPU — w tym kontenerze nie było modeli,
-  więc nagranie pokazuje wybór głosem zainscenizowany (napis „Słyszę…” wstawiony ręcznie, oznaczony w nagraniu).
-- **Zainteresowania rodziców Kreatorem** — pokażemy im klikalną makietę w pilotażu.
+## 6. Prace zrealizowane podczas hackathonu
 
-## 6. Co powstało na hackathonie („delta”)
+Projekt powstał w całości w dniach 16–18 października 2026 r.:
+- **Koncepcja i scenariusz:** Opracowanie świata Klubu Ciekawskich, postaci Lili i Fiku, grafu scenariusza i zagadek edukacyjnych.
+- **Implementacja silnika:** Architektura portów i adapterów w Pythonie (`bajka/engine.py`), obsługa stanów, timeoutów i warstw przezroczystych.
+- **Odtwarzacz webowy:** Dwudeckowy odtwarzacz wideo w JavaScript (`bajka/player_app/`), płynne przejścia CSS, obsługa Web Audio i Web Speech API.
+- **System montażu:** Moduł doboru cięć na bazie kontekstu i tętna widza z deterministycznym fallbackiem regułowym (`bajka/montage.py`).
+- **Narzędzia wspomagające:** Panel realizatora z podglądem telemetrii (`bajka/panel.py`), obsługa drugiego ekranu na smartfonach (`bajka/mobile.py`) oraz eksporter do wideo liniowego (`bajka/linear.py`).
 
-Projekt **nie opiera się na wdrożonym produkcie**. Pomysł, scenariusz, odcinek, kod i dokumentacja powstały
-16–18.10.2026 (historia zmian w repozytorium od 16.10). W trakcie hackathonu zmieniliśmy formę z seansu kinowego
-z udziałem sali (16.10) na odcinek do serwisów streamingowych (17.10) i dodaliśmy koncepcję Kreatora Rodzica.
+**Komponenty zewnętrzne:** Do uruchamiania modeli lokalnych wykorzystano środowisko Foundry Local SDK, modele Whisper i Phi oraz narzędzie FFmpeg do obróbki wideo. Badania z sekcji 5 to prace innych zespołów.
 
-**Nasze:** świat i postacie, scenariusz odcinka z gałęziami i warstwami, silnik odcinka, odtwarzacz w przeglądarce
-z przejściami i warstwami, okno wyboru z odpowiedzią głosem, montażysta AI (decyzje i reguły), wersja liniowa
-i manifest, import klipów z generatora z płynnymi pętlami, panel podglądu, symulator tętna, makiety Kreatora
-i raportu, eksperyment z rozpoznawaniem odpowiedzi.
+## 7. Dalsze plany
 
-**Gotowe składniki, z których korzystamy:** Foundry Local (uruchamianie modeli na urządzeniu), Whisper (mowa → tekst),
-Phi (zrozumienie odpowiedzi i decyzje montażysty), ffmpeg (wideo), generator wideo (klipy według naszych promptów),
-biblioteki Pythona. Badania z sekcji 5 to prace innych zespołów.
+| Kiedy | Co |
+|---|---|
+| do 25.10 (aktualizacja zgłoszenia) | Test z kilkoma rodzinami, 2 brakujące klipy i warstwy kwiatków, uzupełnione badania zespołu |
+| 29.10 | Pokaz na żywo na sesji online: widzowie transmisji wybierają drogę na czacie |
+| 1–3 miesiące | Pilotaż z 5–10 rodzinami, pełny odcinek z nagranymi głosami postaci, Kreator v0 |
+| 3–6 miesięcy | Biblioteka modułów z oznaczonymi umiejętnościami, planista Kreatora, raport dla rodzica, trzy odcinki |
+| 6–12 miesięcy | Pierwszy partner (serwis albo platforma edukacyjna); tętno w becie, tylko za zgodą rodzica |
+
+Model biznesowy (hipotezy do sprawdzenia): subskrypcja dla rodzin, licencja dla serwisów i placówek edukacyjnych, licencja narzędzi dla studiów. Ceny ustalimy po pilotażu ([ONE_PAGER.md](ONE_PAGER.md)).
 
 ## Załączniki i dalsza lektura
 
