@@ -831,118 +831,198 @@ function normalizeText(text) {
     .trim();
 }
 
-function textMatchesChoice(heardText, choiceId, label) {
-  const clean = t => (t || "").toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
-  const h = clean(heardText);
-  const id = clean(choiceId);
-  const l = clean(label);
-  const heardWords = (heardText || "").toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/);
-
-  if (!h) return false;
-  // Krótkie słowa (< 4 litery, np. "las") tylko jako CAŁE wyrazy, nie jako podciąg w innym słowie ("lastek", "klasa")!
-  if (id.length >= 4) {
-    if (h.includes(id) || id.includes(h)) return true;
-  } else if (heardWords.includes(id)) {
-    return true;
+function editDistance(s1, s2) {
+  if (s1 === s2) return 0;
+  if (Math.abs(s1.length - s2.length) > 2) return Math.abs(s1.length - s2.length);
+  const d = [];
+  const l1 = s1.length, l2 = s2.length;
+  for (let i = 0; i <= l1; i++) {
+    d[i] = [i];
   }
-
-  if (l.length >= 4 && (h.includes(l) || l.includes(h))) return true;
-
-  const synonyms = {
-    hopsasa: [
-      "hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz",
-      "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek",
-      "krope", "kropie", "kroce", "kroczę", "kropa", "krop", "hopsy", "hopla", "chopsasa", "chop",
-      "hops", "zawolajmy", "krzyczymy", "krzyknij"
-    ],
-    pukanie: [
-      "puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie",
-      "bog", "buk", "pogo", "pog", "buku", "stuku", "pukpukpuk", "puk puk", "stuk stuk", "pukaj", "puknij", "puku",
-      "bogbog", "pogpog", "bukbuk", "buki", "bogow", "boga", "boki", "boku", "zapukam", "stuknij", "stukac", "pukne", "zapukamy", "stukamy", "pugu"
-    ],
-    most: [
-      "most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek",
-      "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka",
-      "tenczowy", "tenczowym", "teczowym", "lastek", "mastek", "trawym"
-    ],
-    las: [
-      "las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu",
-      "dolasu", "borem", "bor", "szum", "szumiaco", "szumia", "szumi las", "szumilas", "przez las", "do lasu", "lasku", "laskiem"
-    ],
-    czerwona: ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka", "pierwsza", "jeden", "1"],
-    niebieska: ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo", "druga", "dwa", "2"],
-    sowa: ["sow", "sowa", "sowe", "sowka", "ptak", "dziupla", "hu", "huhu", "hu-hu", "hu hu", "u-hu", "uhu"],
-    zaba: ["zab", "zaba", "zabe", "zabka", "kum", "kumkum", "kum-kum", "kum kum", "rechot"],
-    rumianek: ["rumianek", "rumian", "bialy", "biala"],
-    chaber: ["chaber", "chabry", "niebieski"],
-    mak: ["mak", "maki", "czerwony", "czerwona"],
-    spokojnie: ["spokojnie", "udalo", "tak", "juz", "fu", "fuu", "uff", "dmucham", "wdech", "wydech"],
-    jeszcze: ["jeszcze", "znowu", "powtorz", "powtorzmy", "nie", "jeszcze raz"],
-    mapa: ["mapa", "mape", "mapy", "rozkladanka"],
-    latarka: ["latarka", "latarke", "latarki", "swietliczka", "swiatlo"],
-    lornetka: ["lornetka", "lornetke", "lornetki", "patrzalka", "daleko"],
-    trzy: ["trzy", "trojka", "trzecia", "trzech", "3", "jeden dwa trzy"],
-    slonecznik: ["slonecznik", "slonecznika", "sloneczniki", "slonecznikiem", "slonce", "zolty", "duzy", "kwiat", "kwiatek", "pierwszy", "1"],
-    koniczyna: ["koniczyna", "koniczyne", "koniczynka", "koniczynke", "koniczynki", "zielona", "drugi", "2"],
-    stokrotka: ["stokrotka", "stokrotke", "stokrotki", "stokrotce", "biala", "mala", "trzeci", "3"],
-    taniec: [
-      "taniec", "tanca", "tancem", "tanczyc", "tanczymy", "zatanczyc", "zatanczmy", "tanczmy",
-      "skaczemy", "skakac", "ruch", "machac", "bzz", "pszczolkowy taniec", "pszczolkowy", "pierwszy", "1"
-    ],
-    piosenka: [
-      "piosenka", "piosenke", "piosenki", "piosence", "spiewac", "spiewamy", "zaspiewac", "zaspiewajmy",
-      "muzyka", "la la la", "piosenka o kwiatkach", "druga", "2"
-    ],
-    inna_liczba: ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "czworeczka", "inna"]  // bez „nie trzy”: samo „trzy” pasowałoby do obu opcji
-  };
-
-  const list = synonyms[choiceId] || [];
-  // Krótkie słowa („nie”, „tak”, „hu”) tylko jako całe wyrazy (heardWords): „spokojnie” kończy się na „nie”.
-  for (const s of list) {
-    const key = s.replace(/[^a-z0-9]/g, "");
-    if (key.length >= 4 ? h.includes(key) : heardWords.includes(key)) return true;
+  for (let j = 0; j <= l2; j++) {
+    d[0][j] = j;
   }
-  return false;
+  for (let i = 1; i <= l1; i++) {
+    for (let j = 1; j <= l2; j++) {
+      const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i - 1][j] + 1,
+        d[i][j - 1] + 1,
+        d[i - 1][j - 1] + cost
+      );
+      if (i > 1 && j > 1 && s1[i - 1] === s2[j - 2] && s1[i - 2] === s2[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
+    }
+  }
+  return d[l1][l2];
 }
 
-// „Nie wiem” to odpowiedź, a nie wybór: postać ma dopytać, zamiast zgadywać po podobnych słowach (jak w bajka/keywords.py).
+const SYNONYMS = {
+  hopsasa: [
+    "hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz",
+    "obudz", "budz", "glosno", "tak", "ho-pisa", "hopisa", "hop-sa-sa", "pisa", "kuferek",
+    "krope", "kropie", "kroce", "kroczę", "kropa", "krop", "hopsy", "hopla", "chopsasa", "chop",
+    "hops", "zawolajmy", "krzyczymy", "krzyknij"
+  ],
+  pukanie: [
+    "puk", "pukpuk", "zapukaj", "zapuk", "pukam", "pukanie", "stuk", "wieko", "zapukac", "puknij", "puk-puk", "stukanie",
+    "bog", "buk", "pogo", "pog", "buku", "stuku", "pukpukpuk", "puk puk", "stuk stuk", "pukaj", "puknij", "puku",
+    "bogbog", "pogpog", "bukbuk", "buki", "bogow", "boga", "boki", "boku", "zapukam", "stuknij", "stukac", "pukne", "zapukamy", "stukamy", "pugu"
+  ],
+  most: [
+    "most", "mostek", "tecza", "teczowy", "kolory", "rzeka", "strumyk", "kolorowy", "teczowymostek", "teczowy mostek",
+    "woda", "mostkiem", "mostka", "mostu", "mosty", "mostku", "na most", "przez most", "przez mostek", "do mostka",
+    "tenczowy", "tenczowym", "teczowym", "lastek", "mastek", "trawym"
+  ],
+  las: [
+    "las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu",
+    "dolasu", "borem", "bor", "szum", "szumiaco", "szumia", "szumi las", "szumilas", "przez las", "do lasu", "lasku", "laskiem"
+  ],
+  czerwona: [
+    "czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "czerwonka", "truskawka",
+    "czerowny", "czerowna", "czerowne", "czerwonadeska", "czerwona deska", "pierwsza", "pierwszy", "jeden", "1"
+  ],
+  niebieska: [
+    "niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "blekitna", "niebo",
+    "niebjeska", "niebeska", "niebieskadeska", "niebieska deska", "druga", "drugi", "dwa", "2"
+  ],
+  sowa: ["sow", "sowa", "sowe", "sowka", "ptak", "dziupla", "hu", "huhu", "hu-hu", "hu hu", "u-hu", "uhu", "pierwsza", "pierwszy", "1"],
+  zaba: ["zab", "zaba", "zabe", "zabka", "kum", "kumkum", "kum-kum", "kum kum", "rechot", "druga", "drugi", "2"],
+  rumianek: ["rumianek", "rumian", "bialy", "biala"],
+  chaber: ["chaber", "chabry", "niebieski"],
+  mak: ["mak", "maki", "czerwony", "czerwona"],
+  spokojnie: ["spokojnie", "udalo", "udalo sie", "tak", "juz", "fu", "fuu", "uff", "dmucham", "wdech", "wydech", "pierwsza", "pierwszy", "1"],
+  jeszcze: ["jeszcze", "jeszcze raz", "znowu", "powtorz", "powtorzmy", "nie", "druga", "drugi", "2"],
+  mapa: ["mapa", "mape", "mapy", "mapie", "mapka", "mapa rozkladanka", "rozkladanka", "plan", "droga", "pierwsza", "pierwszy", "1"],
+  latarka: ["latarka", "latarke", "latarki", "latarce", "swietliczka", "swiatlo", "swieci", "druga", "drugi", "2"],
+  lornetka: [
+    "lornetka", "lornetke", "lornetki", "lornetce", "lornetko", "lornetka patrzalka",
+    "patrzalka", "patrzalke", "patrzalki", "patrzec", "patrze", "daleko", "przybliz", "przybliza",
+    "lupa", "lupka", "szkielka", "loretka", "ornetka", "lornet", "trzecia", "trzeci", "3"
+  ],
+  trzy: [
+    "trzy", "3", "trzech", "trzem", "trzema", "trzecia", "trzeci", "trojka",
+    "jeden dwa trzy", "raz dwa trzy", "jedna dwie trzy", "raz dwa", "dwie trzy",
+    "czy", "drzy", "tszy", "tzy", "trzi", "pszczoly", "pszczolki", "trzy pszczoly", "trzy pszczolki", "sa trzy", "widze trzy"
+  ],
+  slonecznik: ["slonecznik", "slonecznika", "sloneczniki", "slonecznikiem", "slonce", "zolty", "duzy", "kwiat", "kwiatek", "pierwszy", "pierwsza", "1"],
+  koniczyna: ["koniczyna", "koniczyne", "koniczynka", "koniczynke", "koniczynki", "zielona", "drugi", "druga", "2"],
+  stokrotka: ["stokrotka", "stokrotke", "stokrotki", "stokrotce", "biala", "mala", "trzeci", "trzecia", "3"],
+  taniec: [
+    "taniec", "tanca", "tancem", "tanczyc", "tanczymy", "zatanczyc", "zatanczmy", "tanczmy",
+    "skaczemy", "skakac", "ruch", "machac", "bzz", "pszczolkowy taniec", "pszczolkowy", "pierwszy", "pierwsza", "1"
+  ],
+  piosenka: [
+    "piosenka", "piosenke", "piosenki", "piosence", "spiewac", "spiewamy", "zaspiewac", "zaspiewajmy",
+    "muzyka", "la la la", "piosenka o kwiatkach", "druga", "drugi", "2"
+  ],
+  inna_liczba: ["cztery", "piec", "szesc", "siedem", "osiem", "czworka", "piatka", "duzo", "wiele", "4", "5", "6", "czworeczka", "inna", "wiecej"]
+};
+
+const ORDINALS = [
+  ["1", "jeden", "pierwsz", "jedynka", "pierwsza", "pierwsze", "pierwszy"],
+  ["2", "dwa", "drug", "dwojka", "druga", "drugie", "drugi"],
+  ["3", "trzy", "trzec", "trojka", "trzecia", "trzecie", "trzeci"]
+];
+
 const DONT_KNOW = /\bnie (wiem|umiem|pamietam|rozumiem|mam pojecia)\b/;
+
+function scoreButton(cleanHeard, heardWords, choiceId, label, index, kws) {
+  if (!cleanHeard) return 0;
+
+  // Specjalna reguła dla opcji liczenia pszczół
+  if (choiceId === "trzy" || choiceId === "inna_liczba") {
+    const counting = ["jedendwatrzy", "razdwatrzy", "jednadwietrzy", "dwietrzy", "trzy", "czy", "trojka", "trzech", "3", "pszczoly", "pszczolki"];
+    if (choiceId === "trzy") {
+      if (counting.some(p => cleanHeard.includes(p))) return 50;
+    } else if (choiceId === "inna_liczba") {
+      const others = ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "inna", "wiecej"];
+      if (others.some(n => cleanHeard.includes(n))) return 50;
+      return 0;
+    }
+  }
+
+  let score = 0;
+  const cleanId = choiceId.replace(/[^a-z0-9]/g, "");
+  const cleanLabel = label.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+
+  // 1. Pełna etykieta i identyfikator
+  if (cleanLabel && cleanLabel.length >= 4 && cleanHeard.includes(cleanLabel)) {
+    score += 25;
+  } else if (cleanId && cleanId.length >= 4 && cleanHeard.includes(cleanId)) {
+    score += 15;
+  }
+
+  // 2. Numer przycisku (1, 2, 3)
+  if (index < ORDINALS.length) {
+    for (const ord of ORDINALS[index]) {
+      if (heardWords.includes(ord) || (ord.length >= 4 && cleanHeard.includes(ord))) {
+        score += 8;
+        break;
+      }
+    }
+  }
+
+  // 3. Synonimy i keywords
+  const allSyns = [...(kws || []), ...(SYNONYMS[choiceId] || [])];
+  for (const s of allSyns) {
+    const cleanSyn = s.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+    if (!cleanSyn) continue;
+    if (s.includes(" ") && cleanHeard.includes(cleanSyn)) {
+      score += 20;
+      continue;
+    }
+    for (const w of heardWords) {
+      if (w === cleanSyn) {
+        score += 12;
+      } else if (cleanSyn.length >= 4 && (w.startsWith(cleanSyn) || cleanSyn.startsWith(w))) {
+        score += 9;
+      } else if (w.length >= 5 && cleanSyn.length >= 5 && editDistance(w, cleanSyn) <= 1) {
+        score += 8;
+      } else if (w.length >= 8 && cleanSyn.length >= 8 && editDistance(w, cleanSyn) <= 2) {
+        score += 7;
+      }
+    }
+  }
+
+  return score;
+}
 
 function matchChoice(heardText) {
   if (!ask) return null;
   const plain = heardText.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ");
   if (DONT_KNOW.test(plain)) return null;
+
+  const cleanHeard = heardText.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+  const heardWords = plain.trim().split(/\s+/).filter(Boolean);
   const buttons = [...$("options").children];
+
+  let best = null;
+  let topScore = 0;
+  let secondScore = 0;
 
   for (let i = 0; i < buttons.length; i++) {
     const btn = buttons[i];
     const choiceId = btn.dataset.choice;
     const spans = btn.querySelectorAll("span");
     const label = (spans.length > 1 ? spans[1].textContent : (spans[0]?.textContent || "")).trim();
+    let kws = [];
+    try { kws = JSON.parse(btn.dataset.keywords || "[]"); } catch (_) {}
 
-    // 1. Sprawdź numer 1, 2, 3
-    const numWords = [["1", "jeden", "pierwsz", "jedynka"], ["2", "dwa", "drug", "dwojka"], ["3", "trzy", "trzec", "trojka"]];
-    const cleanHeard = heardText.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
-    if (numWords[i] && numWords[i].some(w => cleanHeard.includes(w))) {
-      return { choiceId, button: btn, label };
+    const score = scoreButton(cleanHeard, heardWords, choiceId, label, i, kws);
+    if (score > topScore) {
+      secondScore = topScore;
+      topScore = score;
+      best = { choiceId, button: btn, label };
+    } else if (score > secondScore) {
+      secondScore = score;
     }
+  }
 
-    // 2. Sprawdź keywords przypisane do opcji ze scenariusza
-    try {
-      const kws = JSON.parse(btn.dataset.keywords || "[]");
-      const heardWords = cleanHeard.split(/[^a-z0-9]+/);
-      for (const kw of kws) {
-        const cleanKw = kw.toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
-        if (cleanKw.length >= 4 ? cleanHeard.includes(cleanKw) : heardWords.includes(cleanKw)) {
-          return { choiceId, button: btn, label };
-        }
-      }
-    } catch (_) {}
-
-    // 3. Sprawdź po nazwie i synonimach
-    if (textMatchesChoice(heardText, choiceId, label)) {
-      return { choiceId, button: btn, label };
-    }
+  if (best && topScore > 0 && (topScore > secondScore || secondScore === 0)) {
+    console.log(`Matched choice: ${best.choiceId} (score: ${topScore} vs ${secondScore}) for: "${heardText}"`);
+    return best;
   }
   return null;
 }
@@ -992,7 +1072,7 @@ function onAudio(input, rate) {
     r.silentMs += ms;
   }
 
-  if ((r.speaking && r.silentMs >= 650) || r.spokenMs >= r.maxMs || performance.now() > r.deadline) {
+  if ((r.speaking && r.silentMs >= 950) || r.spokenMs >= r.maxMs || performance.now() > r.deadline) {
     stopRecording(true);
   }
 }

@@ -71,6 +71,30 @@ def same_word(spoken: str, keyword: str) -> bool:
     return common >= max(4, min(len(spoken), len(keyword)) - 1)
 
 
+def edit_distance(s1: str, s2: str) -> int:
+    if s1 == s2:
+        return 0
+    if abs(len(s1) - len(s2)) > 2:
+        return abs(len(s1) - len(s2))
+    d = {}
+    l1, l2 = len(s1), len(s2)
+    for i in range(-1, l1 + 1):
+        d[(i, -1)] = i + 1
+    for j in range(-1, l2 + 1):
+        d[(-1, j)] = j + 1
+    for i in range(l1):
+        for j in range(l2):
+            cost = 0 if s1[i] == s2[j] else 1
+            d[(i, j)] = min(
+                d[(i - 1, j)] + 1,
+                d[(i, j - 1)] + 1,
+                d[(i - 1, j - 1)] + cost
+            )
+            if i > 0 and j > 0 and s1[i] == s2[j - 1] and s1[i - 1] == s2[j]:
+                d[(i, j)] = min(d[(i, j)], d[(i - 2, j - 2)] + 1)
+    return d[(l1 - 1, l2 - 1)]
+
+
 SYNONYMS: dict[str, list[str]] = {
     "hopsasa": [
         "hop", "sasa", "hopsasa", "hopsa", "zawolam", "zawolaj", "zawol", "wolam", "krzycz",
@@ -92,31 +116,45 @@ SYNONYMS: dict[str, list[str]] = {
         "las", "lasek", "drzewa", "drzewo", "szumi", "szumiacy", "szumiac", "szumiacylas", "szumiacy las", "lasem", "lasu",
         "dolasu", "borem", "bor", "szum", "szumiaco", "szumia", "szumi las", "szumilas", "przez las", "do lasu", "lasku", "laskiem"
     ],
-    "czerwona": ["czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "truskawka", "pierwsza", "jeden", "1"],
-    "niebieska": ["niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "niebo", "druga", "dwa", "2"],
-    "sowa": ["sow", "sowa", "sowe", "sowka", "ptak", "dziupla", "hu", "huhu", "hu-hu", "hu hu", "u-hu", "uhu"],
-    "zaba": ["zab", "zaba", "zabe", "zabka", "kum", "kumkum", "kum-kum", "kum kum", "rechot"],
+    "czerwona": [
+        "czerwon", "czerwona", "czerwone", "czerwony", "czerwien", "czerwonka", "truskawka",
+        "czerowny", "czerowna", "czerowne", "czerwonadeska", "czerwona deska", "pierwsza", "pierwszy", "jeden", "1"
+    ],
+    "niebieska": [
+        "niebiesk", "niebieska", "niebieskie", "niebieski", "blekit", "blekitna", "niebo",
+        "niebjeska", "niebeska", "niebieskadeska", "niebieska deska", "druga", "drugi", "dwa", "2"
+    ],
+    "sowa": ["sow", "sowa", "sowe", "sowka", "ptak", "dziupla", "hu", "huhu", "hu-hu", "hu hu", "u-hu", "uhu", "pierwsza", "pierwszy", "1"],
+    "zaba": ["zab", "zaba", "zabe", "zabka", "kum", "kumkum", "kum-kum", "kum kum", "rechot", "druga", "drugi", "2"],
     "rumianek": ["rumianek", "rumian", "bialy", "biala"],
     "chaber": ["chaber", "chabry", "niebieski"],
     "mak": ["mak", "maki", "czerwony", "czerwona"],
-    "spokojnie": ["spokojnie", "udalo", "tak", "juz", "fu", "fuu", "uff", "dmucham", "wdech", "wydech"],
-    "jeszcze": ["jeszcze", "znowu", "powtorz", "powtorzmy", "nie", "jeszcze raz"],
-    "mapa": ["mapa", "mape", "mapy", "rozkladanka"],
-    "latarka": ["latarka", "latarke", "latarki", "swietliczka", "swiatlo"],
-    "lornetka": ["lornetka", "lornetke", "lornetki", "patrzalka", "daleko"],
-    "trzy": ["trzy", "trojka", "trzecia", "trzech", "3", "jeden dwa trzy"],
-    "slonecznik": ["slonecznik", "slonecznika", "sloneczniki", "slonecznikiem", "slonce", "zolty", "duzy", "kwiat", "kwiatek", "pierwszy", "1"],
-    "koniczyna": ["koniczyna", "koniczyne", "koniczynka", "koniczynke", "koniczynki", "zielona", "drugi", "2"],
-    "stokrotka": ["stokrotka", "stokrotke", "stokrotki", "stokrotce", "biala", "mala", "trzeci", "3"],
+    "spokojnie": ["spokojnie", "udalo", "udalo sie", "tak", "juz", "fu", "fuu", "uff", "dmucham", "wdech", "wydech", "pierwsza", "pierwszy", "1"],
+    "jeszcze": ["jeszcze", "jeszcze raz", "znowu", "powtorz", "powtorzmy", "nie", "druga", "drugi", "2"],
+    "mapa": ["mapa", "mape", "mapy", "mapie", "mapka", "mapa rozkladanka", "rozkladanka", "plan", "droga", "pierwsza", "pierwszy", "1"],
+    "latarka": ["latarka", "latarke", "latarki", "latarce", "swietliczka", "swiatlo", "swieci", "druga", "drugi", "2"],
+    "lornetka": [
+        "lornetka", "lornetke", "lornetki", "lornetce", "lornetko", "lornetka patrzalka",
+        "patrzalka", "patrzalke", "patrzalki", "patrzec", "patrze", "daleko", "przybliz", "przybliza",
+        "lupa", "lupka", "szkielka", "loretka", "ornetka", "lornet", "trzecia", "trzeci", "3"
+    ],
+    "trzy": [
+        "trzy", "3", "trzech", "trzem", "trzema", "trzecia", "trzeci", "trojka",
+        "jeden dwa trzy", "raz dwa trzy", "jedna dwie trzy", "raz dwa", "dwie trzy",
+        "czy", "drzy", "tszy", "tzy", "trzi", "pszczoly", "pszczolki", "trzy pszczoly", "trzy pszczolki", "sa trzy", "widze trzy"
+    ],
+    "slonecznik": ["slonecznik", "slonecznika", "sloneczniki", "slonecznikiem", "slonce", "zolty", "duzy", "kwiat", "kwiatek", "pierwszy", "pierwsza", "1"],
+    "koniczyna": ["koniczyna", "koniczyne", "koniczynka", "koniczynke", "koniczynki", "zielona", "drugi", "druga", "2"],
+    "stokrotka": ["stokrotka", "stokrotke", "stokrotki", "stokrotce", "biala", "mala", "trzeci", "trzecia", "3"],
     "taniec": [
         "taniec", "tanca", "tancem", "tanczyc", "tanczymy", "zatanczyc", "zatanczmy", "tanczmy",
-        "skaczemy", "skakac", "ruch", "machac", "bzz", "pszczolkowy taniec", "pszczolkowy", "pierwszy", "1"
+        "skaczemy", "skakac", "ruch", "machac", "bzz", "pszczolkowy taniec", "pszczolkowy", "pierwszy", "pierwsza", "1"
     ],
     "piosenka": [
         "piosenka", "piosenke", "piosenki", "piosence", "spiewac", "spiewamy", "zaspiewac", "zaspiewajmy",
-        "muzyka", "la la la", "piosenka o kwiatkach", "druga", "2"
+        "muzyka", "la la la", "piosenka o kwiatkach", "druga", "drugi", "2"
     ],
-    "inna_liczba": ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "czworeczka", "inna"]  # bez „nie trzy”: samo „trzy” byłoby wtedy w obu opcjach,
+    "inna_liczba": ["cztery", "piec", "szesc", "siedem", "osiem", "czworka", "piatka", "duzo", "wiele", "4", "5", "6", "czworeczka", "inna", "wiecej"]
 }
 
 ORDINALS: list[list[str]] = [
@@ -131,76 +169,90 @@ def choice_keywords(choice: Choice) -> list[str]:
     return [*choice.id.split("_"), *choice.keywords]
 
 
-def matches(transcript: str, choice: Choice, index: int | None = None) -> bool:
-    """Czy wypowiedź pasuje do danego wyboru (po numerze, słowach kluczowych, synonimach lub rdzeniu)."""
+def score_choice(transcript: str, choice: Choice, index: int, scene_id: str) -> int:
     clean_spoken = compact(transcript)
-    if not clean_spoken:
-        return False
-
-    # 1. Numer wyboru (np. "jeden", "pierwsza", "dwa")
-    if index is not None and index < len(ORDINALS):
-        if any(ord_word in clean_spoken for ord_word in ORDINALS[index]):
-            return True
-
     spoken_words = words(transcript)
+    if not clean_spoken:
+        return 0
 
-    # 2. Identyfikator i etykieta wyboru
+    # Scena liczenia pszczółek: priorytet dla fraz liczenia i liczby 3
+    if scene_id == "laka":
+        counting_phrases = ["jedendwatrzy", "razdwatrzy", "jednadwietrzy", "dwietrzy", "trzy", "czy", "trojka", "trzech", "3", "pszczoly", "pszczolki"]
+        if choice.id == "trzy":
+            if any(p in clean_spoken for p in counting_phrases):
+                return 50
+        elif choice.id == "inna_liczba":
+            other_nums = ["cztery", "piec", "szesc", "czworka", "duzo", "4", "5", "6", "inna", "wiecej"]
+            if any(n in clean_spoken for n in other_nums):
+                return 50
+            return 0
+
+    score = 0
     clean_id = compact(choice.id)
     clean_label = compact(choice.display_label)
-    # Krótkie identyfikatory (< 4 litery, np. "las") tylko jako całe wyrazy, nie jako podciąg w innym słowie (np. "lastek", "klasa")
-    if clean_id:
-        if len(clean_id) >= 4:
-            if clean_id in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_id):
-                return True
-        elif clean_id in spoken_words:
-            return True
 
-    if clean_label and (clean_label in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_label)):
-        return True
+    # 1. Pełna etykieta i identyfikator
+    if clean_label and clean_label in clean_spoken:
+        score += 25
+    elif clean_id and len(clean_id) >= 4 and clean_id in clean_spoken:
+        score += 15
+
+    # 2. Ordinals (pozycja przycisku: 1, 2, 3)
+    if index < len(ORDINALS):
+        for ord_word in ORDINALS[index]:
+            if ord_word in spoken_words or (len(ord_word) >= 4 and ord_word in clean_spoken):
+                score += 8
+                break
 
     # 3. Synonimy i słowa kluczowe
     kws = [*choice_keywords(choice), *SYNONYMS.get(choice.id, [])]
-    for kw in kws:
-        clean_kw = compact(kw)
-        if not clean_kw:
+    for syn in kws:
+        clean_syn = compact(syn)
+        if not clean_syn:
             continue
-        # Krótkie słowa („las”, „nie”, „tak”, „hu”) tylko jako całe wyrazy: „lastek” to nie „las”.
-        if len(clean_kw) >= 4:
-            if clean_kw in clean_spoken or (len(clean_spoken) >= 4 and clean_spoken in clean_kw):
-                return True
-        elif clean_kw in spoken_words:
-            return True
+        if " " in syn and compact(syn) in clean_spoken:
+            score += 20
+            continue
+        for w in spoken_words:
+            if w == clean_syn:
+                score += 12
+            elif len(clean_syn) >= 4 and (w.startswith(clean_syn) or clean_syn.startswith(w)):
+                score += 9
+            elif len(w) >= 5 and len(clean_syn) >= 5 and edit_distance(w, clean_syn) <= 1:
+                score += 8
+            elif len(w) >= 8 and len(clean_syn) >= 8 and edit_distance(w, clean_syn) <= 2:
+                score += 7
 
-    # 4. Dopasowanie wyraz po wyrazie
-    for kw in kws:
-        parts = words(kw)
-        for start in range(len(spoken_words) - len(parts) + 1) if parts else ():
-            if all(same_word(w, p) for w, p in zip(spoken_words[start:], parts)):
-                return True
+    return score
 
-    return False
+
+def matches(transcript: str, choice: Choice, index: int | None = None) -> bool:
+    """Kompatybilność wsteczna: czy wypowiedź daje dodatni wynik dla wyboru."""
+    return score_choice(transcript, choice, index or 0, "") > 0
 
 
 class KeywordIntentResolver:
-    """Wybór rozpoznany, gdy wypowiedź pasuje do słów dokładnie jednego wyboru.
-
-    Zwraca pustą kwestię, więc silnik powie statyczne `reply` ze scenariusza, a przy braku
-    dopasowania — `reprompt` sceny.
-    """
+    """Wybór rozpoznany po słowach kluczowych i dopasowaniu rozmytym (fuzzy scoring)."""
 
     def resolve(self, scene: Scene, transcript: str) -> Interpretation:
         if dont_know(transcript):
             log.info("Dziecko nie wie (%r), dopytuję", transcript)
             return Interpretation(choice_id=None, reply="")
+
         choices = list(scene.choices.values())
-        found = [choice.id for idx, choice in enumerate(choices) if matches(transcript, choice, idx)]
-        if len(found) == 1:
-            log.info("Rozpoznano wybór '%s' z mowy: %r", found[0], transcript)
-            return Interpretation(choice_id=found[0], reply="")
-        if found:
-            log.info("Wypowiedź pasuje do kilku wyborów (%s), dopytuję", ", ".join(found))
+        scores = {choice.id: score_choice(transcript, choice, idx, scene.id) for idx, choice in enumerate(choices)}
+        ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+        top_id, top_score = ranked[0]
+        second_score = ranked[1][1] if len(ranked) > 1 else 0
+
+        if top_score > 0 and (top_score > second_score or second_score == 0):
+            log.info("Rozpoznano wybór '%s' (punkty: %d vs %d) z mowy: %r", top_id, top_score, second_score, transcript)
+            return Interpretation(choice_id=top_id, reply="")
+
+        if top_score > 0:
+            log.info("Niejednoznaczna wypowiedź %r (remis punktów: %s), dopytuję", transcript, scores)
         else:
-            log.info("Wypowiedź %r nie pasuje do żadnego wyboru w scenie %s", transcript, scene.id)
+            log.info("Wypowiedź %r nie pasuje do żadnego wyboru w scenie %s (punkty: %s)", transcript, scene.id, scores)
         return Interpretation(choice_id=None, reply="")
 
 
