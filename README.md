@@ -14,6 +14,7 @@ Odcinek: **„Klub Ciekawskich: Bzyczka szuka domu”** ([scenariusz odcinka](sc
 [graf scen dla aplikacji](scenarios/klub_ciekawskich.yaml)). Dlaczego streaming, jak to wygląda na rynku i jak
 odcinek trafia do serwisów: [docs/STREAMING.md](docs/STREAMING.md). Zgodność z regulaminem hackathonu:
 [docs/ZGODNOSC_Z_REGULAMINEM.md](docs/ZGODNOSC_Z_REGULAMINEM.md).
+**Pełna dokumentacja inżynierska i techniczna systemu: [docs/DOKUMENTACJA_TECHNICZNA.md](docs/DOKUMENTACJA_TECHNICZNA.md).**
 **Prezentacja produktu, pitch, Kreator Rodzica i badania: [docs/prezentacja/](docs/prezentacja/README.md).**
 **Nowa osoba w zespole? Zacznij od [docs/ONBOARDING.md](docs/ONBOARDING.md).** Podział pracy:
 [docs/PODZIAL_PRACY.md](docs/PODZIAL_PRACY.md). Co zostało do zrobienia: [docs/DO_ZROBIENIA.md](docs/DO_ZROBIENIA.md).
