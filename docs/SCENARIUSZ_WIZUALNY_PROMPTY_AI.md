@@ -281,3 +281,16 @@ stały dopisek stylu.
 Generator dokłada własny podkład i efekty (średnio od −43 do −23 dB). Postacie w klipach nie mówią po polsku, więc
 kwestie są w napisach, a muzykę i głosy postaci warto nagrać osobno i nałożyć w montażu (manifest odcinka ma na to
 miejsce). Do tego czasu pętle są ściszone, a odtwarzacz ścisza tło, gdy słucha mikrofon.
+
+### Partia z 18.10
+
+Druga partia: 30 klipów 1920×1080, 24 kl./s, po 10 s, z dźwiękiem generatora — pokrywa 30 z 36 plików odcinka
+(`download/klipy.yaml`). Doszły brakujące dotąd sceny: las z sową i żabką, Wiaterek Fiufiu (wichura, oddech, wersja
+spokojna, „jeszcze raz”), pomocnik, łąka z liczeniem pszczółek, wybór kwiatka, święto (zwykła i spokojna wersja)
+i oba finały. Styl nowych klipów to ilustracja książkowa, spójna z klipami powitania i mostka.
+
+- **Bez zmian względem 17.10:** pętle `01_powitanie_idle`, `02_kuferek_idle` (mapa z zamkiem) i `03a_most_idle`
+  (inny most) to klipy z pierwszej partii — uwagi i poprawione prompty wyżej nadal obowiązują.
+- **Wciąż brakuje:** `01_reakcja_hopsasa.mp4`, `03a1_most_przejscie.mp4`, `07_swieto_zywa.mp4` i trzech warstw
+  kwiatków (`warstwa_*.webm`, przezroczyste tło — do zrobienia z wyciętego kadru `06b_kwiatek`, nie z generatora
+  wideo, który nie daje kanału alfa). Do czasu nagrania odcinek gra w ich miejsce zaślepki.

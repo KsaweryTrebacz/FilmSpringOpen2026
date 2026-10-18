@@ -2,7 +2,7 @@
 
 > **Dokumentacja inżynierska i deweloperska systemu.**  
 > Ostatnia aktualizacja: Październik 2026 | FilmSpring Open 2026  
-> Repozytorium: [`FilmSpringOpen2026`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026)
+> Repozytorium: [`FilmSpringOpen2026`](https://github.com/KsaweryTrebacz/FilmSpringOpen2026)
 
 ---
 
@@ -39,7 +39,7 @@
 
 ## 1. Architektura Systemu
 
-System zaprojektowano zgodnie z wzorcem **architektury heksagonalnej (Ports & Adapters)**. Rdzeń logiki biznesowej ([`bajka/engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/engine.py)) jest całkowicie odizolowany od warstwy wejścia/wyjścia. Wszystkie kontrakty zdefiniowane są jako protokoły w pliku [`bajka/ports.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/ports.py).
+System zaprojektowano zgodnie z wzorcem **architektury heksagonalnej (Ports & Adapters)**. Rdzeń logiki biznesowej ([`bajka/engine.py`](../bajka/engine.py)) jest całkowicie odizolowany od warstwy wejścia/wyjścia. Wszystkie kontrakty zdefiniowane są jako protokoły w pliku [`bajka/ports.py`](../bajka/ports.py).
 
 ```mermaid
 flowchart TD
@@ -147,18 +147,18 @@ FilmSpringOpen2026/
 
 | Moduł / Plik | Odpowiedzialność techniczna |
 |---|---|
-| [`bajka/engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/engine.py) | **Maszyna stanów:** Zarządza cyklem życia ujęć, akumuluje warstwy przezroczyste, odpytuje montażystę asynchronicznie, rozstrzyga timeouty oraz emituje telemetrię do obserwatora. |
-| [`bajka/web_player.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/web_player.py) | **Compositor Server:** Wielowątkowy most między silnikiem Pythona a odtwarzaczem w przeglądarce (`threading.Condition`, numeracja sekwencyjna `seq`, obsługa HTTP 206 Partial Content). |
-| [`bajka/player_app/index.html`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/player_app/index.html) | **Dual-Deck Engine:** Implementacja frontendu w czystym JS. Dwa elementy `<video>` A/B, obsługa przejść CSS, dynamiczny Punch Cut, skalowanie tempa `playbackRate`, Web Audio API. |
-| [`bajka/montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/montage.py) | **Silnik montażu:** Oblicza rodzaj cięcia (`Cut`) na podstawie kontekstu sceny i tętna widza. Zawiera asynchroniczny model LLM (`ModelEditor`) oraz deterministyczny fallback (`RuleEditor`). |
-| [`bajka/pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/pulse.py) | **Biofeedback:** Algorytmy filtrowania odczytów tętna, wyznaczanie odchylenia od normy (`baseline`), wykrywanie znużenia (<68-72 BPM) i pobudzenia (>88-92 BPM), symulator z natychmiastową reakcją. |
-| [`bajka/panel.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/panel.py) | **Telemetry Server:** Serwuje panel realizatora (`:8090`). Przesyła zdarzenia SSE (`scena`, `montaz`, `wersja`, `glosy`), generuje topologię grafu w SVG i obsługuje suwak tętna. |
-| [`bajka/mobile.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/mobile.py) | **Drugi ekran:** Serwer HTTPS (`:8443`) z certyfikatem TLS generowanym w locie (umożliwia dostęp do mikrofonu w mobilnym Safari/Chrome). Generuje kody QR w konsoli. |
-| [`bajka/keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/keywords.py) | **Lekki klasyfikator intencji:** Odporny na brak połączenia i błędy LLM silnik dopasowywania mowy w języku polskim (usuwanie znaków diakrytycznych, stemming prefiksowy, wagi słów). |
-| [`bajka/local_stt.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/local_stt.py) | **Lokalny Speech-to-Text:** Integracja z modelem Whisper ONNX przez Foundry Local SDK i DirectML/NPU. |
-| [`bajka/local_intent.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/local_intent.py) | **Lokalny LLM:** Integracja z modelem Phi-3/4 przez DirectML na Windows 11. |
-| [`bajka/safety.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/safety.py) | **Filtr bezpieczeństwa:** Walidacja wyjścia modeli AI pod kątem słownictwa odpowiedniego dla dzieci 4–7 lat. |
-| [`bajka/clips.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/clips.py) | **Transkoder FFmpeg:** Przygotowuje klipy z generatorów wideo AI, tworząc bezszwowe zapętlenie pętli `idle` (płynny crossfade ostatniej sekundy z pierwszą). |
+| [`bajka/engine.py`](../bajka/engine.py) | **Maszyna stanów:** Zarządza cyklem życia ujęć, akumuluje warstwy przezroczyste, odpytuje montażystę asynchronicznie, rozstrzyga timeouty oraz emituje telemetrię do obserwatora. |
+| [`bajka/web_player.py`](../bajka/web_player.py) | **Compositor Server:** Wielowątkowy most między silnikiem Pythona a odtwarzaczem w przeglądarce (`threading.Condition`, numeracja sekwencyjna `seq`, obsługa HTTP 206 Partial Content). |
+| [`bajka/player_app/index.html`](../bajka/player_app/index.html) | **Dual-Deck Engine:** Implementacja frontendu w czystym JS. Dwa elementy `<video>` A/B, obsługa przejść CSS, dynamiczny Punch Cut, skalowanie tempa `playbackRate`, Web Audio API. |
+| [`bajka/montage.py`](../bajka/montage.py) | **Silnik montażu:** Oblicza rodzaj cięcia (`Cut`) na podstawie kontekstu sceny i tętna widza. Zawiera asynchroniczny model LLM (`ModelEditor`) oraz deterministyczny fallback (`RuleEditor`). |
+| [`bajka/pulse.py`](../bajka/pulse.py) | **Biofeedback:** Algorytmy filtrowania odczytów tętna, wyznaczanie odchylenia od normy (`baseline`), wykrywanie znużenia (<68-72 BPM) i pobudzenia (>88-92 BPM), symulator z natychmiastową reakcją. |
+| [`bajka/panel.py`](../bajka/panel.py) | **Telemetry Server:** Serwuje panel realizatora (`:8090`). Przesyła zdarzenia SSE (`scena`, `montaz`, `wersja`, `glosy`), generuje topologię grafu w SVG i obsługuje suwak tętna. |
+| [`bajka/mobile.py`](../bajka/mobile.py) | **Drugi ekran:** Serwer HTTPS (`:8443`) z certyfikatem TLS generowanym w locie (umożliwia dostęp do mikrofonu w mobilnym Safari/Chrome). Generuje kody QR w konsoli. |
+| [`bajka/keywords.py`](../bajka/keywords.py) | **Lekki klasyfikator intencji:** Odporny na brak połączenia i błędy LLM silnik dopasowywania mowy w języku polskim (usuwanie znaków diakrytycznych, stemming prefiksowy, wagi słów). |
+| [`bajka/local_stt.py`](../bajka/local_stt.py) | **Lokalny Speech-to-Text:** Integracja z modelem Whisper ONNX przez Foundry Local SDK i DirectML/NPU. |
+| [`bajka/local_intent.py`](../bajka/local_intent.py) | **Lokalny LLM:** Integracja z modelem Phi-3/4 przez DirectML na Windows 11. |
+| [`bajka/safety.py`](../bajka/safety.py) | **Filtr bezpieczeństwa:** Walidacja wyjścia modeli AI pod kątem słownictwa odpowiedniego dla dzieci 4–7 lat. |
+| [`bajka/clips.py`](../bajka/clips.py) | **Transkoder FFmpeg:** Przygotowuje klipy z generatorów wideo AI, tworząc bezszwowe zapętlenie pętli `idle` (płynny crossfade ostatniej sekundy z pierwszą). |
 
 ---
 
@@ -255,7 +255,7 @@ Podczas okna wyboru opcje pojawiają się na ekranach wszystkich połączonych u
 
 ### 3.4. Panel i Ustawienia Rodzica w Odtwarzaczu (Parent Controls & Privacy)
 
-Bezpośrednio w interfejsie odtwarzacza ([`bajka/player_app/index.html`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/player_app/index.html)) rodzic ma dostęp do dedykowanego panelu konfiguracyjnego (przycisk zębatki `⚙` na górnym pasku sterowania lub sekcja na ekranie startowym).
+Bezpośrednio w interfejsie odtwarzacza ([`bajka/player_app/index.html`](../bajka/player_app/index.html)) rodzic ma dostęp do dedykowanego panelu konfiguracyjnego (przycisk zębatki `⚙` na górnym pasku sterowania lub sekcja na ekranie startowym).
 
 #### Funkcjonalności techniczne panelu rodzica w odtwarzaczu:
 1. **Przełącznik mikrofonu i prywatność (RODO / COPPA Compliance):**
@@ -274,7 +274,7 @@ Bezpośrednio w interfejsie odtwarzacza ([`bajka/player_app/index.html`](file://
 
 ### 3.5. Kreator Rodzica (Parent Studio & Personalizator Odcinka)
 
-**Kreator Rodzica** ([`docs/prezentacja/KREATOR_RODZICA.md`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/docs/prezentacja/KREATOR_RODZICA.md)) to moduł pozwalający rodzicowi na zdefiniowanie celów edukacyjnych, trudności i czasu trwania bajki, zanim dziecko usiądzie przed ekranem.
+**Kreator Rodzica** ([`docs/prezentacja/KREATOR_RODZICA.md`](prezentacja/KREATOR_RODZICA.md)) to moduł pozwalający rodzicowi na zdefiniowanie celów edukacyjnych, trudności i czasu trwania bajki, zanim dziecko usiądzie przed ekranem.
 
 ![Kreator Rodzica — Makieta Interfejsu](prezentacja/media/kreator.png)
 
@@ -311,10 +311,10 @@ Bezpośrednio w interfejsie odtwarzacza ([`bajka/player_app/index.html`](file://
 
 #### Dostępne parametry konfiguracyjne:
 - **Cele dydaktyczne (Modular Curriculum):**
-  - *Liczenie do trzech:* aktywacja modułu ula [`06_laka.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/06_laka.mp4).
-  - *Rytm i myślenie logiczne:* aktywacja modułu naprzemiennego wzoru desek [`03a_most.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/03a_most.mp4).
-  - *Samoregulacja emocji (Oddech relaksacyjny):* moduł uspokojenia Wiaterka Fiufiu [`04_wiaterek.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/04_wiaterek.mp4) z cyklem oddechowym 4s wdech / 4s wydech.
-  - *Zrozumienie funkcji narzędzi:* dobór lornetki w module [`05_pomocnik.mp4`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/clips/klub_ciekawskich/05_pomocnik.mp4).
+  - *Liczenie do trzech:* aktywacja modułu ula [`06_laka.mp4`](../scenarios/clips/klub_ciekawskich/06_laka.mp4).
+  - *Rytm i myślenie logiczne:* aktywacja modułu naprzemiennego wzoru desek [`03a_most.mp4`](../scenarios/clips/klub_ciekawskich/03a_most.mp4).
+  - *Samoregulacja emocji (Oddech relaksacyjny):* moduł uspokojenia Wiaterka Fiufiu [`04_wiaterek.mp4`](../scenarios/clips/klub_ciekawskich/04_wiaterek.mp4) z cyklem oddechowym 4s wdech / 4s wydech.
+  - *Zrozumienie funkcji narzędzi:* dobór lornetki w module [`05_pomocnik.mp4`](../scenarios/clips/klub_ciekawskich/05_pomocnik.mp4).
 - **Liczba zagadek i czas:** Możliwość skrócenia seansu do np. 7 minut przed obiadem (zagadki nieaktywne postać rozwiązuje samodzielnie w locie).
 - **Poziom trudności:** Wybór pomiędzy 2 a 3 opcjami w oknie decyzyjnym.
 - **Bezpieczeństwo treści (Zero-Hallucination):** Odcinek składa się wyłącznie ze sprawdzonych w studiu i zweryfikowanych przez człowieka (human-in-the-loop) modułów wideo. Sztuczna inteligencja nie generuje obrazu ani fabuły na żywo w sposób niekontrolowany.
@@ -328,7 +328,7 @@ Zamiast mechanizmu autoplay (*„następny odcinek za 5 sekund”*), aplikacja p
 ![Raport Po Odcinku — Podsumowanie](prezentacja/media/raport.png)
 
 #### Struktura danych telemetrycznych raportu:
-Silnik [`StoryEngine`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/engine.py) w trakcie całego seansu zbiera metryki w strukturze `self.decisions`:
+Silnik [`StoryEngine`](../bajka/engine.py) w trakcie całego seansu zbiera metryki w strukturze `self.decisions`:
 1. **Ścieżka fabularna:** Dokładny przebieg węzłów (np. *Dziupla -> Tęczowy Mostek -> Skraj Łąki -> Ul pod Lipą -> Pszczółkowy Taniec*).
 2. **Profil interakcji dziecka:**
    - Udział odpowiedzi głosowych (np. 65%),
@@ -455,7 +455,7 @@ python -m bajka.linear scenarios/klub_ciekawskich.yaml --choices most,czerwona,s
    - *Rozwiązanie:* Kliknij duży przycisk **▶ Oglądaj** na ekranie startowym.
 2. **Telefon nie może połączyć się z mikrofonem na drugim ekranie:**
    - *Przyczyna:* Przeglądarki mobilne (iOS Safari, Android Chrome) blokują `getUserMedia` na niezabezpieczonych połączeniach HTTP.
-   - *Rozwiązanie:* Uruchom aplikację z flagą `--mobile`. Moduł [`bajka/mobile.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/mobile.py) automatycznie wygeneruje certyfikat TLS i uruchomi połączenie HTTPS (`https://<IP>:8443/`). Na telefonie zaakceptuj certyfikat lokalny.
+   - *Rozwiązanie:* Uruchom aplikację z flagą `--mobile`. Moduł [`bajka/mobile.py`](../bajka/mobile.py) automatycznie wygeneruje certyfikat TLS i uruchomi połączenie HTTPS (`https://<IP>:8443/`). Na telefonie zaakceptuj certyfikat lokalny.
 3. **Błąd: Port `8080` lub `8090` zajęty:**
    - *Rozwiązanie:* Zmień port w pliku `.env` (`BAJKA_PORT=8085`, `BAJKA_PANEL_PORT=8095`).
 4. **Zamknięcie karty przeglądarki wstrzymuje odcinek:**
@@ -468,7 +468,7 @@ python -m bajka.linear scenarios/klub_ciekawskich.yaml --choices most,czerwona,s
 Montaż nie jest statyczną listą cięć – adaptuje się na bieżąco do zaangażowania i stanu psychofizjologicznego widza.
 
 ### 5.1. Analiza biometryczna i klasyfikacja tętna
-Moduł [`bajka/pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/pulse.py) monitoruje parametr BPM (Beats Per Minute). W pierwszej scenie ustala się wartość referencyjną widza w spoczynku (`baseline`, zazwyczaj 78–82 BPM dla dziecka).
+Moduł [`bajka/pulse.py`](../bajka/pulse.py) monitoruje parametr BPM (Beats Per Minute). W pierwszej scenie ustala się wartość referencyjną widza w spoczynku (`baseline`, zazwyczaj 78–82 BPM dla dziecka).
 
 ```text
        Spadek tętna (< 68 BPM)                 Norma (68 - 88 BPM)                 Wzrost tętna (> 88 BPM)
@@ -505,7 +505,7 @@ if (punch) {
 Zabieg ten natychmiast przyciąga uwagę widza do środka ekranu, imitując profesjonalny montaż teledyskowy/kinowy bez strat jakości wideo.
 
 ### 5.4. Przejścia montażowe i silnik regułowo-modelowy
-W module [`bajka/montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/montage.py) zaimplementowano dwa uzupełniające się silniki:
+W module [`bajka/montage.py`](../bajka/montage.py) zaimplementowano dwa uzupełniające się silniki:
 - **`ModelEditor`:** Wysyła do lokalnego modelu Phi lub Azure OpenAI strukturę JSON z informacjami o scenie źródłowej, docelowej, wyborze widza i tętnie. Model zwraca decyzję montażową w czasie trwania reakcji postaci.
 - **`RuleEditor`:** Niezawodny silnik regułowy działający w czasie < 1 ms. Używany jako fallback, gdy model nie zdąży przed końcem klipu reakcji.
 
@@ -522,7 +522,7 @@ Dozwolone rodzaje przejść:
 
 ## 6. Specyfikacja Grafu Scenariusza (YAML Reference)
 
-Graf scen zdefiniowany jest w formacie YAML (np. [`scenarios/klub_ciekawskich.yaml`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/scenarios/klub_ciekawskich.yaml)).
+Graf scen zdefiniowany jest w formacie YAML (np. [`scenarios/klub_ciekawskich.yaml`](../scenarios/klub_ciekawskich.yaml)).
 
 ### 6.1. Schemat węzła sceny
 
@@ -566,7 +566,7 @@ Gdy dziecko dokonuje wyboru (np. wybiera słonecznik, koniczynę lub stokrotkę)
    - W przypadku braku Foundry Local, Chromium korzysta z wbudowanego Web Speech API.
 3. **Ekstrakcja intencji i zapas słów kluczowych:**
    - Model językowy Phi analizuje transkrypcję i przypisuje ją do identyfikatora wyboru.
-   - Jeśli model nie jest pewny lub upłynął limit czasu, moduł [`bajka/keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/bajka/keywords.py) wykonuje natychmiastowe dopasowanie scoringowe na słowach kluczowych ze scenariusza.
+   - Jeśli model nie jest pewny lub upłynął limit czasu, moduł [`bajka/keywords.py`](../bajka/keywords.py) wykonuje natychmiastowe dopasowanie scoringowe na słowach kluczowych ze scenariusza.
 4. **Filtr bezpieczeństwa (`bajka/safety.py`):**
    - Wszystkie kwestie generowane dynamicznie przez model podlegają rygorystycznemu filtrowaniu leksykalnemu, gwarantując brak jakichkolwiek nieodpowiednich treści w bajce dla dzieci.
 
@@ -620,8 +620,8 @@ python -m pytest tests --ignore=tests/test_stt.py --ignore=tests/test_tts.py
 *(Flagi `--ignore` pomijają opcjonalne testy chmurowe wymagające zewnętrznych kluczy API Azure).*
 
 ### Zakres pokrycia testowego
-- [`tests/test_engine.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_engine.py) — Spójność maszyny stanów, przechodzenie po krawędziach grafu, obsługa timeoutów.
-- [`tests/test_montage.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_montage.py) — Poprawność wyboru cięć, czasy trwania przejść, działanie reguł `RuleEditor`.
-- [`tests/test_pulse.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_pulse.py) — Progi klasyfikacji tętna, filtrowanie odczytów i wygładzanie szumu.
-- [`tests/test_web_player.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_web_player.py) — Synchronizacja wątkowa komend, serwowanie plików i obsługa zdarzeń przeglądarki.
-- [`tests/test_keywords.py`](file:///C:/Users/skywa/.gemini/antigravity/scratch/FilmSpringOpen2026/tests/test_keywords.py) — Poprawność dopasowywania wypowiedzi w języku polskim do opcji wyboru.
+- [`tests/test_engine.py`](../tests/test_engine.py) — Spójność maszyny stanów, przechodzenie po krawędziach grafu, obsługa timeoutów.
+- [`tests/test_montage.py`](../tests/test_montage.py) — Poprawność wyboru cięć, czasy trwania przejść, działanie reguł `RuleEditor`.
+- [`tests/test_pulse.py`](../tests/test_pulse.py) — Progi klasyfikacji tętna, filtrowanie odczytów i wygładzanie szumu.
+- [`tests/test_web_player.py`](../tests/test_web_player.py) — Synchronizacja wątkowa komend, serwowanie plików i obsługa zdarzeń przeglądarki.
+- [`tests/test_keywords.py`](../tests/test_keywords.py) — Poprawność dopasowywania wypowiedzi w języku polskim do opcji wyboru.
