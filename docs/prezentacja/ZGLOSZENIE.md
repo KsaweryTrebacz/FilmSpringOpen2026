@@ -10,7 +10,7 @@
 | Zwiastun z klipów odcinka, 32 s | [media/zwiastun.mp4](media/zwiastun.mp4) |
 | Tętno a montaż: odtwarzacz i panel obok siebie, 47 s | [media/tetno_montaz.mp4](media/tetno_montaz.mp4) |
 | Mapa odcinka: etapy, odpowiedzi i gałęzie | [media/mapa_odcinka.jpg](media/mapa_odcinka.jpg) |
-| Slajdy (27) z notatkami | eksport PDF w załączniku · [link do slajdów](https://claude.ai/artifact/LhY5PzguvLUpW7VHhCCYtg) |
+| Slajdy (25) z notatkami | eksport PDF w załączniku · [link do slajdów](https://claude.ai/artifact/LhY5PzguvLUpW7VHhCCYtg) |
 | Kod, scenariusz i cała dokumentacja | [github.com/KsaweryTrebacz/FilmSpringOpen2026](https://github.com/KsaweryTrebacz/FilmSpringOpen2026) |
 
 > **In English (summary).** *Klub Ciekawskich* (“The Curious Club”) is an interactive animated series for children

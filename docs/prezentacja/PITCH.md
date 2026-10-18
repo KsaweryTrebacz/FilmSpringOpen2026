@@ -8,8 +8,8 @@ Liczby i źródła: [BADANIA.md](BADANIA.md). Pokaz na żywo: [DEMO_DLA_JURY.md]
 | Wersja | Czas | Slajdy |
 |---|---|---|
 | **Zgłoszenie (18.10, 19:00)** — ocena bez prelegenta | czyta się samo | [ZGLOSZENIE.md](ZGLOSZENIE.md) / PDF + slajdy w PDF + `media/odcinek_przejscie.mp4`, `media/zwiastun.mp4` i `media/tetno_montaz.mp4` |
-| **Sesja online 29.10** (transmisja, publiczna) | ok. 7 min | 1–5 (1,5 min) → **pokaz na żywo** zamiast 6–16 (3 min; awaryjnie nagranie ze slajdu 9) → 17, 19, 20, 22, 25, 27 (2,5 min) |
-| **Rozmowa sprzedażowa** (serwis, wydawca, edukacja) | 12–15 min | wszystkie 27 |
+| **Sesja online 29.10** (transmisja, publiczna) | ok. 7 min | 1–5 (1,5 min) → **pokaz na żywo** zamiast 6–16 (3 min; awaryjnie nagranie ze slajdu 9) → 17, 19, 20, 22, 25 (2,5 min) |
+| **Rozmowa sprzedażowa** (serwis, wydawca, edukacja) | 12–15 min | wszystkie 25 |
 
 Na sesji online jeden mówi, drugi steruje laptopem (pokaz i panel), a widzowie transmisji wybierają na czacie —
 są „dzieckiem przed telewizorem” ([DEMO_DLA_JURY.md](../DEMO_DLA_JURY.md)).
@@ -92,12 +92,6 @@ To nie makieta. Odcinek to jeden plik scenariusza: sceny, okna wyboru, gałęzie
 
 **25. Co sprawdziliśmy: Sprawdziliśmy prototyp i poprawiliśmy to, co zawiodło.**
 Co sprawdziliśmy sami 17 i 18.10. Cały odcinek przeszedł w przeglądarce od powitania do finału z nowymi klipami z generatora: 8 okien wyboru, 10 decyzji montażysty, zero błędów strony. Eksperyment z rozpoznawaniem odpowiedzi po słowach kluczowych (tryb bez modelu): 100 typowych odpowiedzi dzieci, które napisaliśmy sami — 79 z 81 jasnych rozpoznanych dobrze, żadnego złego wyboru, a wszystkie niejasne, jak „nie wiem”, kończą się dopytaniem. Eksperyment znalazł błąd: wcześniej „nie wiem” wybierało opcję. Naprawiliśmy go w aplikacji i w przeglądarce. 444 testy automatyczne — jeden z nich pilnuje składni strony odtwarzacza, bo 18.10 jedna zdublowana stała wyłączyła całą stronę. Wszystko powstało na hackathonie. Czego jeszcze nie ma: testu z dziećmi — to pierwszy krok i aktualizacja do 25.10.
-
-**26. Plan: W rok od pilotażu do pierwszego partnera.**
-Teraz mamy działający prototyp. W ciągu 1–3 miesięcy: pilotaż z 5–10 rodzinami, pełny odcinek z nagranymi głosami postaci i pierwsza wersja Kreatora — ekran ustawień nad parametrami, które silnik już ma. W ciągu 3–6 miesięcy: biblioteka modułów z oznaczonymi umiejętnościami, planista Kreatora, raport dla rodzica i trzy odcinki. Do roku: pierwszy partner — serwis albo platforma edukacyjna — i tętno w wersji testowej, tylko za zgodą rodzica. Najbliższy krok to test z rodzinami, który chcemy dosłać jako aktualizację do 25.10.
-
-**27. Czego szukamy: Szukamy partnerów do pilotażu i pierwszego wdrożenia.**
-Szukamy rodzin z dziećmi 4–7 lat do testu w domu albo w bibliotece, studia animacji albo wydawcy z postaciami dla dzieci oraz serwisu albo platformy edukacyjnej na pierwsze wdrożenie. Dziękujemy — oddajemy pilota: na sesji online 29.10 widzowie mogą sami wybrać kolejną drogę w odcinku. Kod, scenariusz, eksperyment i cała dokumentacja są w publicznym repozytorium.
 
 ## Pytania, których się spodziewamy
 

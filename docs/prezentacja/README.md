@@ -6,7 +6,7 @@ Materiały do zgłoszenia (18.10, 19:00), pokazu online (29.10) i rozmów z serw
 |---|---|
 | **[ZGLOSZENIE.md](ZGLOSZENIE.md)** / [PDF](ZGLOSZENIE.pdf) | **Zgłoszenie na 18.10, 19:00**: co to jest, problem, kto skorzysta, wyzwania, co sprawdziliśmy, co powstało na hackathonie. Czyta się bez prelegenta |
 | [eksperyment/](eksperyment/) | Eksperyment z rozpoznawaniem odpowiedzi po słowach kluczowych (`python docs/prezentacja/eksperyment/slowa_kluczowe.py`) |
-| **Slajdy** (Claude, [link](https://claude.ai/artifact/LhY5PzguvLUpW7VHhCCYtg)) | 27 slajdów z notatkami prelegenta: zwiastun z dźwiękiem, cały odcinek do odtworzenia kliknięciem, mapa odcinka, galeria trzech wersji montażu lasu, nagranie „tętno a montaż”, zrzuty odtwarzacza, telefonu i panelu, makiety; jedna czcionka (Nunito). Link jest prywatny, dopóki właściciel nie udostępni go w menu Share; eksport do PDF i PowerPoint jest w tym samym menu |
+| **Slajdy** (Claude, [link](https://claude.ai/artifact/LhY5PzguvLUpW7VHhCCYtg)) | 25 slajdów z notatkami prelegenta: zwiastun z dźwiękiem, cały odcinek do odtworzenia kliknięciem, mapa odcinka, galeria trzech wersji montażu lasu, nagranie „tętno a montaż”, zrzuty odtwarzacza, telefonu i panelu, makiety; jedna czcionka (Nunito). Link jest prywatny, dopóki właściciel nie udostępni go w menu Share; eksport do PDF i PowerPoint jest w tym samym menu |
 | [PITCH.md](PITCH.md) | Scenariusz wystąpienia slajd po slajdzie: sesja online 29.10 (7 min) i rozmowa sprzedażowa, pytania i odpowiedzi |
 | [ONE_PAGER.md](ONE_PAGER.md) / [PDF](ONE_PAGER.pdf) | Jedna strona do wysłania po spotkaniu |
 | [KREATOR_RODZICA.md](KREATOR_RODZICA.md) | Koncepcja: rodzic składa odcinek (cele, liczba zagadek, czas, głos, limit), raport po odcinku |
