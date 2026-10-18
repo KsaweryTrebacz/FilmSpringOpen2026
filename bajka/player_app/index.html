@@ -232,12 +232,34 @@ for (const [key, id] of [["mic", "micSetting"], ["captions", "captionsSetting"]]
 // --- start: gest użytkownika odblokowuje dźwięk i mikrofon ---
 
 $("startButton").addEventListener("click", () => {
-  if (started) { $("start").hidden = true; return; }  // powrót z ustawień
+  console.log("Start button clicked. Current state:", state, "started:", started);
+  if (started) {
+    $("start").hidden = true;
+    $("start").style.display = "none";
+    return;
+  }
   started = true;
   $("start").hidden = true;
+  $("start").style.display = "none";
   $("startButton").textContent = "▶ Wróć do odcinka";
+
+  // Odblokuj media bezposrednio w gestii uzytkownika
+  for (const deck of decks) {
+    try {
+      deck.video.muted = false;
+      const p = deck.video.play();
+      if (p && p.then) {
+        p.then(() => deck.video.pause()).catch(() => {});
+      }
+    } catch (_) {}
+  }
+
   try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch (_) {}
-  if (state) onState(state);
+
+  handled = null;
+  if (state) {
+    onState(state);
+  }
 
   initSpeechRecognition();
   if (recognition) {
@@ -536,10 +558,28 @@ function begin(deck, seq, rate = 1.0) {
     const report = () => { if (!sent) { sent = true; done(seq); } };
     video.ontimeupdate = () => { if (remainingMs(video) <= LEAD_S * 1000) report(); };
     video.onended = video.onerror = report;  // uszkodzony klip: odcinek idzie dalej, zamiast stanąć
-    video.play().catch(() => setTimeout(report, 500));
+    const p = video.play();
+    if (p && p.catch) {
+      p.catch(err => {
+        console.warn("Autoplay audio blocked, retrying muted:", err);
+        video.muted = true;
+        video.play().then(() => {
+          setTimeout(() => { video.muted = false; }, 250);
+        }).catch(finalErr => {
+          console.error("Video play completely failed:", finalErr);
+          setTimeout(report, 500);
+        });
+      });
+    }
   } else {
     video.ontimeupdate = video.onended = video.onerror = null;
-    video.play().catch(() => { /* np. przeglądarka wstrzymała odtwarzanie w tle; pętla ruszy przy kolejnym ujęciu */ });
+    const p = video.play();
+    if (p && p.catch) {
+      p.catch(() => {
+        video.muted = true;
+        video.play().catch(() => {});
+      });
+    }
   }
   for (const layer of deck.layerBox.children) {
     try { layer.playbackRate = rate; } catch (_) {}
