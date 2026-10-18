@@ -1,6 +1,9 @@
 import http.client
 import io
 import json
+import re
+import shutil
+import subprocess
 import threading
 import time
 import wave
@@ -388,3 +391,15 @@ def test_player_page_works_offline_and_has_the_choice_window():
         assert section in page
     for external in ("http://", "https://", "//cdn"):
         assert external not in page  # bez internetu: żadnych zewnętrznych plików
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="do sprawdzenia składni skryptu potrzebny jest node")
+def test_player_script_parses(tmp_path):
+    # Błąd składni (np. dwa razy ta sama stała) wyłącza całą stronę: ekran startowy zostaje bez odcinka.
+    page = (APP_DIR / "index.html").read_text(encoding="utf-8")
+    script = tmp_path / "player.js"
+    script.write_text("\n".join(re.findall(r"<script>(.*?)</script>", page, re.S)), encoding="utf-8")
+
+    result = subprocess.run(["node", "--check", str(script)], capture_output=True, text=True, timeout=30)
+
+    assert result.returncode == 0, result.stderr

@@ -857,8 +857,7 @@ function textMatchesChoice(heardText, choiceId, label) {
   };
 
   const list = synonyms[choiceId] || [];
-  // Krótkie słowa („nie”, „tak”, „hu”) tylko jako całe wyrazy: „spokojnie” kończy się na „nie”.
-  const heardWords = (heardText || "").toLowerCase().replace(/ł/g, "l").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/);
+  // Krótkie słowa („nie”, „tak”, „hu”) tylko jako całe wyrazy (heardWords): „spokojnie” kończy się na „nie”.
   for (const s of list) {
     const key = s.replace(/[^a-z0-9]/g, "");
     if (key.length >= 4 ? h.includes(key) : heardWords.includes(key)) return true;
