@@ -231,18 +231,21 @@ for (const [key, id] of [["mic", "micSetting"], ["captions", "captionsSetting"]]
 
 // --- start: gest użytkownika odblokowuje dźwięk i mikrofon ---
 
-$("startButton").addEventListener("click", async () => {
+$("startButton").addEventListener("click", () => {
   if (started) { $("start").hidden = true; return; }  // powrót z ustawień
+  started = true;
+  $("start").hidden = true;
+  $("startButton").textContent = "▶ Wróć do odcinka";
+  try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch (_) {}
+  if (state) onState(state);
+
   initSpeechRecognition();
   if (recognition) {
     try { recognition.start(); } catch (err) { console.warn("Recognition start error:", err); }
   }
-  if (settings.mic) await openMicrophone();
-  started = true;
-  $("start").hidden = true;
-  $("startButton").textContent = "▶ Wróć do odcinka";
-  try { await document.documentElement.requestFullscreen?.(); } catch (_) { /* pełny ekran nie jest konieczny */ }
-  if (state) onState(state);
+  if (settings.mic) {
+    openMicrophone().catch(err => console.warn("Mic open error:", err));
+  }
 });
 
 $("testMicButton").addEventListener("click", async () => {
